@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+
+  <!-- Freightliner Cascadia sleeper tractor, facing right.
+       Chunky tall sleeper cab (rear) + substantial sloped hood + tall grille (front). -->
+
+  <!-- Outer silhouette -->
+  <path d="
+    M12 70
+    L12 18 Q12 13 17 13
+    L98 13 Q104 13 106 17
+    L120 32
+    L166 38 Q172 39 174 46
+    L174 64 Q174 70 168 70
+    Z
+  "/>
+
+  <!-- Windshield (steep rake, front of cab) -->
+  <path d="M106 17 L120 32 L106 32 Z"/>
+
+  <!-- Cab / hood break -->
+  <line x1="106" y1="32" x2="106" y2="70"/>
+
+  <!-- Sleeper side window -->
+  <rect x="22" y="19" width="30" height="15" rx="2"/>
+
+  <!-- Tall grille (Cascadia nose) -->
+  <line x1="165" y1="44" x2="165" y2="64"/>
+  <line x1="169" y1="45" x2="169" y2="64"/>
+
+  <!-- Headlight -->
+  <path d="M156 40 L164 41 L164 50 L156 49 Z"/>
+
+  <!-- Tandem drive wheels (under sleeper) -->
+  <circle cx="42" cy="81" r="11"/>
+  <circle cx="66" cy="81" r="11"/>
+
+  <!-- Steer wheel (under hood) -->
+  <circle cx="146" cy="81" r="11"/>
+
+</svg>

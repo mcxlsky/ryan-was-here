@@ -1,0 +1,17 @@
+# Admin / playground (local only)
+admin.html
+admin.css
+admin.js
+index_old.html
+
+# OS
+.DS_Store
+
+# Claude Code local config
+.claude/
+
+# MCP config (contains secrets)
+.mcp.json
+
+# Local experiments
+Dither Mapping Experiment/
