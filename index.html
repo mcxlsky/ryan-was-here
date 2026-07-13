@@ -6420,63 +6420,8 @@ void main() {
       if (b && !b.disabled) navigateProjectModal(featuredProjectIndex + 1);
     });
 
-    // --- Substack RSS feed (via Cloudflare Worker proxy) ---
-    // Substack's feed sends no CORS headers, so it can't be fetched directly from
-    // this static site. The worker in cloudflare-worker/substack-proxy.js re-serves
-    // the feed with CORS. Deploy it, then paste its URL into SUBSTACK_PROXY below.
-    // Until that's set, the page keeps the hardcoded fallback cards in the markup.
-    (async function loadSubstackPosts() {
-      const SUBSTACK_PROXY = 'https://ryan-was-here.mcxlsky.workers.dev';
-
-      let xml;
-      try {
-        const res = await fetch(SUBSTACK_PROXY, { cache: 'no-store' });
-        if (!res.ok) return;
-        xml = await res.text();
-      } catch {
-        return;
-      }
-
-      const doc = new DOMParser().parseFromString(xml, 'text/xml');
-      if (doc.querySelector('parsererror')) return;
-      const items = Array.from(doc.querySelectorAll('item')).slice(0, 4);
-      if (!items.length) return;
-
-      const grid = document.getElementById('blog-grid');
-      if (!grid) return;
-
-      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
-        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-      ));
-
-      grid.innerHTML = items.map((item) => {
-        const title = (item.querySelector('title')?.textContent || '').trim();
-        const link = (item.querySelector('link')?.textContent
-          || item.querySelector('guid')?.textContent || '').trim();
-        const subtitle = (item.querySelector('description')?.textContent || '')
-          .replace(/<[^>]+>/g, '').trim();
-        const pubDateRaw = item.querySelector('pubDate')?.textContent || '';
-        const date = pubDateRaw
-          ? new Date(pubDateRaw).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-          : '';
-        return `<article class="blog-grid__card" style="cursor: pointer;" role="link" tabindex="0" data-href="${esc(link)}">
-          <div class="blog-card__meta">
-            <h3 class="blog-card__title">${esc(title)}</h3>
-            ${subtitle ? `<p class="blog-card__subtitle">${esc(subtitle)}</p>` : ''}
-            ${date ? `<p class="blog-card__excerpt">${esc(date)}</p>` : ''}
-          </div>
-          <div class="featured-card__arrow" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-        </article>`;
-      }).join('');
-
-      grid.querySelectorAll('.blog-grid__card[data-href]').forEach(card => {
-        const url = card.dataset.href;
-        card.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
-        card.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') window.open(url, '_blank', 'noopener');
-        });
-      });
-    })();
+    // Substack Writing cards are loaded by a standalone script near </body>, so the
+    // feed never depends on this WebGL module finishing (see loadSubstackPosts there).
   </script>
   <script>
   (function () {
@@ -7060,6 +7005,65 @@ void main() {
     document.addEventListener('click', e => {
       const card = e.target.closest('[data-case-study]');
       if (card) openCaseStudy(card.dataset.caseStudy);
+    });
+  })();
+  </script>
+  <script>
+  // --- Substack RSS feed (via Cloudflare Worker proxy) ---
+  // Substack's feed sends no CORS headers, so it can't be fetched directly from this
+  // static site. The worker in cloudflare-worker/substack-proxy.js re-serves it with
+  // CORS. This runs standalone (not inside the WebGL module) so the Writing cards load
+  // even if the 3D scene fails. On any failure it leaves the hardcoded fallback cards.
+  (async function loadSubstackPosts() {
+    const SUBSTACK_PROXY = 'https://ryan-was-here.mcxlsky.workers.dev';
+
+    let xml;
+    try {
+      const res = await fetch(SUBSTACK_PROXY, { cache: 'no-store' });
+      if (!res.ok) return;
+      xml = await res.text();
+    } catch {
+      return;
+    }
+
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    if (doc.querySelector('parsererror')) return;
+    const items = Array.from(doc.querySelectorAll('item')).slice(0, 4);
+    if (!items.length) return;
+
+    const grid = document.getElementById('blog-grid');
+    if (!grid) return;
+
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+
+    grid.innerHTML = items.map((item) => {
+      const title = (item.querySelector('title')?.textContent || '').trim();
+      const link = (item.querySelector('link')?.textContent
+        || item.querySelector('guid')?.textContent || '').trim();
+      const subtitle = (item.querySelector('description')?.textContent || '')
+        .replace(/<[^>]+>/g, '').trim();
+      const pubDateRaw = item.querySelector('pubDate')?.textContent || '';
+      const date = pubDateRaw
+        ? new Date(pubDateRaw).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '';
+      return `<article class="blog-grid__card" style="cursor: pointer;" role="link" tabindex="0" data-href="${esc(link)}">
+        <div class="blog-card__meta">
+          <h3 class="blog-card__title">${esc(title)}</h3>
+          ${subtitle ? `<p class="blog-card__subtitle">${esc(subtitle)}</p>` : ''}
+          ${date ? `<p class="blog-card__excerpt">${esc(date)}</p>` : ''}
+        </div>
+        <div class="featured-card__arrow" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      </article>`;
+    }).join('');
+
+    grid.querySelectorAll('.blog-grid__card[data-href]').forEach(card => {
+      const url = card.dataset.href;
+      card.addEventListener('click', () => window.open(url, '_blank', 'noopener'));
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') window.open(url, '_blank', 'noopener');
+      });
     });
   })();
   </script>
