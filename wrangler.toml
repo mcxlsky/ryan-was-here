@@ -1,0 +1,6 @@
+# Cloudflare Worker config — deploys the Substack feed proxy only.
+# Cloudflare's Git build runs `npx wrangler deploy`, which reads this file.
+# The website itself is served separately by GitHub Pages; this touches only the worker.
+name = "ryan-was-here"
+main = "cloudflare-worker/substack-proxy.js"
+compatibility_date = "2026-07-01"

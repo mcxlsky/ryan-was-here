@@ -2985,6 +2985,128 @@
     /* Full-width image (spans both grid cols) */
     .cs__img-full { margin: 60px 0; }
 
+    /* ── Inline UI mockup ── */
+    .cs__img--ui {
+      background: #4a1d96;
+      animation: none;
+      aspect-ratio: unset;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 7%;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.22);
+    }
+    html[data-theme="dark"] .cs__img--ui { background: #4a1d96; animation: none; }
+    .cs__ui-window {
+      background: #fff;
+      border-radius: 10px 10px 0 0;
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      width: 84%;
+      min-width: 0;
+      overflow: hidden;
+    }
+    .cs__ui-nav {
+      background: #fff;
+      border-right: 1px solid #f0f0f0;
+      border-radius: 10px 0 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0;
+      gap: 8px;
+    }
+    .cs__ui-nav-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      color: #9ca3af;
+    }
+    .cs__ui-nav-icon--active { background: #f3f0ff; color: #6d28d9; }
+    .cs__ui-nav-icon svg { width: 18px; height: 18px; }
+    .cs__ui-main {
+      padding: 20px 18px 18px;
+      overflow: hidden;
+    }
+    .cs__ui-greeting { font-size: 18px; font-weight: 700; color: #111; margin-bottom: 2px; }
+    .cs__ui-subline { font-size: 12px; color: #6d28d9; font-weight: 500; margin-bottom: 18px; }
+    .cs__ui-card {
+      background: #f7f7f8;
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 12px;
+    }
+    .cs__ui-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .cs__ui-card-title { font-size: 14px; font-weight: 600; color: #111; }
+    .cs__ui-card-date { font-size: 12px; color: #9ca3af; }
+    .cs__ui-card-actions { display: flex; gap: 8px; }
+    .cs__ui-card-actions svg { width: 16px; height: 16px; color: #9ca3af; }
+    .cs__ui-feature-bar {
+      background: #3b0764;
+      border-radius: 7px;
+      padding: 13px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .cs__ui-feature-bar-label { font-size: 13px; font-weight: 600; color: #fff; }
+    .cs__ui-feature-bar-time { font-size: 12px; color: rgba(255,255,255,0.75); }
+    .cs__ui-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #efefef;
+    }
+    .cs__ui-row:last-child { border-bottom: none; }
+    .cs__ui-row-label { font-size: 13px; color: #374151; }
+    .cs__ui-row-time { font-size: 12px; color: #9ca3af; }
+    .cs__ui-section {
+      background: #fff;
+      border: 1px solid #efefef;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    .cs__ui-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px;
+      border-bottom: 1px solid #efefef;
+      cursor: default;
+    }
+    .cs__ui-section-title { font-size: 13px; font-weight: 600; color: #111; }
+    .cs__ui-section-header svg { width: 16px; height: 16px; color: #9ca3af; }
+    .cs__ui-menu-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+    }
+    .cs__ui-menu-item + .cs__ui-menu-item { border-top: 1px solid #f5f5f5; }
+    .cs__ui-price-badge {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: #f3f4f6;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #111;
+      flex-shrink: 0;
+    }
+    .cs__ui-item-name { font-size: 13px; font-weight: 600; color: #111; }
+    .cs__ui-item-desc { font-size: 12px; color: #9ca3af; margin-top: 1px; }
+    .cs__ui-week { padding-top: 20px; }
+    .cs__ui-week-title { font-size: 13px; font-weight: 600; color: #111; margin-bottom: 12px; }
+    .cs__ui-week-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cs__ui-week-card {
+      border: 1px solid #efefef;
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .cs__ui-week-day { font-size: 11px; font-weight: 700; color: #6d28d9; margin-bottom: 2px; }
+    .cs__ui-week-date { font-size: 14px; font-weight: 700; color: #111; }
+    .cs__ui-week-time { font-size: 11px; color: #9ca3af; display: flex; align-items: center; gap: 4px; }
+    .cs__ui-week-time svg { width: 11px; height: 11px; }
+
     /* Two-up images */
     .cs__img-pair {
       display: grid;
@@ -6298,44 +6420,50 @@ void main() {
       if (b && !b.disabled) navigateProjectModal(featuredProjectIndex + 1);
     });
 
-    // --- Substack RSS feed ---
+    // --- Substack RSS feed (via Cloudflare Worker proxy) ---
+    // Substack's feed sends no CORS headers, so it can't be fetched directly from
+    // this static site. The worker in cloudflare-worker/substack-proxy.js re-serves
+    // the feed with CORS. Deploy it, then paste its URL into SUBSTACK_PROXY below.
+    // Until that's set, the page keeps the hardcoded fallback cards in the markup.
     (async function loadSubstackPosts() {
-      const SUBSTACK_FEED = 'https://ryanwashere.substack.com/feed';
+      const SUBSTACK_PROXY = 'https://ryan-was-here.mcxlsky.workers.dev';
 
       let xml;
       try {
-        const res = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(SUBSTACK_FEED)}`);
+        const res = await fetch(SUBSTACK_PROXY, { cache: 'no-store' });
+        if (!res.ok) return;
         xml = await res.text();
       } catch {
         return;
       }
 
       const doc = new DOMParser().parseFromString(xml, 'text/xml');
+      if (doc.querySelector('parsererror')) return;
       const items = Array.from(doc.querySelectorAll('item')).slice(0, 4);
       if (!items.length) return;
 
       const grid = document.getElementById('blog-grid');
       if (!grid) return;
 
+      const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+      ));
+
       grid.innerHTML = items.map((item) => {
-        const title = item.querySelector('title')?.textContent || '';
-        const link = item.querySelector('link')?.nextSibling?.nodeValue?.trim()
-          || item.querySelector('guid')?.textContent || '';
-        const enclosureUrl = item.querySelector('enclosure')?.getAttribute('url') || '';
+        const title = (item.querySelector('title')?.textContent || '').trim();
+        const link = (item.querySelector('link')?.textContent
+          || item.querySelector('guid')?.textContent || '').trim();
         const subtitle = (item.querySelector('description')?.textContent || '')
           .replace(/<[^>]+>/g, '').trim();
         const pubDateRaw = item.querySelector('pubDate')?.textContent || '';
         const date = pubDateRaw
           ? new Date(pubDateRaw).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
           : '';
-        const thumbStyle = enclosureUrl
-          ? `background-image: url('${enclosureUrl}'); background-size: cover; background-position: center center;`
-          : '';
-        return `<article class="blog-grid__card" style="cursor: pointer;" role="link" tabindex="0" data-href="${link}">
+        return `<article class="blog-grid__card" style="cursor: pointer;" role="link" tabindex="0" data-href="${esc(link)}">
           <div class="blog-card__meta">
-            <h3 class="blog-card__title">${title}</h3>
-            ${subtitle ? `<p class="blog-card__subtitle">${subtitle}</p>` : ''}
-            ${date ? `<p class="blog-card__excerpt">${date}</p>` : ''}
+            <h3 class="blog-card__title">${esc(title)}</h3>
+            ${subtitle ? `<p class="blog-card__subtitle">${esc(subtitle)}</p>` : ''}
+            ${date ? `<p class="blog-card__excerpt">${esc(date)}</p>` : ''}
           </div>
           <div class="featured-card__arrow" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         </article>`;
@@ -6685,7 +6813,101 @@ void main() {
           </div>
         </div>
 
-        <div class="cs__img-full">${img('Dashboard Overview')}</div>
+        <div class="cs__img-full">
+          <div class="cs__img cs__img--ui">
+              <div class="cs__ui-window">
+                <nav class="cs__ui-nav">
+                  <div class="cs__ui-nav-icon cs__ui-nav-icon--active">
+                    <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h4a1 1 0 001-1v-4h2v4a1 1 0 001 1h4a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/></svg>
+                  </div>
+                  <div class="cs__ui-nav-icon">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 10.414V15a1 1 0 01-.553.894l-4 2A1 1 0 017 17v-6.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+                  </div>
+                  <div class="cs__ui-nav-icon">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="14" height="14" rx="2"/><path d="M3 8h14M8 4v4M12 4v4"/></svg>
+                  </div>
+                  <div class="cs__ui-nav-icon">
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 17v-2a4 4 0 014-4h6a4 4 0 014 4v2M10 3a4 4 0 100 8 4 4 0 000-8z"/></svg>
+                  </div>
+                </nav>
+                <main class="cs__ui-main">
+                  <div class="cs__ui-greeting">Hello Casey</div>
+                  <div class="cs__ui-subline">The Lantern Room is open until 2:00am</div>
+                  <div class="cs__ui-card">
+                    <div class="cs__ui-card-header">
+                      <div>
+                        <div class="cs__ui-card-title">Today</div>
+                        <div class="cs__ui-card-date">June 30, 2026</div>
+                      </div>
+                      <div class="cs__ui-card-actions">
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="12" rx="2"/><path d="M2 7h12M6 1v4M10 1v4"/></svg>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>
+                      </div>
+                    </div>
+                    <div class="cs__ui-feature-bar">
+                      <span class="cs__ui-feature-bar-label">Tonight's Feature</span>
+                      <span class="cs__ui-feature-bar-time">5:00pm to 2:00am</span>
+                    </div>
+                    <div class="cs__ui-row">
+                      <span class="cs__ui-row-label">Happy Hour</span>
+                      <span class="cs__ui-row-time">5:00pm – 2:00am</span>
+                    </div>
+                    <div class="cs__ui-section">
+                      <div class="cs__ui-section-header">
+                        <span class="cs__ui-section-title">Cocktails</span>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+                      </div>
+                      <div class="cs__ui-menu-item">
+                        <div class="cs__ui-price-badge">$10</div>
+                        <div>
+                          <div class="cs__ui-item-name">Negroni Sbagliato</div>
+                          <div class="cs__ui-item-desc">Campari, sweet vermouth, prosecco.</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="cs__ui-section" style="margin-top:8px;">
+                      <div class="cs__ui-section-header">
+                        <span class="cs__ui-section-title">Small plates</span>
+                        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 6l4 4 4-4"/></svg>
+                      </div>
+                      <div class="cs__ui-menu-item">
+                        <div class="cs__ui-price-badge">$14</div>
+                        <div>
+                          <div class="cs__ui-item-name">Charred Octopus</div>
+                          <div class="cs__ui-item-desc">Romesco, fingerling potato, lemon.</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="cs__ui-week">
+                    <div class="cs__ui-week-title">Here's what's happening this week</div>
+                    <div class="cs__ui-week-cards">
+                      <div class="cs__ui-week-card">
+                        <div>
+                          <div class="cs__ui-week-day">Sat</div>
+                          <div class="cs__ui-week-date">Jul 4</div>
+                        </div>
+                        <div class="cs__ui-week-time">
+                          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5V6l2 1.5"/></svg>
+                          4:00pm – 4:00am
+                        </div>
+                      </div>
+                      <div class="cs__ui-week-card">
+                        <div>
+                          <div class="cs__ui-week-day" style="color:#9ca3af;">Sun</div>
+                          <div class="cs__ui-week-date">Jul 5</div>
+                        </div>
+                        <div class="cs__ui-week-time">
+                          <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4.5"/><path d="M6 3.5V6l2 1.5"/></svg>
+                          5:00pm – 11:00pm
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </main>
+              </div>
+          </div>
+        </div>
 
         ${row('Overview', p('The business-facing side of The Hush is a web-based platform built to solve a major pain point for hospitality owners. It replaces the high maintenance and low conversion of algorithmic social media marketing with a stable, utility-driven alternative.'))}
 
