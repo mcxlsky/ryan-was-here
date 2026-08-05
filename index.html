@@ -7013,27 +7013,63 @@ void main() {
   // Substack's feed sends no CORS headers, so it can't be fetched directly from this
   // static site. The worker in cloudflare-worker/substack-proxy.js re-serves it with
   // CORS. This runs standalone (not inside the WebGL module) so the Writing cards load
-  // even if the 3D scene fails. On any failure it leaves the hardcoded fallback cards.
+  // even if the 3D scene fails.
+  //
+  // Resilience: retries once on failure, caches the last good response in localStorage
+  // so articles survive transient outages instead of reverting to placeholder cards.
   (async function loadSubstackPosts() {
     const SUBSTACK_PROXY = 'https://ryan-was-here.mcxlsky.workers.dev';
-
-    let xml;
-    try {
-      const res = await fetch(SUBSTACK_PROXY, { cache: 'no-store' });
-      if (!res.ok) return;
-      xml = await res.text();
-    } catch {
-      return;
-    }
-
-    const doc = new DOMParser().parseFromString(xml, 'text/xml');
-    if (doc.querySelector('parsererror')) return;
-    const items = Array.from(doc.querySelectorAll('item')).slice(0, 4);
-    if (!items.length) return;
+    const CACHE_KEY = 'substack-feed-cache';
+    const MAX_ATTEMPTS = 2;
 
     const grid = document.getElementById('blog-grid');
     if (!grid) return;
 
+    /* ── Fetch with retry ─────────────────────────────────── */
+    let xml = null;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      try {
+        const res = await fetch(SUBSTACK_PROXY, { cache: 'no-store' });
+        if (!res.ok) {
+          console.warn(`[Substack] Attempt ${attempt}: HTTP ${res.status}`);
+          if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1500)); continue; }
+          break;
+        }
+        xml = await res.text();
+        break;
+      } catch (err) {
+        console.warn(`[Substack] Attempt ${attempt}: ${err.message || err}`);
+        if (attempt < MAX_ATTEMPTS) { await new Promise(r => setTimeout(r, 1500)); continue; }
+      }
+    }
+
+    /* ── Fall back to cached XML if the fetch failed ────── */
+    if (!xml) {
+      try { xml = localStorage.getItem(CACHE_KEY); } catch {}
+      if (xml) {
+        console.info('[Substack] Using cached feed');
+      } else {
+        console.warn('[Substack] No cached feed available — keeping fallback cards');
+        return;
+      }
+    }
+
+    /* ── Parse ────────────────────────────────────────────── */
+    const doc = new DOMParser().parseFromString(xml, 'text/xml');
+    if (doc.querySelector('parsererror')) {
+      console.warn('[Substack] XML parse error');
+      return;
+    }
+    const items = Array.from(doc.querySelectorAll('item')).slice(0, 4);
+    if (!items.length) {
+      console.warn('[Substack] Feed has no items');
+      return;
+    }
+
+    /* ── Cache the good response for next time ───────────── */
+    try { localStorage.setItem(CACHE_KEY, xml); } catch {}
+
+    /* ── Render ───────────────────────────────────────────── */
     const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
       { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
     ));

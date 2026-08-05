@@ -20,7 +20,19 @@
 const FEED_URL = 'https://ryanwashere.substack.com/feed';
 
 export default {
-  async fetch() {
+  async fetch(request) {
+    // Handle CORS preflight without hitting Substack.
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'access-control-allow-origin': '*',
+          'access-control-allow-methods': 'GET, OPTIONS',
+          'access-control-max-age': '86400',
+        },
+      });
+    }
+
     let upstream;
     try {
       upstream = await fetch(FEED_URL, {
