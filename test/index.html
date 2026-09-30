@@ -145,16 +145,12 @@
     }
 
     .tag {
-      font-family: "Permanent Marker", var(--font-ui);
-      line-height: 0.8; color: #fff;
-      text-shadow: 0 3px 18px rgba(0,0,0,0.7);
-      display: flex; flex-direction: column; align-items: center;
-      transform: rotate(-4deg); user-select: none;
+      width: 190px;
+      height: auto;
+      transform: rotate(-3deg);
+      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7));
+      user-select: none;
     }
-    .tag span { display: block; }
-    .tag .l1 { font-size: 44px; transform: translateX(-8px) rotate(2deg); }
-    .tag .l2 { font-size: 50px; transform: translateX(12px) rotate(-3deg); }
-    .tag .l3 { font-size: 48px; transform: translateX(-2px) rotate(4deg); }
 
     .bio {
       max-width: 524px; font-size: 18px; font-weight: 500; line-height: 1.45;
@@ -186,7 +182,7 @@
       .nav-slot { width: 62px; margin-right: -26px; }
       .nav-stop { width: 118px; font-size: 13px; }
       .hero__photo { background-position: center 45%; }
-      .tag .l1 { font-size: 32px; } .tag .l2 { font-size: 37px; } .tag .l3 { font-size: 35px; }
+      .tag { width: 140px; }
       .bio { font-size: 15px; }
     }
   </style>
@@ -220,11 +216,7 @@
 
       <!-- Hero copy -->
       <div class="hero__center">
-        <div class="tag" data-placeholder aria-label="Ryan was here">
-          <span class="l1">RYAN</span>
-          <span class="l2">WAS</span>
-          <span class="l3">HERE</span>
-        </div>
+        <img class="tag" src="assets/ryan-was-here.png" alt="Ryan was here" />
         <p class="bio">
           I&rsquo;m Ryan McCaulsky, a Designer with over eight years of experience in
           human-computer interaction, design systems, and software design for consumer
@@ -235,6 +227,6 @@
     </div>
   </section>
 
-  <div class="badge">/test · static hero (step 1) · graffiti tag = placeholder font</div>
+  <div class="badge">/test · static hero (step 1)</div>
 </body>
 </html>
