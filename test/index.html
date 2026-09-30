@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ryan was here — test</title>
-  <meta name="description" content="Subway-doors hero (static frame — step 1)." />
+  <meta name="description" content="Scroll-driven subway-doors hero." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -18,6 +18,16 @@
       --glass: rgba(127, 124, 117, 0.25);
       --strip: rgba(255, 255, 255, 0.45);
       --font-ui: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif;
+
+      /* Doorway geometry as % of the 916x582 source photo */
+      --door-l-left: 30.022%;
+      --door-r-left: 53.493%;
+      --door-top: 2.062%;
+      --door-l-w: 23.472%;
+      --door-r-w: 24.017%;
+      --door-h: 86.426%;
+      --plat-left: 30.022%;
+      --plat-w: 47.489%;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,134 +39,94 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* ---------- Hero shell ---------- */
-    .hero {
-      position: relative;
-      height: 100vh;
-      min-height: 640px;
-      width: 100%;
-      overflow: hidden;
-      background: var(--bg);
-    }
+    /* ---------- Scroll scene ---------- */
+    .scene { position: relative; height: 320vh; }
+    .sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--bg); }
 
-    /* Full-bleed photo of the closed doors */
-    .hero__photo {
+    /* Cover-sized stage that keeps the photo's 916:582 aspect */
+    .stage {
       position: absolute;
-      inset: 0;
-      background-image: url("assets/subway-doors.webp");
-      background-size: cover;
-      background-position: center 42%;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: max(100vw, calc(100vh * 916 / 582));
+      height: max(100vh, calc(100vw * 582 / 916));
       z-index: 0;
     }
 
-    /* Scrim so the white UI reads over the gritty photo */
-    .hero__scrim {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
+    /* Wrapper we scale/tilt on scroll (kept separate from centering transform) */
+    .parallax { position: absolute; inset: 0; will-change: transform; }
+
+    .layer { position: absolute; display: block; }
+    #platform  { left: var(--plat-left);  top: var(--door-top); width: var(--plat-w);  height: var(--door-h); z-index: 1; will-change: transform; }
+    #door-left { left: var(--door-l-left); top: var(--door-top); width: var(--door-l-w); height: var(--door-h); z-index: 2; will-change: transform; }
+    #door-right{ left: var(--door-r-left); top: var(--door-top); width: var(--door-r-w); height: var(--door-h); z-index: 2; will-change: transform; }
+    #foreground{ left: 0; top: 0; width: 100%; height: 100%; z-index: 3; }
+
+    /* Scrim over the photo, under the UI */
+    .scrim {
+      position: absolute; inset: 0; z-index: 4; pointer-events: none;
       background:
-        linear-gradient(180deg, rgba(15,15,14,0.55) 0%, rgba(15,15,14,0.20) 26%, rgba(15,15,14,0.28) 62%, rgba(15,15,14,0.62) 100%),
-        radial-gradient(90% 60% at 50% 52%, rgba(15,15,14,0.10) 0%, rgba(15,15,14,0.45) 100%);
+        linear-gradient(180deg, rgba(15,15,14,0.55) 0%, rgba(15,15,14,0.18) 26%, rgba(15,15,14,0.24) 60%, rgba(15,15,14,0.60) 100%),
+        radial-gradient(90% 60% at 50% 50%, rgba(15,15,14,0.06) 0%, rgba(15,15,14,0.42) 100%);
     }
 
-    /* Content column, matching the Figma 1124 wrapper w/ 24px inset */
-    .hero__wrap {
-      position: relative;
-      z-index: 2;
-      height: 100%;
-      max-width: 1124px;
-      margin: 0 auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
+    /* ---------- Overlay UI ---------- */
+    .wrap {
+      position: absolute; inset: 0; z-index: 5;
+      height: 100%; max-width: 1124px; margin: 0 auto;
+      padding: 24px; display: flex; flex-direction: column;
     }
 
-    /* ---------- Glass wayfinding navbar ---------- */
     .navbar {
-      backdrop-filter: blur(21px);
-      -webkit-backdrop-filter: blur(21px);
-      background: var(--glass);
-      border-radius: 10px;
+      backdrop-filter: blur(21px); -webkit-backdrop-filter: blur(21px);
+      background: var(--glass); border-radius: 10px;
       box-shadow: 0 18px 36px -10px rgba(0,0,0,0.3);
-      overflow: hidden;
-      width: 100%;
-      flex-shrink: 0;
+      overflow: hidden; width: 100%; flex-shrink: 0;
     }
-
-    .sign-content {
-      display: flex;
-      align-items: stretch;
-      height: 132px;
-      padding-bottom: 4px;
-      overflow: hidden;
-    }
-
+    .sign-content { display: flex; align-items: stretch; height: 132px; padding-bottom: 4px; overflow: hidden; }
     .home { display: flex; align-items: center; justify-content: center; padding: 0 40px; }
     .logo-r {
-      background: var(--accent);
-      color: var(--bg);
-      width: 84px; height: 84px;
-      border-radius: 128px;
+      background: var(--accent); color: var(--bg);
+      width: 84px; height: 84px; border-radius: 128px;
       display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 46px; line-height: 1;
-      user-select: none;
+      font-weight: 700; font-size: 46px; line-height: 1; user-select: none;
     }
-
-    /* Angled subway-signage nav */
     .nav-strip { flex: 1; display: flex; align-items: flex-end; padding: 0 18px; overflow: hidden; }
     .nav-stops { display: flex; align-items: flex-end; height: 100%; }
-    .nav-slot {
-      width: 92px; height: 100%;
-      display: flex; align-items: center; justify-content: center;
-      margin-right: -34px;
-    }
+    .nav-slot { width: 92px; height: 100%; display: flex; align-items: center; justify-content: center; margin-right: -34px; }
     .nav-stop {
-      transform: rotate(-58deg);
-      width: 150px;
+      transform: rotate(-58deg); width: 150px;
       border-bottom: 1px solid var(--ink);
-      padding: 17px 14px 14px 0;
-      color: var(--ink);
-      font-size: 17px; letter-spacing: -0.36px;
-      white-space: nowrap; opacity: 0.25;
-      transition: opacity 0.3s ease;
+      padding: 17px 14px 14px 0; color: var(--ink);
+      font-size: 17px; letter-spacing: -0.36px; white-space: nowrap;
+      opacity: 0.25; transition: opacity 0.3s ease;
       background: none; text-align: left; cursor: pointer;
     }
     .nav-slot:first-child .nav-stop { opacity: 1; }
     .nav-slot:hover .nav-stop { opacity: 0.9; }
-
-    /* Service strip + station dot */
     .service { position: relative; height: 26px; display: flex; align-items: center; padding: 0 28px; }
     .service-line { height: 2px; width: 100%; background: var(--strip); border-radius: 4px; }
     .station-dot {
       position: absolute; top: 50%; left: 6%;
       width: 12px; height: 12px; border-radius: 72px;
       background: #fff; border: 1px solid #fff;
-      transform: translate(-50%, -50%);
-      box-shadow: 0 0 12px rgba(255,255,255,0.6);
+      transform: translate(-50%, -50%); box-shadow: 0 0 12px rgba(255,255,255,0.6);
     }
 
-    /* ---------- Hero copy ---------- */
-    .hero__center {
-      flex: 1;
-      display: flex; flex-direction: column;
+    .center {
+      flex: 1; display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      gap: 20px; text-align: center;
-      padding: 0 24px 96px;
+      gap: 20px; text-align: center; padding: 0 24px 96px;
+      will-change: opacity, transform;
     }
-
     .tag {
-      width: 190px;
-      height: auto;
-      transform: rotate(-3deg);
-      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7));
-      user-select: none;
+      width: 132px; height: auto; transform: rotate(-3deg);
+      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7)); user-select: none;
     }
-
     .bio {
       max-width: 524px; font-size: 18px; font-weight: 500; line-height: 1.45;
-      color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,0.75);
+      color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,0.8);
     }
-
     .btn-more {
       background: var(--accent); color: var(--bg);
       border: 1px solid var(--accent); border-radius: 52px;
@@ -165,14 +135,30 @@
       box-shadow: 0 8px 24px -8px rgba(229,171,0,0.6);
     }
     .btn-more:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -8px rgba(229,171,0,0.85); }
-    .btn-more:active { transform: translateY(0); }
+
+    .scroll-hint {
+      position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+      z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+    }
+    .scroll-hint .chev {
+      width: 16px; height: 16px;
+      border-right: 2px solid rgba(255,255,255,0.65);
+      border-bottom: 2px solid rgba(255,255,255,0.65);
+      transform: rotate(45deg); animation: bob 1.6s ease-in-out infinite;
+    }
+    @keyframes bob { 0%,100%{ transform: rotate(45deg) translate(0,0);} 50%{ transform: rotate(45deg) translate(3px,3px);} }
+
+    .after { background: var(--bg); padding: 120px 24px 160px; text-align: center; }
+    .after h3 { font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+    .after p { max-width: 620px; margin: 0 auto; color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.6; }
 
     .badge {
       position: fixed; left: 12px; bottom: 12px; z-index: 10;
       font-size: 11px; letter-spacing: 0.08em; color: rgba(255,255,255,0.5);
       background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
-      padding: 5px 10px; border-radius: 999px; backdrop-filter: blur(6px);
-      pointer-events: none;
+      padding: 5px 10px; border-radius: 999px; backdrop-filter: blur(6px); pointer-events: none;
     }
 
     @media (max-width: 720px) {
@@ -181,52 +167,154 @@
       .logo-r { width: 56px; height: 56px; font-size: 30px; }
       .nav-slot { width: 62px; margin-right: -26px; }
       .nav-stop { width: 118px; font-size: 13px; }
-      .hero__photo { background-position: center 45%; }
-      .tag { width: 140px; }
+      .tag { width: 100px; }
       .bio { font-size: 15px; }
     }
+    @media (prefers-reduced-motion: reduce) { .chev { animation: none; } }
   </style>
 </head>
 <body>
-  <section class="hero">
-    <div class="hero__photo" role="img" aria-label="Closed New York City subway car doors"></div>
-    <div class="hero__scrim"></div>
+  <main class="scene" id="scene">
+    <div class="sticky">
+      <!-- 2.5D subway stage -->
+      <div class="stage">
+        <div class="parallax" id="parallax">
+          <img class="layer" id="platform"   src="assets/doors/platform.png"   alt="" aria-hidden="true" />
+          <img class="layer" id="door-left"  src="assets/doors/door-left.png"  alt="" aria-hidden="true" />
+          <img class="layer" id="door-right" src="assets/doors/door-right.png" alt="" aria-hidden="true" />
+          <img class="layer" id="foreground" src="assets/doors/foreground.png" alt="Inside a New York City subway car" />
+        </div>
+      </div>
 
-    <div class="hero__wrap">
-      <!-- Glass wayfinding navbar -->
-      <nav class="navbar" aria-label="Primary">
-        <div class="sign-content">
-          <div class="home"><div class="logo-r" aria-label="Ryan — home">R</div></div>
-          <div class="nav-strip">
-            <div class="nav-stops">
-              <div class="nav-slot"><button class="nav-stop">About</button></div>
-              <div class="nav-slot"><button class="nav-stop">Work</button></div>
-              <div class="nav-slot"><button class="nav-stop">Process</button></div>
-              <div class="nav-slot"><button class="nav-stop">Field notes</button></div>
-              <div class="nav-slot"><button class="nav-stop">Contact</button></div>
+      <div class="scrim"></div>
+
+      <!-- Overlay UI -->
+      <div class="wrap">
+        <nav class="navbar" aria-label="Primary">
+          <div class="sign-content">
+            <div class="home"><div class="logo-r" aria-label="Ryan — home">R</div></div>
+            <div class="nav-strip">
+              <div class="nav-stops">
+                <div class="nav-slot"><button class="nav-stop">About</button></div>
+                <div class="nav-slot"><button class="nav-stop">Work</button></div>
+                <div class="nav-slot"><button class="nav-stop">Process</button></div>
+                <div class="nav-slot"><button class="nav-stop">Field notes</button></div>
+                <div class="nav-slot"><button class="nav-stop">Contact</button></div>
+              </div>
             </div>
+            <div style="width:200px"></div>
           </div>
-          <div style="width:200px"></div>
-        </div>
-        <div class="service">
-          <div class="service-line"></div>
-          <div class="station-dot"></div>
-        </div>
-      </nav>
+          <div class="service">
+            <div class="service-line"></div>
+            <div class="station-dot" id="stationDot"></div>
+          </div>
+        </nav>
 
-      <!-- Hero copy -->
-      <div class="hero__center">
-        <img class="tag" src="assets/ryan-was-here.png" alt="Ryan was here" />
-        <p class="bio">
-          I&rsquo;m Ryan McCaulsky, a Designer with over eight years of experience in
-          human-computer interaction, design systems, and software design for consumer
-          and SaaS products.
-        </p>
-        <button class="btn-more">More&nbsp;&rarr;</button>
+        <div class="center" id="heroCopy">
+          <img class="tag" src="assets/ryan-was-here.png" alt="Ryan was here" />
+          <p class="bio">
+            I&rsquo;m Ryan McCaulsky, a Designer with over eight years of experience in
+            human-computer interaction, design systems, and software design for consumer
+            and SaaS products.
+          </p>
+          <button class="btn-more">More&nbsp;&rarr;</button>
+        </div>
+      </div>
+
+      <div class="scroll-hint" id="scrollHint">
+        <span>Scroll to board</span>
+        <span class="chev"></span>
       </div>
     </div>
+  </main>
+
+  <section class="after">
+    <h3>Next stop</h3>
+    <p>The doors slide open and the platform comes into view as you scroll. The rest of the
+       portfolio picks up from here.</p>
   </section>
 
-  <div class="badge">/test · static hero (step 1)</div>
+  <div class="badge">/test · doors open on scroll</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script>
+    (function () {
+      const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const parallax   = document.getElementById('parallax');
+      const platform   = document.getElementById('platform');
+      const doorL      = document.getElementById('door-left');
+      const doorR      = document.getElementById('door-right');
+      const heroCopy   = document.getElementById('heroCopy');
+      const scrollHint = document.getElementById('scrollHint');
+      const stationDot = document.getElementById('stationDot');
+
+      const state = { scroll: 0, eased: 0, px: 0, pxE: 0, py: 0, pyE: 0 };
+
+      // ---- scroll progress via GSAP ScrollTrigger (fallback to raw scroll) ----
+      if (window.gsap && window.ScrollTrigger) {
+        gsap.registerPlugin(ScrollTrigger);
+        ScrollTrigger.create({
+          trigger: '#scene', start: 'top top', end: 'bottom bottom', scrub: true,
+          onUpdate: (self) => { state.scroll = self.progress; },
+        });
+      } else {
+        const scene = document.getElementById('scene');
+        const onScroll = () => {
+          const total = scene.offsetHeight - window.innerHeight;
+          state.scroll = Math.min(1, Math.max(0, -scene.getBoundingClientRect().top / total));
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+
+      window.addEventListener('pointermove', (e) => {
+        state.px = (e.clientX / window.innerWidth) * 2 - 1;
+        state.py = (e.clientY / window.innerHeight) * 2 - 1;
+      }, { passive: true });
+
+      const clamp01 = (v) => Math.min(1, Math.max(0, v));
+      const smooth = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
+      const lerp = (a, b, t) => a + (b - a) * t;
+
+      let last = performance.now();
+      function frame(now) {
+        const dt = Math.min((now - last) / 1000, 0.05); last = now;
+        const k = prefersReduced ? 1 : 1 - Math.pow(0.0015, dt);
+        state.eased = lerp(state.eased, state.scroll, k);
+        state.pxE = lerp(state.pxE, state.px, 1 - Math.pow(0.004, dt));
+        state.pyE = lerp(state.pyE, state.py, 1 - Math.pow(0.004, dt));
+
+        const p = state.eased;
+        const open = smooth(0.05, 0.55, p);      // doors slide apart
+        const enter = smooth(0.30, 1.0, p);      // lean-in
+
+        // Doors slide into the pockets (their own width + a touch)
+        doorL.style.transform = `translateX(${(-112 * open).toFixed(2)}%)`;
+        doorR.style.transform = `translateX(${(112 * open).toFixed(2)}%)`;
+
+        // Platform drifts slightly for parallax depth
+        platform.style.transform = `scale(${(1 + 0.05 * enter).toFixed(3)})`;
+
+        // Whole scene leans in + gentle mouse parallax
+        const mx = prefersReduced ? 0 : state.pxE * 1.1;
+        const my = prefersReduced ? 0 : state.pyE * 0.7;
+        const scale = 1 + 0.16 * enter;
+        parallax.style.transform =
+          `scale(${scale.toFixed(3)}) translate(${(mx).toFixed(2)}%, ${(-1.5 * enter + my).toFixed(2)}%)`;
+
+        // UI reactions
+        const copyFade = 1 - smooth(0.08, 0.32, p);
+        heroCopy.style.opacity = copyFade.toFixed(3);
+        heroCopy.style.transform = `translateY(${((1 - copyFade) * -22).toFixed(1)}px)`;
+        scrollHint.style.opacity = (1 - smooth(0.02, 0.14, p)).toFixed(3);
+        stationDot.style.left = `${lerp(6, 94, p).toFixed(2)}%`;
+
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    })();
+  </script>
 </body>
 </html>
