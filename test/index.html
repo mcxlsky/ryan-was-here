@@ -4,20 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ryan was here — test</title>
-  <meta name="description" content="Scroll-driven WebGL subway-car hero (test)." />
+  <meta name="description" content="Subway-doors hero (static frame — step 1)." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet" />
-
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
 
   <style>
     :root {
@@ -26,65 +17,61 @@
       --ink: #ffffff;
       --glass: rgba(127, 124, 117, 0.25);
       --strip: rgba(255, 255, 255, 0.45);
-      --nav-inactive: rgba(255, 255, 255, 0.35);
       --font-ui: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { scroll-behavior: smooth; }
 
     body {
       background: var(--bg);
       color: var(--ink);
       font-family: var(--font-ui);
       -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
     }
 
-    /* ---------- Scroll scene ---------- */
-    .scene {
+    /* ---------- Hero shell ---------- */
+    .hero {
       position: relative;
-      height: 420vh;              /* scroll runway for the scrub */
-    }
-
-    .sticky {
-      position: sticky;
-      top: 0;
       height: 100vh;
-      overflow: hidden;
-    }
-
-    #webgl {
-      position: absolute;
-      inset: 0;
+      min-height: 640px;
       width: 100%;
-      height: 100%;
-      display: block;
+      overflow: hidden;
+      background: var(--bg);
     }
 
-    /* Fallback / loading tint behind the canvas */
-    .backdrop {
+    /* Full-bleed photo of the closed doors */
+    .hero__photo {
       position: absolute;
       inset: 0;
-      background:
-        radial-gradient(120% 90% at 50% 15%, rgba(60,58,54,0.55), transparent 60%),
-        linear-gradient(180deg, #1d1c1a 0%, #0e0e0d 100%);
+      background-image: url("assets/subway-doors.webp");
+      background-size: cover;
+      background-position: center 42%;
       z-index: 0;
     }
 
-    .overlay {
+    /* Scrim so the white UI reads over the gritty photo */
+    .hero__scrim {
       position: absolute;
       inset: 0;
+      z-index: 1;
+      background:
+        linear-gradient(180deg, rgba(15,15,14,0.55) 0%, rgba(15,15,14,0.20) 26%, rgba(15,15,14,0.28) 62%, rgba(15,15,14,0.62) 100%),
+        radial-gradient(90% 60% at 50% 52%, rgba(15,15,14,0.10) 0%, rgba(15,15,14,0.45) 100%);
+    }
+
+    /* Content column, matching the Figma 1124 wrapper w/ 24px inset */
+    .hero__wrap {
+      position: relative;
       z-index: 2;
+      height: 100%;
+      max-width: 1124px;
+      margin: 0 auto;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      padding: 24px;
-      pointer-events: none;
     }
-    .overlay > * { pointer-events: auto; }
 
-    /* ---------- Navbar (glass) ---------- */
+    /* ---------- Glass wayfinding navbar ---------- */
     .navbar {
       backdrop-filter: blur(21px);
       -webkit-backdrop-filter: blur(21px);
@@ -93,6 +80,7 @@
       box-shadow: 0 18px 36px -10px rgba(0,0,0,0.3);
       overflow: hidden;
       width: 100%;
+      flex-shrink: 0;
     }
 
     .sign-content {
@@ -103,46 +91,23 @@
       overflow: hidden;
     }
 
-    .home {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 40px;
-    }
+    .home { display: flex; align-items: center; justify-content: center; padding: 0 40px; }
     .logo-r {
       background: var(--accent);
       color: var(--bg);
-      width: 84px;
-      height: 84px;
+      width: 84px; height: 84px;
       border-radius: 128px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 46px;
-      line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 46px; line-height: 1;
       user-select: none;
     }
 
     /* Angled subway-signage nav */
-    .nav-strip {
-      flex: 1;
-      display: flex;
-      align-items: flex-end;
-      padding: 0 18px;
-      overflow: hidden;
-    }
-    .nav-stops {
-      display: flex;
-      align-items: flex-end;
-      height: 100%;
-    }
+    .nav-strip { flex: 1; display: flex; align-items: flex-end; padding: 0 18px; overflow: hidden; }
+    .nav-stops { display: flex; align-items: flex-end; height: 100%; }
     .nav-slot {
-      width: 92px;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 92px; height: 100%;
+      display: flex; align-items: center; justify-content: center;
       margin-right: -34px;
     }
     .nav-stop {
@@ -151,623 +116,125 @@
       border-bottom: 1px solid var(--ink);
       padding: 17px 14px 14px 0;
       color: var(--ink);
-      font-size: 17px;
-      letter-spacing: -0.36px;
-      white-space: nowrap;
-      opacity: 0.25;
+      font-size: 17px; letter-spacing: -0.36px;
+      white-space: nowrap; opacity: 0.25;
       transition: opacity 0.3s ease;
-      background: none;
-      text-align: left;
-      cursor: pointer;
+      background: none; text-align: left; cursor: pointer;
     }
     .nav-slot:first-child .nav-stop { opacity: 1; }
     .nav-slot:hover .nav-stop { opacity: 0.9; }
 
     /* Service strip + station dot */
-    .service {
-      position: relative;
-      height: 26px;
-      display: flex;
-      align-items: center;
-      padding: 0 28px;
-    }
-    .service-line {
-      height: 2px;
-      width: 100%;
-      background: var(--strip);
-      border-radius: 4px;
-    }
+    .service { position: relative; height: 26px; display: flex; align-items: center; padding: 0 28px; }
+    .service-line { height: 2px; width: 100%; background: var(--strip); border-radius: 4px; }
     .station-dot {
-      position: absolute;
-      top: 50%;
-      width: 12px;
-      height: 12px;
-      border-radius: 72px;
-      background: #fff;
-      border: 1px solid #fff;
+      position: absolute; top: 50%; left: 6%;
+      width: 12px; height: 12px; border-radius: 72px;
+      background: #fff; border: 1px solid #fff;
       transform: translate(-50%, -50%);
-      left: 6%;
       box-shadow: 0 0 12px rgba(255,255,255,0.6);
     }
 
-    /* ---------- Hero content ---------- */
-    .hero {
+    /* ---------- Hero copy ---------- */
+    .hero__center {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 22px;
-      padding: 0 24px 120px;
-      text-align: center;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px; text-align: center;
+      padding: 0 24px 96px;
     }
 
     .tag {
       font-family: "Permanent Marker", var(--font-ui);
-      line-height: 0.78;
-      color: #fff;
-      text-shadow: 0 2px 14px rgba(0,0,0,0.55);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transform: rotate(-4deg);
-      user-select: none;
+      line-height: 0.8; color: #fff;
+      text-shadow: 0 3px 18px rgba(0,0,0,0.7);
+      display: flex; flex-direction: column; align-items: center;
+      transform: rotate(-4deg); user-select: none;
     }
     .tag span { display: block; }
-    .tag .l1 { font-size: 40px; transform: translateX(-6px) rotate(2deg); }
-    .tag .l2 { font-size: 46px; transform: translateX(10px) rotate(-3deg); }
-    .tag .l3 { font-size: 44px; transform: translateX(-2px) rotate(4deg); }
-    /* Tiny caveat marker — swap for the exact Figma graffiti SVG when available */
-    .tag[data-placeholder]::after {
-      content: "";
-    }
+    .tag .l1 { font-size: 44px; transform: translateX(-8px) rotate(2deg); }
+    .tag .l2 { font-size: 50px; transform: translateX(12px) rotate(-3deg); }
+    .tag .l3 { font-size: 48px; transform: translateX(-2px) rotate(4deg); }
 
     .bio {
-      max-width: 524px;
-      font-size: 18px;
-      font-weight: 500;
-      line-height: 1.45;
-      color: #fff;
-      text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+      max-width: 524px; font-size: 18px; font-weight: 500; line-height: 1.45;
+      color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,0.75);
     }
 
     .btn-more {
-      background: var(--accent);
-      color: var(--bg);
-      border: 1px solid var(--accent);
-      border-radius: 52px;
-      padding: 10px 26px;
-      font-size: 20px;
-      font-weight: 700;
-      cursor: pointer;
+      background: var(--accent); color: var(--bg);
+      border: 1px solid var(--accent); border-radius: 52px;
+      padding: 10px 26px; font-size: 20px; font-weight: 700; cursor: pointer;
       transition: transform 0.15s ease, box-shadow 0.2s ease;
       box-shadow: 0 8px 24px -8px rgba(229,171,0,0.6);
     }
-    .btn-more:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -8px rgba(229,171,0,0.8); }
+    .btn-more:hover { transform: translateY(-2px); box-shadow: 0 12px 28px -8px rgba(229,171,0,0.85); }
     .btn-more:active { transform: translateY(0); }
 
-    /* Scroll hint */
-    .scroll-hint {
-      position: absolute;
-      left: 50%;
-      bottom: 26px;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.6);
-      z-index: 3;
-      transition: opacity 0.4s ease;
-    }
-    .scroll-hint .chev {
-      width: 18px; height: 18px;
-      border-right: 2px solid rgba(255,255,255,0.6);
-      border-bottom: 2px solid rgba(255,255,255,0.6);
-      transform: rotate(45deg);
-      animation: bob 1.6s ease-in-out infinite;
-    }
-    @keyframes bob { 0%,100%{ transform: rotate(45deg) translate(0,0);} 50%{ transform: rotate(45deg) translate(3px,3px);} }
-
-    /* Second-beat caption revealed as you enter the car */
-    .aboard {
-      position: absolute;
-      left: 0; right: 0;
-      bottom: 12%;
-      text-align: center;
-      z-index: 2;
-      opacity: 0;
-      pointer-events: none;
-      padding: 0 24px;
-    }
-    .aboard h2 {
-      font-size: clamp(22px, 4vw, 40px);
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      text-shadow: 0 2px 18px rgba(0,0,0,0.7);
-    }
-    .aboard p {
-      margin-top: 8px;
-      font-size: 15px;
-      color: rgba(255,255,255,0.75);
-    }
-
-    /* After the scene: normal content so the page has somewhere to land */
-    .after {
-      background: var(--bg);
-      padding: 120px 24px 160px;
-      text-align: center;
-    }
-    .after h3 { font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
-    .after p { max-width: 620px; margin: 0 auto; color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.6; }
-
     .badge {
-      position: fixed;
-      left: 12px; bottom: 12px;
-      z-index: 10;
-      font-size: 11px;
-      letter-spacing: 0.08em;
-      color: rgba(255,255,255,0.45);
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(255,255,255,0.12);
-      padding: 5px 10px;
-      border-radius: 999px;
-      backdrop-filter: blur(6px);
+      position: fixed; left: 12px; bottom: 12px; z-index: 10;
+      font-size: 11px; letter-spacing: 0.08em; color: rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      padding: 5px 10px; border-radius: 999px; backdrop-filter: blur(6px);
       pointer-events: none;
     }
 
     @media (max-width: 720px) {
-      .sign-content { height: 96px; }
-      .home { padding: 0 18px; }
-      .logo-r { width: 60px; height: 60px; font-size: 32px; }
-      .nav-slot { width: 66px; margin-right: -26px; }
-      .nav-stop { width: 120px; font-size: 14px; }
-      .tag .l1 { font-size: 30px; } .tag .l2 { font-size: 34px; } .tag .l3 { font-size: 32px; }
+      .sign-content { height: 92px; }
+      .home { padding: 0 16px; }
+      .logo-r { width: 56px; height: 56px; font-size: 30px; }
+      .nav-slot { width: 62px; margin-right: -26px; }
+      .nav-stop { width: 118px; font-size: 13px; }
+      .hero__photo { background-position: center 45%; }
+      .tag .l1 { font-size: 32px; } .tag .l2 { font-size: 37px; } .tag .l3 { font-size: 35px; }
       .bio { font-size: 15px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      .chev { animation: none; }
     }
   </style>
 </head>
 <body>
-  <main class="scene" id="scene">
-    <div class="sticky">
-      <div class="backdrop"></div>
-      <canvas id="webgl"></canvas>
+  <section class="hero">
+    <div class="hero__photo" role="img" aria-label="Closed New York City subway car doors"></div>
+    <div class="hero__scrim"></div>
 
-      <div class="overlay">
-        <!-- Glass wayfinding navbar -->
-        <nav class="navbar" aria-label="Primary">
-          <div class="sign-content">
-            <div class="home"><div class="logo-r" aria-label="Ryan — home">R</div></div>
-            <div class="nav-strip">
-              <div class="nav-stops">
-                <div class="nav-slot"><button class="nav-stop">About</button></div>
-                <div class="nav-slot"><button class="nav-stop">Work</button></div>
-                <div class="nav-slot"><button class="nav-stop">Process</button></div>
-                <div class="nav-slot"><button class="nav-stop">Field notes</button></div>
-                <div class="nav-slot"><button class="nav-stop">Contact</button></div>
-              </div>
+    <div class="hero__wrap">
+      <!-- Glass wayfinding navbar -->
+      <nav class="navbar" aria-label="Primary">
+        <div class="sign-content">
+          <div class="home"><div class="logo-r" aria-label="Ryan — home">R</div></div>
+          <div class="nav-strip">
+            <div class="nav-stops">
+              <div class="nav-slot"><button class="nav-stop">About</button></div>
+              <div class="nav-slot"><button class="nav-stop">Work</button></div>
+              <div class="nav-slot"><button class="nav-stop">Process</button></div>
+              <div class="nav-slot"><button class="nav-stop">Field notes</button></div>
+              <div class="nav-slot"><button class="nav-stop">Contact</button></div>
             </div>
-            <div style="width:200px"></div>
           </div>
-          <div class="service">
-            <div class="service-line"></div>
-            <div class="station-dot" id="stationDot"></div>
-          </div>
-        </nav>
-
-        <!-- Hero copy -->
-        <div class="hero" id="heroCopy">
-          <div class="tag" data-placeholder aria-label="Ryan was here">
-            <span class="l1">RYAN</span>
-            <span class="l2">WAS</span>
-            <span class="l3">HERE</span>
-          </div>
-          <p class="bio">
-            I&rsquo;m Ryan McCaulsky, a Designer with over eight years of experience in
-            human-computer interaction, design systems, and software design for consumer
-            and SaaS products.
-          </p>
-          <button class="btn-more">More&nbsp;&rarr;</button>
+          <div style="width:200px"></div>
         </div>
-      </div>
+        <div class="service">
+          <div class="service-line"></div>
+          <div class="station-dot"></div>
+        </div>
+      </nav>
 
-      <!-- Second beat, fades in as the camera enters the car -->
-      <div class="aboard" id="aboard">
-        <h2>Step aboard.</h2>
-        <p>Eight years of craft, one stop at a time.</p>
-      </div>
-
-      <div class="scroll-hint" id="scrollHint">
-        <span>Scroll</span>
-        <span class="chev"></span>
+      <!-- Hero copy -->
+      <div class="hero__center">
+        <div class="tag" data-placeholder aria-label="Ryan was here">
+          <span class="l1">RYAN</span>
+          <span class="l2">WAS</span>
+          <span class="l3">HERE</span>
+        </div>
+        <p class="bio">
+          I&rsquo;m Ryan McCaulsky, a Designer with over eight years of experience in
+          human-computer interaction, design systems, and software design for consumer
+          and SaaS products.
+        </p>
+        <button class="btn-more">More&nbsp;&rarr;</button>
       </div>
     </div>
-  </main>
-
-  <section class="after">
-    <h3>End of the line — for now</h3>
-    <p>
-      This is a WebGL test of the Magneto hero: the subway doors slide open and the camera
-      leans into the car as you scroll. Drop the rest of the portfolio below this section.
-    </p>
   </section>
 
-  <div class="badge">/test · WebGL + GSAP hero prototype</div>
-
-  <!-- GSAP + ScrollTrigger (cdnjs) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-
-  <script type="module">
-    import * as THREE from 'three';
-    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    // ---------------------------------------------------------------
-    // Renderer / scene / camera
-    // ---------------------------------------------------------------
-    const canvas = document.getElementById('webgl');
-    let renderer, scene, camera, pmrem;
-    let doorL, doorR, carGroup;
-    const clock = new THREE.Clock();
-
-    // Scroll + pointer state (0..1), damped toward targets each frame
-    const state = { scroll: 0, scrollEased: 0, px: 0, py: 0, pxEased: 0, pyEased: 0 };
-
-    const ACCENT = 0xe5ab00;
-
-    function makeSteel(env, { color = 0x9a9a97, rough = 0.34, metal = 1.0 } = {}) {
-      return new THREE.MeshStandardMaterial({
-        color, metalness: metal, roughness: rough, envMap: env, envMapIntensity: 1.1,
-      });
-    }
-
-    // Canvas-texture destination sign ("GRAND CENTRAL")
-    function makeSignTexture(text) {
-      const c = document.createElement('canvas');
-      c.width = 1024; c.height = 256;
-      const ctx = c.getContext('2d');
-      ctx.fillStyle = '#0c0c0b'; ctx.fillRect(0, 0, c.width, c.height);
-      // tile grid, like the figma window backdrop
-      ctx.strokeStyle = 'rgba(120,120,120,0.25)'; ctx.lineWidth = 2;
-      for (let x = 0; x <= c.width; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, c.height); ctx.stroke(); }
-      for (let y = 0; y <= c.height; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(c.width, y); ctx.stroke(); }
-      ctx.fillStyle = '#e8e6df';
-      ctx.font = '700 120px Inter, sans-serif';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(text, c.width / 2, c.height / 2 + 6);
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 8;
-      return tex;
-    }
-
-    // Rounded-rectangle window shape
-    function roundedRectShape(w, h, r) {
-      const s = new THREE.Shape();
-      const x = -w / 2, y = -h / 2;
-      s.moveTo(x + r, y);
-      s.lineTo(x + w - r, y);
-      s.quadraticCurveTo(x + w, y, x + w, y + r);
-      s.lineTo(x + w, y + h - r);
-      s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-      s.lineTo(x + r, y + h);
-      s.quadraticCurveTo(x, y + h, x, y + h - r);
-      s.lineTo(x, y + r);
-      s.quadraticCurveTo(x, y, x + r, y);
-      return s;
-    }
-
-    function buildCar(env) {
-      const car = new THREE.Group();
-
-      const steel = makeSteel(env);
-      const darkSteel = makeSteel(env, { color: 0x6f6f6c, rough: 0.5 });
-      const floorMat = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.85, metalness: 0.2, envMap: env, envMapIntensity: 0.4 });
-      const seatMat = new THREE.MeshStandardMaterial({ color: 0x2c4a7a, roughness: 0.6, metalness: 0.1, envMap: env, envMapIntensity: 0.3 });
-      const glassMat = new THREE.MeshPhysicalMaterial({
-        color: 0xdfe6ea, roughness: 0.08, metalness: 0, transmission: 0.85,
-        transparent: true, opacity: 0.5, envMap: env, envMapIntensity: 1.0, ior: 1.2,
-      });
-
-      const CAR_LEN = 46;     // along -Z
-      const CAR_W = 6.2;
-      const CAR_H = 4.0;
-      const zFront = 0;       // door partition plane
-      const zBack = -CAR_LEN;
-
-      // Floor
-      const floor = new THREE.Mesh(new THREE.PlaneGeometry(CAR_W, CAR_LEN + 12), floorMat);
-      floor.rotation.x = -Math.PI / 2;
-      floor.position.set(0, 0, -CAR_LEN / 2 + 3);
-      car.add(floor);
-
-      // Ceiling
-      const ceil = new THREE.Mesh(new THREE.PlaneGeometry(CAR_W, CAR_LEN + 12), darkSteel);
-      ceil.rotation.x = Math.PI / 2;
-      ceil.position.set(0, CAR_H, -CAR_LEN / 2 + 3);
-      car.add(ceil);
-
-      // Ceiling light strips (emissive)
-      const lightStripMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfff3d0, emissiveIntensity: 1.4 });
-      for (const sx of [-1.4, 1.4]) {
-        const strip = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, CAR_LEN), lightStripMat);
-        strip.position.set(sx, CAR_H - 0.05, -CAR_LEN / 2 + 3);
-        car.add(strip);
-      }
-
-      // Side walls + window bands + seats + poles
-      const winShape = roundedRectShape(2.4, 1.5, 0.35);
-      const winGeo = new THREE.ShapeGeometry(winShape);
-
-      for (const side of [-1, 1]) {
-        const wallX = side * CAR_W / 2;
-
-        // Wall panel
-        const wall = new THREE.Mesh(new THREE.PlaneGeometry(CAR_LEN + 12, CAR_H), steel);
-        wall.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
-        wall.position.set(wallX, CAR_H / 2, -CAR_LEN / 2 + 3);
-        car.add(wall);
-
-        // Windows + blue benches repeated down the car
-        for (let i = 0; i < 8; i++) {
-          const z = -3 - i * 5.4;
-
-          const win = new THREE.Mesh(winGeo, glassMat);
-          win.rotation.y = side < 0 ? Math.PI / 2 : -Math.PI / 2;
-          win.position.set(wallX - side * 0.02, 2.55, z);
-          car.add(win);
-
-          // Bench
-          const bench = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.5, 4.6), seatMat);
-          bench.position.set(wallX - side * 0.55, 0.85, z);
-          car.add(bench);
-          const back = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.9, 4.6), seatMat);
-          back.position.set(wallX - side * 0.16, 1.35, z);
-          car.add(back);
-        }
-
-        // Vertical grab poles
-        for (let i = 0; i < 6; i++) {
-          const z = -4 - i * 6.8;
-          const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, CAR_H, 16), makeSteel(env, { color: 0xc9c9c4, rough: 0.2 }));
-          pole.position.set(side * 1.7, CAR_H / 2, z);
-          car.add(pole);
-        }
-      }
-
-      // Horizontal grab rails
-      for (const side of [-1, 1]) {
-        const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, CAR_LEN, 12), makeSteel(env, { color: 0xc9c9c4, rough: 0.2 }));
-        rail.rotation.x = Math.PI / 2;
-        rail.position.set(side * 1.7, CAR_H - 0.5, -CAR_LEN / 2 + 3);
-        car.add(rail);
-      }
-
-      // ---- Door partition at z = 0 ----
-      const partition = new THREE.Group();
-
-      // Header above doors with destination sign
-      const header = new THREE.Mesh(new THREE.BoxGeometry(CAR_W, 1.2, 0.25), darkSteel);
-      header.position.set(0, CAR_H - 0.6, 0);
-      partition.add(header);
-
-      const signTex = makeSignTexture('GRAND CENTRAL');
-      const sign = new THREE.Mesh(new THREE.PlaneGeometry(4.2, 0.7),
-        new THREE.MeshStandardMaterial({ map: signTex, emissive: 0x222018, emissiveIntensity: 0.4, roughness: 0.7 }));
-      sign.position.set(0, CAR_H - 0.6, 0.14);
-      partition.add(sign);
-
-      // Side pockets (walls flanking the doorway the doors slide into)
-      for (const side of [-1, 1]) {
-        const pocket = new THREE.Mesh(new THREE.BoxGeometry(1.9, CAR_H - 1.2, 0.22), steel);
-        pocket.position.set(side * ((CAR_W / 2) - 0.95), (CAR_H - 1.2) / 2, 0);
-        partition.add(pocket);
-      }
-
-      // The two sliding doors, each with a window
-      const doorW = 1.35, doorH = CAR_H - 1.25, doorThick = 0.16;
-      const doorWinShape = roundedRectShape(0.95, 1.9, 0.28);
-      const doorWinGeo = new THREE.ShapeGeometry(doorWinShape);
-
-      function makeDoor(dir) {
-        const g = new THREE.Group();
-        const panel = new THREE.Mesh(new THREE.BoxGeometry(doorW, doorH, doorThick), makeSteel(env, { color: 0xa6a6a2, rough: 0.3 }));
-        panel.position.y = doorH / 2;
-        g.add(panel);
-        const win = new THREE.Mesh(doorWinGeo, glassMat);
-        win.position.set(0, doorH / 2 + 0.25, doorThick / 2 + 0.01);
-        g.add(win);
-        // rubber edge where doors meet
-        const edge = new THREE.Mesh(new THREE.BoxGeometry(0.06, doorH, doorThick + 0.02),
-          new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.9 }));
-        edge.position.set(dir * (doorW / 2 - 0.03), doorH / 2, 0);
-        g.add(edge);
-        g.position.set(dir * (doorW / 2), 0, 0.02);
-        return g;
-      }
-
-      doorL = makeDoor(-1);
-      doorR = makeDoor(1);
-      partition.add(doorL, doorR);
-
-      partition.position.z = 0;
-      car.add(partition);
-
-      // A dim vestibule wall behind the camera so reflections read as "enclosed"
-      const rear = new THREE.Mesh(new THREE.PlaneGeometry(CAR_W, CAR_H), darkSteel);
-      rear.position.set(0, CAR_H / 2, 7.5);
-      rear.rotation.y = Math.PI;
-      car.add(rear);
-
-      // Platform glow beyond the doors (visible once they open)
-      const platform = new THREE.Mesh(
-        new THREE.PlaneGeometry(CAR_W + 2, CAR_H + 2),
-        new THREE.MeshStandardMaterial({ color: 0x0a0a09, emissive: 0x3a3324, emissiveIntensity: 0.35, roughness: 1 })
-      );
-      platform.position.set(0, CAR_H / 2, 1.4);
-      car.add(platform);
-
-      carGroup = car;
-      return car;
-    }
-
-    // ---------------------------------------------------------------
-    function init() {
-      renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.05;
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-      scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x0e0e0d, 0.028);
-
-      camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
-      camera.position.set(0, 1.75, 4.4);
-
-      // Environment for realistic steel reflections
-      pmrem = new THREE.PMREMGenerator(renderer);
-      const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-      scene.environment = env;
-
-      buildCar(env);
-      scene.add(carGroup);
-
-      // Fill lights
-      const key = new THREE.PointLight(0xfff1d0, 60, 40); key.position.set(0, 3.6, -6); scene.add(key);
-      const key2 = new THREE.PointLight(0xfff1d0, 45, 40); key2.position.set(0, 3.6, -20); scene.add(key2);
-      const warm = new THREE.PointLight(ACCENT, 20, 20); warm.position.set(0, 2, 2.5); scene.add(warm);
-      scene.add(new THREE.AmbientLight(0x404040, 1.2));
-
-      window.addEventListener('resize', onResize);
-      window.addEventListener('pointermove', onPointer, { passive: true });
-
-      setupScroll();
-      renderer.setAnimationLoop(tick);
-    }
-
-    function onResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    function onPointer(e) {
-      state.px = (e.clientX / window.innerWidth) * 2 - 1;
-      state.py = (e.clientY / window.innerHeight) * 2 - 1;
-    }
-
-    // ---------------------------------------------------------------
-    // Scroll wiring (GSAP ScrollTrigger drives `state.scroll`)
-    // ---------------------------------------------------------------
-    const heroCopy = document.getElementById('heroCopy');
-    const aboard = document.getElementById('aboard');
-    const scrollHint = document.getElementById('scrollHint');
-    const stationDot = document.getElementById('stationDot');
-
-    function setupScroll() {
-      if (window.gsap && window.ScrollTrigger) {
-        gsap.registerPlugin(ScrollTrigger);
-        ScrollTrigger.create({
-          trigger: '#scene',
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: true,
-          onUpdate: (self) => { state.scroll = self.progress; },
-        });
-      } else {
-        // Fallback: raw scroll math
-        const scene = document.getElementById('scene');
-        const onScroll = () => {
-          const rect = scene.getBoundingClientRect();
-          const total = scene.offsetHeight - window.innerHeight;
-          state.scroll = Math.min(1, Math.max(0, -rect.top / total));
-        };
-        window.addEventListener('scroll', onScroll, { passive: true });
-        onScroll();
-      }
-    }
-
-    const clamp01 = (v) => Math.min(1, Math.max(0, v));
-    const smoothstep = (a, b, x) => { const t = clamp01((x - a) / (b - a)); return t * t * (3 - 2 * t); };
-    const lerp = (a, b, t) => a + (b - a) * t;
-
-    // ---------------------------------------------------------------
-    function tick() {
-      const dt = Math.min(clock.getDelta(), 0.05);
-      const t = clock.elapsedTime;
-
-      // Damp scroll + pointer toward targets
-      const k = prefersReduced ? 1 : 1 - Math.pow(0.001, dt);
-      state.scrollEased = lerp(state.scrollEased, state.scroll, k);
-      state.pxEased = lerp(state.pxEased, state.px, 1 - Math.pow(0.0025, dt));
-      state.pyEased = lerp(state.pyEased, state.py, 1 - Math.pow(0.0025, dt));
-
-      const p = state.scrollEased;
-
-      // --- Doors open (phase 1) ---
-      const open = smoothstep(0.06, 0.46, p);
-      const slide = open * 1.55;
-      if (doorL && doorR) {
-        doorL.position.x = -0.675 - slide;
-        doorR.position.x = 0.675 + slide;
-      }
-
-      // --- Camera push-in + tilt (phase 2) ---
-      const enter = smoothstep(0.34, 1.0, p);
-      const sway = prefersReduced ? 0 : Math.sin(t * 0.5) * 0.04;
-
-      const camZ = lerp(4.4, -9.5, enter);
-      const camY = lerp(1.75, 1.5, enter);
-      const camX = lerp(0, 0.9, enter) + state.pxEased * 0.35 + sway;
-      camera.position.set(camX, camY + state.pyEased * -0.12, camZ);
-
-      // Look target leans toward the seats/length of the car as we enter
-      const lookX = lerp(0, 1.4, enter) + state.pxEased * 0.5;
-      const lookY = lerp(1.7, 1.35, enter);
-      const lookZ = lerp(0, -20, enter);
-      camera.lookAt(lookX, lookY, lookZ);
-      // subtle roll for the "tilt"
-      camera.rotation.z += (prefersReduced ? 0 : Math.sin(t * 0.4) * 0.006) - enter * 0.02;
-
-      // Light flicker
-      if (!prefersReduced) renderer.toneMappingExposure = 1.05 + Math.sin(t * 9.0) * 0.015;
-
-      // --- Overlay reactions ---
-      const copyFade = 1 - smoothstep(0.12, 0.4, p);
-      heroCopy.style.opacity = copyFade;
-      heroCopy.style.transform = `translateY(${(1 - copyFade) * -24}px)`;
-      scrollHint.style.opacity = 1 - smoothstep(0.02, 0.16, p);
-
-      const aboardFade = smoothstep(0.55, 0.8, p) * (1 - smoothstep(0.92, 1.0, p));
-      aboard.style.opacity = aboardFade;
-      aboard.style.transform = `translateY(${(1 - aboardFade) * 20}px)`;
-
-      // Station dot travels along the service strip
-      stationDot.style.left = `${lerp(6, 94, p)}%`;
-
-      renderer.render(scene, camera);
-    }
-
-    // ---------------------------------------------------------------
-    try {
-      init();
-    } catch (err) {
-      console.error('WebGL init failed:', err);
-      canvas.style.display = 'none';
-      document.querySelector('.badge').textContent = '/test · WebGL unavailable — showing static hero';
-    }
-  </script>
+  <div class="badge">/test · static hero (step 1) · graffiti tag = placeholder font</div>
 </body>
 </html>
