@@ -6,6 +6,10 @@
   <title>ryan was here — test</title>
   <meta name="description" content="Scroll-driven subway arrival hero — a live 3D R142 pulls into the station." />
 
+  <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -31,7 +35,7 @@
     }
 
     /* ---------- Scroll scene ---------- */
-    .scene  { position: relative; height: 360vh; }
+    .scene  { position: relative; height: 560vh; }
     .sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; background: #000; }
 
     /* video stage we scale slightly on scroll */
@@ -40,14 +44,8 @@
       position: absolute; inset: 0;
       width: 100%; height: 100%;
       display: block; background: #000;
-      filter: contrast(1.05) saturate(1.06);
     }
-    /* last frame of the outgoing state, dissolved over the incoming one when the scene switches modes */
-    .hero-xfade {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      pointer-events: none; opacity: 0;
-      filter: contrast(1.05) saturate(1.06);
-    }
+
 
     /* ---------- Overlay UI ---------- */
     .wrap {
@@ -145,6 +143,12 @@
 
 
     /* loading veil until the clip can play/seek */
+    .wx { position: absolute; left: 16px; bottom: 16px; z-index: 6; pointer-events: none;
+      font: 500 12px/1.3 var(--font-ui); letter-spacing: 0.02em; color: rgba(255,255,255,0.82);
+      background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
+      padding: 6px 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      opacity: 0; transition: opacity .6s ease; }
+    .wx.on { opacity: 1; }
     .veil { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; background: #000; transition: opacity .6s ease; }
     .veil.hide { opacity: 0; pointer-events: none; }
     .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.18); border-top-color: var(--accent); animation: spin .9s linear infinite; }
@@ -178,30 +182,11 @@
     <div class="sticky">
       <div class="stage" id="stage">
         <canvas class="hero-canvas" id="trainCanvas" aria-label="A New York City R142 subway train pulling into the station"></canvas>
-        <canvas class="hero-xfade" id="xfade" aria-hidden="true"></canvas>
       </div>
 
 
-      <!-- Overlay UI -->
-      <div class="wrap">
-        <nav class="navbar" id="navbar" aria-label="Primary">
-          <div class="sign-content">
-            <div class="home"><div class="logo-r" aria-label="Ryan — home">R</div></div>
-            <div class="nav-strip">
-              <div class="nav-stops">
-                <div class="nav-slot"><button class="nav-stop">About</button></div>
-                <div class="nav-slot"><button class="nav-stop">Work</button></div>
-                <div class="nav-slot"><button class="nav-stop">Process</button></div>
-                <div class="nav-slot"><button class="nav-stop">Field notes</button></div>
-                <div class="nav-slot"><button class="nav-stop">Contact</button></div>
-              </div>
-            </div>
-            <div style="width:200px"></div>
-          </div>
-        </nav>
 
-      </div>
-
+      <div class="wx" id="wx" aria-live="polite"></div>
       <div class="veil" id="veil"><div class="spinner"></div></div>
     </div>
   </main>
@@ -220,21 +205,10 @@
       var reduce  = matchMedia('(prefers-reduced-motion: reduce)').matches;
       var scene   = document.getElementById('scene');
       var stage   = document.getElementById('stage');
-      var navbar  = document.getElementById('navbar');
       var veil    = document.getElementById('veil');
 
       var clamp  = function (v,a,b){ return v<a?a:(v>b?b:v); };
       var smooth = function (a,b,x){ var t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); };
-
-      /* geometry: how far to drop the nav to screen-center */
-      var navCenter = 0;
-      function measure(){
-        var vh = window.innerHeight;
-        var nh = navbar.offsetHeight || 158;
-        navCenter = Math.max(0, vh/2 - (24 + nh/2));   // dock-top -> vertical center
-      }
-      measure();
-      window.addEventListener('resize', measure);
 
       function progress(){
         var total = scene.offsetHeight - window.innerHeight;
@@ -250,11 +224,6 @@
         }
         var p = progress();
 
-        // intro: nav sits centered at rest, docks to top on the first scroll
-        var early = smooth(0.0, 0.12, p);
-        navbar.style.transform = 'translateY(' + (navCenter * (1 - early)).toFixed(1) + 'px)';
-        navbar.style.opacity = (1 - smooth(0.55, 0.9, p)).toFixed(3);
-
         // gentle scale + fade of the scene near the end
         var vfade = 1 - smooth(SCRUB_TO + 0.05, 1.0, p);
         stage.style.opacity = vfade.toFixed(3);
@@ -265,11 +234,20 @@
       requestAnimationFrame(frame);
     })();
   </script>
-  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://unpkg.com/three@0.128.0/examples/js/objects/Reflector.js"></script>
   <script src="train-data.js"></script>
-  <script>
+  <script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { BokehPass } from 'three/addons/postprocessing/BokehPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+// every colour in this scene was tuned under r128 (hex values used as-is, legacy light units) — keep that look
+THREE.ColorManagement.enabled = false;
 (function () {
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const canvas = document.getElementById('trainCanvas');
@@ -278,15 +256,31 @@
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(vw(), vh(), false);
-  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.useLegacyLights = true;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.60;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  const BG = 0x8b8d91;
+  /* atmosphere: backdrop, the floor it sweeps into, the tint of what the steel reflects, and the ties */
+  const GOLD = 0xdcae3b;                                   // the logo's gold
+  const THEMES = {
+    black:  { bg:0x0b0b0c, floor:0x111113, refl:0xc4c8cf, tint:[1.0,1.0,1.0],  ties:0x3a3a3c, portal:0x1b1b1e, station:0xe2e0da, platform:0x6c6b67, edge:0xd6d5d0, lamp:0xf4f1ea },  // neutral: white-tile station, concrete platform
+    gold:   { bg:GOLD,     floor:0xd8a835, refl:0xf0dcae, tint:[1.0,0.78,0.36], ties:0xa07c22, portal:0xd8a835, station:GOLD, platform:0xd8a835, edge:0xf3e2a0, lamp:0xffd27a },
+    ochre:  { bg:0xd6941a, floor:0xc98a18, refl:0xecc98a, tint:[1.0,0.68,0.26], ties:0x86601a, portal:0xc98a18, station:0xd6941a, platform:0xc98a18, edge:0xf3e2a0, lamp:0xffd27a },
+    butter: { bg:0xedd27c, floor:0xe8cb70, refl:0xf6ead0, tint:[1.0,0.88,0.56], ties:0xbfa04e, portal:0xe8cb70, station:0xedd27c, platform:0xe8cb70, edge:0xf3e2a0, lamp:0xffd27a },
+  };
+  const THEME = THEMES[new URLSearchParams(location.search).get('theme')] || THEMES.black;
+  /* tunnel mouth at x0, station platform st0..st1, car 1 comes to rest centred at STOP_X (inside the station) */
+  const TUNNEL = { x0:90, x1:340, z0:-3.2, z1:4.8, top:3.4, st0:158, st1:222 };
+  /* grade: street level outside, an eased ramp down an open cut (like the Bronx portal by 3 Av–149 St), level underground.
+     gradeY(x) is the track's height above its underground level at x. */
+  const GRADE = { a:18, b:TUNNEL.x0-2, h:3.6 };
+  const gradeY = x => x<=GRADE.a ? GRADE.h : x>=GRADE.b ? 0 : GRADE.h*(1+Math.cos(Math.PI*(x-GRADE.a)/(GRADE.b-GRADE.a)))/2;
+  const BG = THEME.bg;
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(BG);
+  scene.background = new THREE.Color(BG);   // replaced by the sky dome below
 
   const camera = new THREE.PerspectiveCamera(42, vw()/vh(), 0.4, 600);
   // no orbiting in a scroll hero — the camera is driven by scroll; this stub keeps the framing code readable
@@ -296,7 +290,7 @@
   function studioEnv(){
     const pmrem = new THREE.PMREMGenerator(renderer);
     const s = new THREE.Scene();
-    s.background = new THREE.Color(0x3a3c40);
+    s.background = new THREE.Color(0x3a3c40).multiply(new THREE.Color(...THEME.tint));
     // dome with a bright horizon BAND (studio sweep) → reads as a specular waterline on the steel,
     // darker above and below for metallic contrast.
     const dome = new THREE.Mesh(
@@ -309,7 +303,7 @@
         const band = Math.exp(-Math.pow((yy-0.06)/0.12,2));// tight bright strip near the horizon
         const base = 0.09 + 0.14*(yy*0.5+0.5);             // deep dark field, a touch brighter up top
         const v = Math.min(1, base + 1.0*band);
-        col.push(v,v,v);
+        col.push(v*THEME.tint[0], v*THEME.tint[1], v*THEME.tint[2]);   // the world the steel reflects is gold
       }
       g.setAttribute('color', new THREE.Float32BufferAttribute(col,3)); }
     s.add(dome);
@@ -328,13 +322,189 @@
   const key = new THREE.DirectionalLight(0xffffff, 2.0);
   key.position.set(-14, 22, 10);
   key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.bias = -0.0004;
-  { const d=26, c=key.shadow.camera; c.left=-d; c.right=d; c.top=d; c.bottom=-d; c.near=1; c.far=90; c.updateProjectionMatrix(); }
+  key.shadow.mapSize.set(4096, 4096);
+  key.shadow.bias = -0.0003; key.shadow.normalBias = 0.02; key.shadow.radius = 3;
+  { const d=36, c=key.shadow.camera; c.left=-d; c.right=d; c.top=d; c.bottom=-d; c.near=1; c.far=190; c.updateProjectionMatrix(); }
   scene.add(key);
   const rim = new THREE.DirectionalLight(0xffffff, 0.5);
   rim.position.set(18, 10, -14); scene.add(rim);
   scene.add(new THREE.AmbientLight(0xffffff, 0.06));
+  const hemi = new THREE.HemisphereLight(0x8899aa, 0x111111, 0.2); scene.add(hemi);
+
+  /* ---------- atmosphere: the real sun over 3 Av–149 St + live Bronx weather (Open-Meteo, no key) ----------
+     preview overrides:  ?wx=clear|partly|overcast|fog|drizzle|rain|snow|storm   ?hour=0..24 (New York time) */
+  const BRONX = { lat:40.8164, lon:-73.9175, tz:'America/New_York' };
+  const QS = new URLSearchParams(location.search);
+  function sunPos(date){                                   // degrees; az from north, clockwise
+    const rad=Math.PI/180, d=date.getTime()/86400000+2440587.5-2451545.0;
+    const g=(357.529+0.98560028*d)*rad, q=280.459+0.98564736*d;
+    const L=(q+1.915*Math.sin(g)+0.020*Math.sin(2*g))*rad, e=(23.439-0.00000036*d)*rad;
+    const ra=Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L)), dec=Math.asin(Math.sin(e)*Math.sin(L));
+    const gmst=((18.697374558+24.06570982441908*d)%24+24)%24, H=(gmst*15+BRONX.lon)*rad-ra, lat=BRONX.lat*rad;
+    const el=Math.asin(Math.sin(lat)*Math.sin(dec)+Math.cos(lat)*Math.cos(dec)*Math.cos(H));
+    const az=Math.atan2(-Math.sin(H), Math.tan(dec)*Math.cos(lat)-Math.sin(lat)*Math.cos(H));
+    return { el:el/rad, az:((az/rad)+360)%360 };
+  }
+  // "now" in the Bronx, or today at ?hour= New York time
+  function bronxDate(){
+    const now=new Date(); if (!QS.has('hour')) return now;
+    const parts=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:BRONX.tz,year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',hourCycle:'h23'}).formatToParts(now).map(p=>[p.type,p.value]));
+    const nyAsUTC=Date.UTC(+parts.year,+parts.month-1,+parts.day,+parts.hour,+parts.minute), off=nyAsUTC-now.getTime();
+    const h=Math.max(0,Math.min(24,parseFloat(QS.get('hour'))||0));
+    return new Date(Date.UTC(+parts.year,+parts.month-1,+parts.day,0,0)+h*3600000-off);
+  }
+  const WX_LABEL={ clear:'Clear', partly:'Partly cloudy', overcast:'Overcast', fog:'Fog', drizzle:'Drizzle', rain:'Rain', snow:'Snow', storm:'Thunderstorm' };
+  const wxFromCode=c=> c<=1?'clear': c===2?'partly': c===3?'overcast': (c===45||c===48)?'fog': (c>=51&&c<=57)?'drizzle':
+    ((c>=61&&c<=67)||(c>=80&&c<=82))?'rain': ((c>=71&&c<=77)||c===85||c===86)?'snow': c>=95?'storm':'clear';
+  const WX = { kind: QS.get('wx') in WX_LABEL ? QS.get('wx') : 'clear', cloud:0, precip:0, windKmh:8, windDir:270, tempF:null, live:false };
+  const CLOUD={ clear:0.05, partly:0.4, overcast:0.92, fog:0.85, drizzle:0.88, rain:0.95, snow:0.92, storm:1.0 };
+  const DENS ={ drizzle:0.35, rain:0.8, storm:1.0, snow:0.75 };
+
+  // sky dome: horizon→zenith gradient + sun glow + lightning; follows the camera
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(450,48,24), new THREE.ShaderMaterial({
+    side:THREE.BackSide, depthWrite:false, fog:false,
+    uniforms:{ zen:{value:new THREE.Color()}, hor:{value:new THREE.Color()}, gnd:{value:new THREE.Color()},
+               sunDir:{value:new THREE.Vector3(0,1,0)}, sunCol:{value:new THREE.Color()}, sunAmt:{value:0}, flash:{value:0} },
+    vertexShader:`varying vec3 vDir; void main(){ vDir=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader:`uniform vec3 zen,hor,gnd,sunCol,sunDir; uniform float sunAmt,flash; varying vec3 vDir;
+      void main(){ vec3 d=normalize(vDir); float h=d.y;
+        vec3 c = h>0.0 ? mix(hor,zen,pow(clamp(h,0.0,1.0),0.55)) : mix(hor,gnd,clamp(-h*6.0,0.0,1.0));
+        float s=max(dot(d,normalize(sunDir)),0.0);
+        c += sunCol*sunAmt*(pow(s,900.0)*6.0 + pow(s,24.0)*0.35 + pow(s,4.0)*0.12);
+        c += vec3(0.75,0.8,1.0)*flash*(0.35+0.65*smoothstep(-0.1,0.5,h));
+        gl_FragColor=vec4(c,1.0); }`
+  }));
+  sky.renderOrder=-1; scene.add(sky);
+  scene.background=null;
+  scene.fog = new THREE.FogExp2(0x000000, 0.0);
+
+  // precipitation: GPU-animated rain streaks / snow flakes that wrap around the camera
+  const PBOX=new THREE.Vector3(46,26,46);
+  function precipGeo(n, verts){ const g=new THREE.BufferGeometry(), pos=new Float32Array(n*verts*3), seed=new Float32Array(n*verts*4), tip=new Float32Array(n*verts);
+    for (let i=0;i<n;i++){ const r=[Math.random(),Math.random(),Math.random(),Math.random()];
+      for (let v=0;v<verts;v++){ const k=i*verts+v; seed.set(r,k*4); tip[k]=v; } }
+    g.setAttribute('position',new THREE.BufferAttribute(pos,3)); g.setAttribute('seed',new THREE.BufferAttribute(seed,4)); g.setAttribute('tip',new THREE.BufferAttribute(tip,1));
+    g.boundingSphere=new THREE.Sphere(new THREE.Vector3(),1e6); return g; }
+  const precipVS=`attribute vec4 seed; attribute float tip; uniform float time,len,sway,size; uniform vec3 camPos,box,vel; varying float vA;
+    void main(){ vec3 p=seed.xyz*box + vel*time*(0.8+0.4*seed.w);
+      p.x += sway*sin(time*0.9+seed.w*6.283); p.z += sway*cos(time*0.7+seed.w*4.0);
+      vec3 o=camPos-box*0.5; p=mod(p-o,box)+o;
+      p -= normalize(vel)*len*tip; vA=1.0-0.7*tip;
+      vec4 mv=viewMatrix*vec4(p,1.0); gl_Position=projectionMatrix*mv; gl_PointSize=min(4.5, size*(220.0/max(1.0,-mv.z)));
+      vA *= smoothstep(1.5,4.0,-mv.z); }`;
+  const mkPrecipMat=(frag)=>new THREE.ShaderMaterial({ transparent:true, depthWrite:false, fog:false,
+    uniforms:{ time:{value:0}, len:{value:0.55}, sway:{value:0}, size:{value:1}, camPos:{value:new THREE.Vector3()}, box:{value:PBOX}, vel:{value:new THREE.Vector3(0,-14,0)}, opacity:{value:0}, col:{value:new THREE.Color(0xc8d2dc)} },
+    vertexShader:precipVS, fragmentShader:frag });
+  const rain = new THREE.LineSegments(precipGeo(7000,2), mkPrecipMat(`uniform float opacity; uniform vec3 col; varying float vA; void main(){ gl_FragColor=vec4(col,opacity*vA); }`));
+  const snow = new THREE.Points(precipGeo(5000,1), mkPrecipMat(`uniform float opacity; uniform vec3 col; varying float vA;
+    void main(){ vec2 c=gl_PointCoord-0.5; float a=smoothstep(0.5,0.15,length(c)); gl_FragColor=vec4(col,opacity*a*vA); }`));
+  rain.frustumCulled=snow.frustumCulled=false; rain.visible=snow.visible=false; scene.add(rain); scene.add(snow);
+
+  // computed look, applied once per minute (and when the weather arrives); per-frame code blends it with tunnel darkness
+  const ATM = { env:1, fog:0, hemi:0.2, key:2, keyDir:new THREE.Vector3(), poleOn:true, wet:false, snowGround:false, flashT:-1, precipOpacity:0 };
+  const C=(h)=>new THREE.Color(h), mixC=(a,b,t)=>a.clone().lerp(b,Math.min(1,Math.max(0,t)));
+  const lerpStops=(stops,x)=>{ if (x<=stops[0][0]) return C(stops[0][1]); for (let i=1;i<stops.length;i++) if (x<=stops[i][0]){
+      const t=(x-stops[i-1][0])/(stops[i][0]-stops[i-1][0]); return mixC(C(stops[i-1][1]),C(stops[i][1]),t); } return C(stops[stops.length-1][1]); };
+  const ZEN=[[-18,'#030407'],[-9,'#0b1022'],[-3,'#1d2a4c'],[3,'#3a5684'],[12,'#4f78ae'],[40,'#3f6fb2']];
+  const HOR=[[-18,'#0d0e12'],[-9,'#1d2236'],[-3,'#6a5a6a'],[1,'#e09a68'],[6,'#f0c49a'],[14,'#b9cce0'],[40,'#a9c2dc']];
+  const GREYDAY='#8b9096', GREYNIGHT='#15171b';
+  function applyAtmosphere(){
+    const date=bronxDate(), sun=sunPos(date), el=sun.el;
+    const dayF=Math.min(1,Math.max(0,(el+4)/14)), cloud=CLOUD[WX.kind];
+    // sky colours: sun-elevation gradient, desaturated toward grey by cloud cover, darker in rain
+    const grey=mixC(C(GREYNIGHT),C(GREYDAY),dayF), wetDim=(WX.kind==='rain'||WX.kind==='storm')?0.72:WX.kind==='drizzle'?0.85:1;
+    const zen=mixC(lerpStops(ZEN,el),grey,cloud*0.9).multiplyScalar(wetDim), hor=mixC(lerpStops(HOR,el),grey.clone().multiplyScalar(1.08),cloud*0.85).multiplyScalar(wetDim);
+    const U=sky.material.uniforms; U.zen.value.copy(zen); U.hor.value.copy(hor); U.gnd.value.copy(hor.clone().multiplyScalar(0.35));
+    // sun / moon direction in scene space: +x is south (the train runs south into the portal), +z east
+    const toVec=(azDeg,elDeg)=>{ const a=azDeg*Math.PI/180, e=elDeg*Math.PI/180; return new THREE.Vector3(-Math.cos(a)*Math.cos(e), Math.sin(e), Math.sin(a)*Math.cos(e)); };
+    const sunUp=el>-2, dir=sunUp?toVec(sun.az,Math.max(el,2)):toVec((sun.az+180)%360,38);
+    U.sunDir.value.copy(toVec(sun.az,el)); U.sunAmt.value=Math.max(0,1-cloud*1.05)*Math.min(1,Math.max(0,(el+3)/6));
+    U.sunCol.value.copy(lerpStops([[0,'#ff8a3c'],[8,'#ffd2a0'],[25,'#fff4e6']],el));
+    ATM.keyDir.copy(dir);
+    key.color.copy(sunUp? lerpStops([[0,'#ff9a5a'],[6,'#ffcf9e'],[20,'#fff6ea']],el) : C('#9fb3d9'));
+    ATM.key = sunUp ? (0.5+3.0*Math.min(1,el/18))*(1-0.75*cloud) : 0.22*(1-0.6*cloud);
+    key.shadow.radius = 3+10*cloud;
+    hemi.color.copy(mixC(zen,hor,0.5)); hemi.groundColor.copy(C(WX.kind==='snow'?'#9aa0a8':'#1a1a1c'));
+    ATM.hemi = 0.12 + (0.38+0.5*cloud)*dayF;                       // sky fill: soft on clear days (deep shade), strong when overcast
+    ATM.env  = 1.15 + 0.35*dayF;                                // the env is the real sky now, so it carries its own day/night brightness
+    renderer.toneMappingExposure = 0.60 - 0.06*dayF;
+    // fog: haze always, thick in fog, moderate in rain/snow
+    scene.fog.color.copy(hor);
+    ATM.fog = { clear:0.0025, partly:0.003, overcast:0.006, fog:0.024, drizzle:0.011, rain:0.014, snow:0.016, storm:0.016 }[WX.kind] * (0.6+0.4*dayF+ (dayF<0.2?0.4:0));
+    ATM.poleOn = dayF<0.45 || WX.kind==='fog' || WX.kind==='storm';
+    ATM.wet = ['drizzle','rain','storm'].includes(WX.kind); ATM.snowGround = WX.kind==='snow';
+    // precipitation: rain streaks / snow, slanted by the wind
+    const dens=DENS[WX.kind]||0, w=Math.min(40,WX.windKmh)/3.6, wd=(WX.windDir+180)*Math.PI/180;   // wind blows *toward* dir+180
+    const wind=new THREE.Vector3(-Math.cos(wd)*w, 0, Math.sin(wd)*w);
+    rain.visible = dens>0 && WX.kind!=='snow'; snow.visible = WX.kind==='snow';
+    rain.material.uniforms.vel.value.set(wind.x*0.6, WX.kind==='drizzle'?-7:-15, wind.z*0.6);
+    rain.material.uniforms.len.value = WX.kind==='drizzle'?0.25:0.6;
+    rain.geometry.setDrawRange(0, Math.round(7000*dens)*2);
+    rain.material.uniforms.col.value.copy(mixC(C('#9aa6b4'),C('#d6dde6'),dayF));
+    snow.material.uniforms.vel.value.set(wind.x*0.35, -1.1, wind.z*0.35); snow.material.uniforms.sway.value=0.6; snow.material.uniforms.size.value=1.6;
+    snow.geometry.setDrawRange(0, Math.round(5000*dens));
+    ATM.precipOpacity = WX.kind==='snow' ? 0.85 : 0.22+0.18*dayF;
+    if (floorRef) setGround();
+    rebuildEnv(dayF, sunUp, U.sunAmt.value);
+    for (const m of facadeMats) m.emissiveIntensity = 0.04 + 1.1*Math.pow(1-dayF,1.5);   // windows light up as it gets dark
+    ATM.dayF = dayF;
+    // readout
+    const t=new Intl.DateTimeFormat('en-US',{timeZone:BRONX.tz,hour:'numeric',minute:'2-digit'}).format(date);
+    const parts=['3 Av–149 St, Bronx', t];
+    if (WX.tempF!=null) parts.push(Math.round(WX.tempF)+'°F');
+    if (WX.live || QS.has('wx')) parts.push(WX_LABEL[WX.kind]);
+    if (QS.has('wx')||QS.has('hour')) parts.push('preview');
+    const el2=document.getElementById('wx'); el2.textContent=parts.join(' · '); el2.classList.add('on');
+  }
+  // ground under the open sky: dry asphalt by day, black mirror at night, wet sheen in rain, white in snow
+  let shadowRef=null, floorRef=null, groundRef=null, poleRefs=[], poleLampM=null, facadeMats=[];
+  // environment for reflections: this sky + the sun + a ring of city on the horizon (lit windows at night)
+  const envScene=new THREE.Scene(), pmremGen=new THREE.PMREMGenerator(renderer); let envRT=null;
+  envScene.add(new THREE.Mesh(new THREE.SphereGeometry(100,32,16), sky.material));
+  const envSun=new THREE.Mesh(new THREE.SphereGeometry(4.5,16,8), new THREE.MeshBasicMaterial({ color:0xffffff })); envScene.add(envSun);
+  const cityBandTex=(()=>{ const cv=document.createElement('canvas'); cv.width=2048; cv.height=128; const c=cv.getContext('2d');
+    c.fillStyle='#000'; c.fillRect(0,0,2048,128); let x=0; const rr=(()=>{ let a=99; return ()=>((a=(Math.imul(a,1103515245)+12345)>>>0)/4294967296); })();
+    while (x<2048){ const w=30+rr()*90, h=40+rr()*80; c.fillStyle='rgb(40,38,36)'; c.fillRect(x,128-h,w,h);
+      for (let wy=128-h+6; wy<124; wy+=9) for (let wx=x+4; wx<x+w-4; wx+=7) if (rr()<0.35){ c.fillStyle=rr()<0.7?'#ffd9a8':'#dfe8ff'; c.fillRect(wx,wy,3,4); }
+      x+=w+rr()*6; }
+    const t=new THREE.CanvasTexture(cv); t.wrapS=THREE.RepeatWrapping; t.repeat.set(2,1); return t; })();
+  const envCity=new THREE.Mesh(new THREE.CylinderGeometry(90,90,26,64,1,true), new THREE.MeshBasicMaterial({ map:cityBandTex, side:THREE.BackSide, transparent:true }));
+  envCity.position.y=6; envScene.add(envCity);
+  const envGround=new THREE.Mesh(new THREE.CircleGeometry(95,32), new THREE.MeshBasicMaterial({ color:0x111111 })); envGround.rotation.x=-Math.PI/2; envGround.position.y=-7; envScene.add(envGround);
+  function rebuildEnv(dayF, sunUp, sunAmt){
+    envSun.visible = sunUp && sunAmt>0.02;
+    envSun.position.copy(sky.material.uniforms.sunDir.value).normalize().multiplyScalar(88);
+    envSun.material.color.copy(sky.material.uniforms.sunCol.value).multiplyScalar(14*sunAmt);
+    // city band: sunlit masonry by day, dark with lit windows at night
+    envCity.material.color.setScalar(1).lerp(new THREE.Color(3.2,3.0,2.8), dayF);
+    envGround.material.color.copy(sky.material.uniforms.gnd.value).multiplyScalar(0.8);
+    const rt=pmremGen.fromScene(envScene, 0.03, 0.1, 300); if (envRT) envRT.dispose(); envRT=rt; scene.environment=rt.texture;
+  }
+  function setGround(){
+    const dayF=Math.min(1,Math.max(0,(sunPos(bronxDate()).el+4)/14));
+    let col, refl;
+    if (ATM.snowGround){ col=mixC(C('#3a3f46'),C('#c9ced6'),0.35+0.65*dayF); refl=0.06; }
+    else if (ATM.wet){ col=mixC(C('#07080a'),C('#2a2c30'),dayF); refl=0.62; }
+    else { col=mixC(C('#111113'),C('#2c2d30'),dayF); refl=0.46-0.42*dayF; }
+    floorRef.material.uniforms.floorColor.value.copy(col); floorRef.material.uniforms.reflectivity.value=refl;
+    if (shadowRef){ const sunF=Math.min(1,ATM.key/2.5); shadowRef.material.opacity = ATM.wet||ATM.snowGround ? 0.3+0.3*sunF : 0.3+0.45*sunF; }
+    if (groundRef) groundRef.color.copy(col.clone().multiplyScalar(ATM.snowGround?0.9:0.55));   // sunlit asphalt stays mid-dark
+  }
+  async function fetchWeather(){
+    if (QS.has('wx')) return;                                // preview: don't overwrite
+    try {
+      const ctl=new AbortController(), to=setTimeout(()=>ctl.abort(),5000);
+      const url='https://api.open-meteo.com/v1/forecast?latitude='+BRONX.lat+'&longitude='+BRONX.lon+
+        '&current=temperature_2m,weather_code,cloud_cover,precipitation,wind_speed_10m,wind_direction_10m&temperature_unit=fahrenheit&wind_speed_unit=kmh&timezone=America%2FNew_York';
+      const r=await fetch(url,{signal:ctl.signal}); clearTimeout(to); if (!r.ok) throw new Error(r.status);
+      const c=(await r.json()).current;
+      WX.kind=wxFromCode(c.weather_code); WX.tempF=c.temperature_2m; WX.windKmh=c.wind_speed_10m; WX.windDir=c.wind_direction_10m; WX.live=true;
+    } catch(e){ /* offline or blocked: time of day only */ }
+    applyAtmosphere();
+  }
+  applyAtmosphere(); fetchWeather();
+  setInterval(()=>{ applyAtmosphere(); }, 60000);            // the sun moves
+  setInterval(()=>{ fetchWeather(); }, 15*60000);            // the weather changes
 
   /* ---------- materials (R142: brushed stainless, maroon accents, glass) ---------- */
   const steel = new THREE.MeshStandardMaterial({ color:0xc6c8cc, metalness:1.0, roughness:0.30, envMapIntensity:1.2 });
@@ -343,12 +513,12 @@
   const glass = new THREE.MeshStandardMaterial({ color:0x05070a, metalness:0.4, roughness:0.05, envMapIntensity:1.5, transparent:true, opacity:0.9 });
   const windMat = new THREE.MeshStandardMaterial({ color:0x0b0e13, metalness:0.95, roughness:0.07, envMapIntensity:2.8 }); // reflective cab windshield
   const roofDark= new THREE.MeshStandardMaterial({ color:0x2a303b, metalness:0.15, roughness:0.42, envMapIntensity:0.8 });    // dark roof band
-  const frameSteel= new THREE.MeshStandardMaterial({ color:0xd3d5d8, metalness:1.0, roughness:0.28, envMapIntensity:1.2 });  // bright silver door frame
+  const frameSteel= new THREE.MeshStandardMaterial({ color:0xd3d5d8, metalness:1.0, roughness:0.36, envMapIntensity:0.75 });  // bright silver door frame
   const ropeMat = new THREE.MeshStandardMaterial({ color:0xd8dadd, metalness:0.2, roughness:0.6 });                          // safety ropes
   const rubber = new THREE.MeshStandardMaterial({ color:0x121214, metalness:0.0, roughness:0.85 });
   const seatMat = new THREE.MeshStandardMaterial({ color:0x2c4f8c, emissive:0x0e1a33, emissiveIntensity:0.6, metalness:0.0, roughness:0.7 });   // R142 blue seats
   const poleMat = new THREE.MeshStandardMaterial({ color:0xb7b9bd, metalness:0.92, roughness:0.32, envMapIntensity:0.9 });
-  const ceilMat = new THREE.MeshStandardMaterial({ color:0xd8d6cf, emissive:0xfff0d2, emissiveIntensity:0.55, metalness:0.0, roughness:0.9 });
+  const ceilMat = new THREE.MeshStandardMaterial({ color:0xd8d6cf, emissive:0xfff0d2, emissiveIntensity:0.32, metalness:0.0, roughness:0.9 });
   const lightMat= new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xfff4e0, emissiveIntensity:1.2, roughness:0.6 });
   const signMat = new THREE.MeshStandardMaterial({ color:0x0a0a0a, emissive:0x3fae57, emissiveIntensity:1.7, roughness:0.5 }); // green "5" bullet glow
   const headMat = new THREE.MeshStandardMaterial({ color:0x120d04, emissive:0xffc877, emissiveIntensity:2.8, roughness:0.4 }); // warm headlight
@@ -356,7 +526,7 @@
   const markMat = new THREE.MeshStandardMaterial({ color:0x200406, emissive:0xd21f1f, emissiveIntensity:2.2, roughness:0.5 }); // red marker lights
   const floorMat= new THREE.MeshStandardMaterial({ color:0xc0c1c4, metalness:0.0, roughness:0.62 });
   const railMat = new THREE.MeshStandardMaterial({ color:0x74777c, metalness:0.95, roughness:0.34, envMapIntensity:0.9 });
-  const tieMat  = new THREE.MeshStandardMaterial({ color:0x76766f, metalness:0.0, roughness:0.95 });
+  const tieMat  = new THREE.MeshStandardMaterial({ color:THEME.ties, metalness:0.0, roughness:0.95 });
 
   function matFor(name){
     if (/glass/i.test(name)) return glass;
@@ -371,9 +541,11 @@
   }
 
   let carProto=null, train=null, carLen=18, NCARS=10, gap=0.4;
-  let pStart=0, loopDist=1, speed=1, phase=0, homePos=null, homeTgt=null;
+  let pStart=0, homePos=null, homeTgt=null, keyOff=null;
+  const FRAME={n:0}, tunnelLights=[], envMats=new Map();
+  const STOP_X=190;                                        // where car 1 comes to rest, inside the station
 
-  const loader = new THREE.GLTFLoader();
+  const loader = new GLTFLoader();
   const bin = atob(window.__GLB_B64); const buf = new Uint8Array(bin.length);
   for (let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
 
@@ -440,7 +612,7 @@
       // round lamp / bezel stack at a px centre
       const disc=(px,py,rpx,mat,z0,depth)=>{ const r=rpx*PS;
         const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,depth,32), mat); m.rotation.z=Math.PI/2;
-        const [X,Y]=L(px,py); m.position.set(z0+depth/2, Y, -X); m.castShadow=true; g.add(m); return m; };
+        const [X,Y]=L(px,py); m.position.set(z0+depth/2, Y, -X); g.add(m); return m; };   // flush lamps: no shadow slivers
       // cable between two px points, hanging `off` in front of the panel
       const cable=(a,b,off)=>{ const [ax,ay]=L(a[0],a[1]), [bx,by]=L(b[0],b[1]);
         const A=new THREE.Vector3(off,ay,-ax), B=new THREE.Vector3(off,by,-bx), d=B.clone().sub(A);
@@ -479,7 +651,7 @@
         x2.fillStyle='#050505'; x2.fillRect(0,0,184,152);
         x2.strokeStyle='#ff3a2c'; x2.lineWidth=9; x2.beginPath(); x2.arc(92,76,56,0,Math.PI*2); x2.stroke();
         x2.fillStyle='#ff3a2c'; x2.font='bold 84px Helvetica, Arial, sans-serif'; x2.textAlign='center'; x2.textBaseline='middle'; x2.fillText('5',92,80);
-        const tex=new THREE.CanvasTexture(cv); tex.encoding=THREE.sRGBEncoding;
+        const tex=new THREE.CanvasTexture(cv); tex.colorSpace=THREE.SRGBColorSpace;
         const sm=new THREE.MeshBasicMaterial({ map:tex }); sm.color.setScalar(1.5);
         const p=new THREE.Mesh(new THREE.PlaneGeometry(42*PS,34*PS), sm); p.rotation.y=Math.PI/2;
         p.position.set(0.031, pyToY(41), 0); C.g.add(p); }
@@ -570,7 +742,7 @@
     const decal=(car,tex,x,y,w,h)=>{ const mat=new THREE.MeshStandardMaterial({ map:tex, roughness:0.5, metalness:0.1 });
       for (const s of [1,-1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat); p.position.set(x,y,s*1.507); if(s<0) p.rotation.y=Math.PI; car.add(p); } };
     const canvasTex=(w,h,draw)=>{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; draw(cv.getContext('2d'),w,h);
-      const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; t.anisotropy=4; return t; };
+      const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; };
     const numTex = canvasTex(256,84,(c,w,h)=>{ c.fillStyle='#111214'; c.fillRect(0,0,w,h);
       c.fillStyle='#f4f4f2'; c.font='bold 64px Helvetica, Arial, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('6675',w/2,h/2+3); });
     const flagTex = canvasTex(190,100,(c,w,h)=>{ for(let i=0;i<13;i++){ c.fillStyle=i%2?'#f2f2f2':'#b5232f'; c.fillRect(0,i*h/13,w,h/13+1); }
@@ -588,7 +760,7 @@
     // signs, with a brief blank between messages. One shared canvas, so every window on the train stays in sync.
     const LED_MSGS = [['FLATBUSH','AV','EXP'], ['BROOKLYN','COLLEGE'], ['LEXINGTON','AV','EXP']];
     const ledCv = document.createElement('canvas'); ledCv.width=1024; ledCv.height=190;
-    const ledTex = new THREE.CanvasTexture(ledCv); ledTex.encoding=THREE.sRGBEncoding; ledTex.anisotropy=4;
+    const ledTex = new THREE.CanvasTexture(ledCv); ledTex.colorSpace=THREE.SRGBColorSpace; ledTex.anisotropy=4;
     function drawLed(words){ const c=ledCv.getContext('2d'), w=ledCv.width, h=ledCv.height;
       c.fillStyle='#050605'; c.fillRect(0,0,w,h);
       c.fillStyle='rgba(60,110,40,0.55)'; c.fillRect(34,46,74,104);
@@ -620,8 +792,9 @@
         const g=rrM(c-hw,0.72,c+hw,1.63,0.12);
         flank(car, rrM(c-hw-0.045,0.675,c+hw+0.045,1.675,0.16), [g], gasketS, 1.44, 0.075);
         flank(car, g, null, sideGlass, 1.45, 0.01);
-        const fx=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,3.06,16), frameSteel); // small round fixture under the big windows
-        if (hw>0.5){ fx.rotation.x=Math.PI/2; fx.position.set(c,0.27,0); car.add(fx); }
+        if (hw>0.5) for (const sz of [1,-1]){                    // small round fixture under the big windows, on the outer skin only
+          const fx=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.03,16), frameSteel);
+          fx.rotation.x=Math.PI/2; fx.position.set(c,0.27,sz*1.515); car.add(fx); }
       }
       // door pairs: dark frame, recessed brushed leaves with light-gasket windows, threshold plate
       for (const c of DOORS){
@@ -706,13 +879,15 @@
     const floorY = b.min.y - 0.24;
     const reflShader = {
       uniforms: {
-        color:        { value: new THREE.Color(0xdadbdd) },  // reflection tint / dim
+        color:        { value: new THREE.Color(THEME.refl) },  // reflection tint / dim
         tDiffuse:     { value: null },
         textureMatrix:{ value: new THREE.Matrix4() },
-        floorColor:   { value: new THREE.Color(0x9a9ca0) },  // the matte floor it fades into
+        floorColor:   { value: new THREE.Color(THEME.floor) },  // the matte floor it fades into
         reflectivity: { value: 0.46 },
         fadeNear:     { value: 7.0 },
-        fadeFar:      { value: 46.0 }
+        fadeFar:      { value: 46.0 },
+        fogCol:       { value: new THREE.Color() },
+        fogDen:       { value: 0.0 }
       },
       vertexShader: `
         uniform mat4 textureMatrix; varying vec4 vUv; varying vec3 vWorld;
@@ -722,33 +897,191 @@
           gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
         }`,
       fragmentShader: `
-        uniform vec3 color, floorColor; uniform float reflectivity, fadeNear, fadeFar;
+        uniform vec3 color, floorColor, fogCol; uniform float reflectivity, fadeNear, fadeFar, fogDen;
         uniform sampler2D tDiffuse; varying vec4 vUv; varying vec3 vWorld;
         void main(){
           vec3 refl = texture2DProj(tDiffuse, vUv).rgb * color;
           float d = distance(vWorld, cameraPosition);
           float fade = 1.0 - smoothstep(fadeNear, fadeFar, d);
           vec3 outc = mix(floorColor, refl, clamp(reflectivity*fade, 0.0, 1.0));
+          outc = mix(outc, fogCol, 1.0-exp(-fogDen*fogDen*d*d));
           gl_FragColor = vec4(outc, 1.0);
         }`
     };
-    const reflector = new THREE.Reflector(new THREE.PlaneGeometry(2400, 200), {
+    const reflector = new Reflector(new THREE.PlaneGeometry(GRADE.a+1200, 200), {
       textureWidth: 1024, textureHeight: 1024, clipBias: 0.003, shader: reflShader
     });
-    reflector.rotation.x = -Math.PI/2; reflector.position.y = floorY; scene.add(reflector);
-    const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(2400, 200), new THREE.ShadowMaterial({ opacity:0.3 }));
-    shadowPlane.rotation.x = -Math.PI/2; shadowPlane.position.y = floorY + 0.002; shadowPlane.receiveShadow = true;
+    reflector.rotation.x = -Math.PI/2; reflector.position.set((GRADE.a-1200)/2, floorY+GRADE.h, 0); scene.add(reflector); floorRef=reflector;
+    { const before=reflector.onBeforeRender; let last=-1;
+      reflector.onBeforeRender=function(r,sc,cam){ if (last===FRAME.n) return; last=FRAME.n; before.call(this,r,sc,cam); }; }
+    const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(GRADE.a+1200, 200), new THREE.ShadowMaterial({ opacity:0.3 })); shadowRef=shadowPlane;
+    shadowPlane.rotation.x = -Math.PI/2; shadowPlane.position.set((GRADE.a-1200)/2, floorY+GRADE.h+0.002, 0); shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
 
     // track: two running rails + sleepers
-    const gauge = 0.72, run0 = -carLen*6, run1 = carLen*6, railY = b.min.y - 0.06;
-    for (const z of [gauge,-gauge]){
-      const r = new THREE.Mesh(new THREE.BoxGeometry(run1-run0, 0.12, 0.12), railMat);
-      r.position.set((run0+run1)/2, railY, z); r.castShadow=true; r.receiveShadow=true; scene.add(r);
-    }
-    for (let x=Math.ceil(run0/0.8)*0.8; x<=run1; x+=0.8){
-      const t = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.12, 3.0), tieMat);
-      t.position.set(x, railY-0.10, 0); t.castShadow=true; t.receiveShadow=true; scene.add(t);
+    /* ---------- track: weathered timber sleepers on a ballast bed, rail-profile running rails (rusty sides,
+       polished running band), tie plates, and a covered third rail on the side away from the platform ---------- */
+    const gauge = 0.72, run0 = -130, run1 = TUNNEL.x1, LEN = run1-run0, railY = b.min.y - 0.06;
+    const railTop = b.min.y;                                   // wheel contact
+    const RH = 0.12, footY = railTop-RH, plateY = footY-0.016, tieTop = plateY, TIE_H = 0.16;
+    const rnd = (()=>{ let a=1234567; return ()=>((a=(Math.imul(a,1103515245)+12345)>>>0)/4294967296); })();   // seeded: same track every load
+    const inst = (geo,mat,n)=>{ const m=new THREE.InstancedMesh(geo,mat,n); m.castShadow=true; m.receiveShadow=true; scene.add(m); return m; };
+    const M4=new THREE.Matrix4(), Q=new THREE.Quaternion(), E=new THREE.Euler(), P=new THREE.Vector3(), S=new THREE.Vector3(), C=new THREE.Color();
+    const SEG=Math.ceil(LEN);                                  // ~1 m segments so long pieces can bend down the ramp
+    const slope = x => Math.atan((gradeY(x+0.5)-gradeY(x-0.5)));
+    const bend = m => { m.updateMatrix(); m.geometry.applyMatrix4(m.matrix); m.position.set(0,0,0); m.rotation.set(0,0,0); m.scale.set(1,1,1);
+      const pa=m.geometry.attributes.position; for (let i=0;i<pa.count;i++) pa.setY(i, pa.getY(i)+gradeY(pa.getX(i)));
+      pa.needsUpdate=true; m.geometry.computeVertexNormals(); m.geometry.computeBoundingSphere(); return m; };
+    const rustM   = new THREE.MeshStandardMaterial({ color:0x2a1f18, metalness:0.3, roughness:0.9 });
+    const shineM  = new THREE.MeshStandardMaterial({ color:0xd6d7d9, metalness:1.0, roughness:0.2, envMapIntensity:1.2 });
+    const plateM  = new THREE.MeshStandardMaterial({ color:0x1b1815, metalness:0.4, roughness:0.8 });
+    const timberM = new THREE.MeshStandardMaterial({ color:0xffffff, metalness:0.0, roughness:0.95 });
+    const insulM  = new THREE.MeshStandardMaterial({ color:0x9c937f, metalness:0.0, roughness:0.7 });
+    const boardM  = new THREE.MeshStandardMaterial({ color:0x3a3129, metalness:0.0, roughness:0.95 });
+    // ballast bed: speckled stone texture, so the track sits on something instead of the mirror floor
+    { const cv=document.createElement('canvas'); cv.width=cv.height=256; const c=cv.getContext('2d');
+      c.fillStyle='#0c0b0a'; c.fillRect(0,0,256,256);
+      for (let i=0;i<2800;i++){ const g=14+(rnd()*30|0); c.fillStyle='rgb('+(g+(rnd()*14|0))+','+g+','+Math.max(0,g-8)+')';
+        c.beginPath(); c.arc(rnd()*256,rnd()*256,1+rnd()*2.6,0,Math.PI*2); c.fill(); }
+      const tex=new THREE.CanvasTexture(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(LEN/1.6,2.4); tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=8;
+      const bed=new THREE.Mesh(new THREE.BoxGeometry(LEN,0.08,3.9,SEG), new THREE.MeshStandardMaterial({ map:tex, roughness:1, metalness:0 }));
+      bed.position.set((run0+run1)/2, b.min.y-0.24+0.04, -0.15); bed.receiveShadow=true; scene.add(bend(bed)); }
+    // sleepers: every 4th is long, carrying the third-rail insulator and cover-board bracket
+    const SP=0.62, n=Math.floor(LEN/SP), longs=[];
+    { const ties=inst(new THREE.BoxGeometry(0.23,TIE_H,2.6), timberM, n), plates=inst(new THREE.BoxGeometry(0.2,0.016,0.34), plateM, n*2);
+      for (let i=0;i<n;i++){
+        const x=run0+i*SP+(rnd()-0.5)*0.05, long=i%4===0, len=long?3.25:2.6, zc=long?-0.325:0;
+        E.set(0,(rnd()-0.5)*0.03,slope(x)); Q.setFromEuler(E);
+        P.set(x, tieTop-TIE_H/2+(rnd()-0.5)*0.012+gradeY(x), zc); S.set(1,1,len/2.6); M4.compose(P,Q,S); ties.setMatrixAt(i,M4);
+        C.setHSL(0.07+rnd()*0.03, 0.10+rnd()*0.12, 0.03+rnd()*0.045); ties.setColorAt(i,C);
+        for (let k=0;k<2;k++){ M4.makeTranslation(x, plateY+0.008+gradeY(x), k?gauge:-gauge); plates.setMatrixAt(i*2+k,M4); }
+        if (long) longs.push(x);
+      }
+      ties.instanceColor.needsUpdate=true; }
+    // running rails: real rail profile (foot, web, head), rusty, with a polished band where the wheels run
+    { const sh=new THREE.Shape([[-0.06,0],[0.06,0],[0.06,0.012],[0.012,0.026],[0.009,0.082],[0.03,0.09],[0.03,RH],[-0.03,RH],[-0.03,0.09],[-0.009,0.082],[-0.012,0.026],[-0.06,0.012]].map(q=>new THREE.Vector2(q[0],q[1])));
+      const geo=new THREE.ExtrudeGeometry(sh,{ depth:LEN, steps:SEG, bevelEnabled:false, curveSegments:1 });
+      for (const z of [gauge,-gauge]){
+        const r=new THREE.Mesh(geo.clone(),rustM); r.rotation.y=Math.PI/2; r.position.set(run0,footY,z); r.castShadow=r.receiveShadow=true; scene.add(bend(r));
+        const band=new THREE.Mesh(new THREE.BoxGeometry(LEN,0.004,0.05,SEG),shineM); band.position.set((run0+run1)/2,railTop-0.0015,z); scene.add(bend(band)); } }
+    // third rail (far side, away from the platform): on insulators, with a wooden cover board on brackets above it
+    { const Z3=-1.56, top3=railTop+0.06, H3=0.085;
+      const r3=new THREE.Mesh(new THREE.BoxGeometry(LEN,H3,0.075,SEG),rustM); r3.position.set((run0+run1)/2,top3-H3/2,Z3); r3.castShadow=r3.receiveShadow=true; scene.add(bend(r3));
+      const b3=new THREE.Mesh(new THREE.BoxGeometry(LEN,0.004,0.06,SEG),shineM); b3.position.set((run0+run1)/2,top3-0.0015,Z3); scene.add(bend(b3));
+      const insH=(top3-H3)-tieTop, ins=inst(new THREE.CylinderGeometry(0.045,0.05,insH,12), insulM, longs.length);
+      const post=inst(new THREE.BoxGeometry(0.05,1,0.05), plateM, longs.length), boardY=top3+0.11;
+      longs.forEach((x,i)=>{ M4.makeTranslation(x,tieTop+insH/2+gradeY(x),Z3); ins.setMatrixAt(i,M4);
+        P.set(x,(tieTop+boardY)/2+gradeY(x),-1.84); Q.identity(); S.set(1,boardY-tieTop,1); M4.compose(P,Q,S); post.setMatrixAt(i,M4); });
+      const board=new THREE.Mesh(new THREE.BoxGeometry(LEN,0.032,0.34,SEG),boardM); board.position.set((run0+run1)/2,boardY,-1.66); board.castShadow=board.receiveShadow=true; scene.add(bend(board));
+      const arm=new THREE.Mesh(new THREE.BoxGeometry(LEN,0.03,0.04,SEG),plateM); arm.position.set((run0+run1)/2,boardY-0.03,-1.82); scene.add(bend(arm)); }
+
+    /* ---------- tunnel cut into a gold wall, with a lit gold station inside ---------- */
+    { const T=TUNNEL, yb=railY-0.17, yt=T.top, box=(x0,x1,y0,y1,z0,z1,mat,shadow)=>{
+        const m=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0),mat); m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
+        m.castShadow=shadow!==false; m.receiveShadow=true; scene.add(m); return m; };
+      const concrete=new THREE.MeshStandardMaterial({ color:0x1d1b17, roughness:0.92, metalness:0.0 });
+      const portalM =new THREE.MeshStandardMaterial({ color:THEME.portal, roughness:0.85, metalness:0.0, envMapIntensity:0.35 });
+      const lampM   =new THREE.MeshStandardMaterial({ color:0x111111, emissive:THEME.lamp, emissiveIntensity:2.4 });
+      const platM   =new THREE.MeshStandardMaterial({ color:THEME.platform, emissive:THEME.platform, emissiveIntensity:0.22, roughness:0.85 });
+      const tileM   =new THREE.MeshStandardMaterial({ color:THEME.station, emissive:THEME.station, emissiveIntensity:0.42, roughness:0.5 });
+      const edgeM   =new THREE.MeshStandardMaterial({ color:THEME.edge, emissive:THEME.edge, emissiveIntensity:0.6 });
+      // open cut: street-level ground either side of a concrete trough whose floor follows the grade down to the portal
+      const G=floorY+GRADE.h, cutM=new THREE.MeshStandardMaterial({ color:0x161513, roughness:0.95, metalness:0.0, envMapIntensity:0.45 });
+      const groundM=new THREE.MeshStandardMaterial({ color:0x060607, roughness:0.95, metalness:0.0, envMapIntensity:0.2 });   // street level beside the cut (colour set by the weather)
+      groundRef=groundM; poleLampM=new THREE.MeshStandardMaterial({ color:0x111111, emissive:THEME.lamp, emissiveIntensity:2.4 });
+      { const f=new THREE.Mesh(new THREE.BoxGeometry(T.x0-GRADE.a, 0.4, T.z1-T.z0, Math.ceil(T.x0-GRADE.a)), cutM);
+        f.position.set((GRADE.a+T.x0)/2, floorY-0.2, (T.z0+T.z1)/2); f.receiveShadow=true; scene.add(bend(f)); }
+      for (const [za,zb] of [[T.z1,80],[-80,T.z0]]){                     // retaining walls (inner faces) + ground on top
+        box(GRADE.a,T.x0-1.5, floorY-1, G-0.05, za,zb, cutM);
+        box(GRADE.a,T.x0-1.5, G-0.05, G, za,zb, groundM, false);
+        // pipe railing along the top of each wall
+        const zr = za===T.z1 ? T.z1+0.15 : T.z0-0.15;
+        for (const hy of [0.55,1.05]) box(GRADE.a,T.x0-1.5, G+hy-0.025, G+hy+0.025, zr-0.025, zr+0.025, plateM, false);
+        for (let x=GRADE.a+1; x<T.x0-1.5; x+=2.5) box(x-0.03,x+0.03, G, G+1.05, zr-0.03, zr+0.03, plateM, false);
+      }
+      // light poles along the cut — they light the ramp walls at night
+      for (const x of [34,56,78]){ box(x-0.08,x+0.08, G, G+5.6, T.z1+1.4, T.z1+1.56, plateM);
+        box(x-0.08,x+0.08, G+5.5, G+5.62, T.z1+0.4, T.z1+1.56, plateM, false);
+        box(x-0.35,x+0.35, G+5.42, G+5.5, T.z1+0.3, T.z1+0.75, poleLampM, false);
+        const pl=new THREE.PointLight(0xf2efe8, 1.6, 20, 2); pl.position.set(x,G+5.2,T.z1+0.5); scene.add(pl); poleRefs.push(pl); }
+      // headwall with the tunnel mouth, parapet on top, embankment over the tunnel behind it
+      const H2=yt+0.5;
+      box(T.x0-1.5,T.x1, floorY-1, H2, T.z1+0.5, 80, portalM);  box(T.x0-1.5,T.x1, floorY-1, H2, -80, T.z0-0.5, portalM);
+      box(T.x0-1.5,T.x0, yt, H2, T.z0-0.5, T.z1+0.5, portalM);
+      box(T.x0-1.5,T.x0, yb, yt, T.z1, T.z1+0.5, portalM);  box(T.x0-1.5,T.x0, yb, yt, T.z0-0.5, T.z0, portalM);
+      box(T.x0-1.75,T.x0-1.35, H2, H2+0.8, T.z0-1.5, T.z1+1.5, cutM);
+      box(T.x0-1.5,T.x1, H2-0.05, H2, -80, 80, groundM, false);
+
+      /* ---------- the neighbourhood around 3 Av–149 St: 5–8 storey walk-ups lining the line ---------- */
+      { const rr=(()=>{ let a=424242; return ()=>((a=(Math.imul(a,1103515245)+12345)>>>0)/4294967296); })();
+        const CELLS=16, BAY=3.0, STORY=3.1;
+        // one 16×16-cell facade sheet per masonry colour; a shared emissive sheet of randomly lit windows
+        const facadeTex=(base,mortar)=>{ const cv=document.createElement('canvas'); cv.width=cv.height=512; const c=cv.getContext('2d');
+          c.fillStyle=base; c.fillRect(0,0,512,512);
+          for (let i=0;i<9000;i++){ const v=(rr()-0.5)*26; c.fillStyle='rgba('+(v>0?255:0)+','+(v>0?255:0)+','+(v>0?255:0)+','+Math.abs(v)/255+')'; c.fillRect(rr()*512,rr()*512,2,1); }
+          c.fillStyle=mortar; for (let y=0;y<512;y+=32) c.fillRect(0,y+29,512,3);                 // floor-line bands
+          for (let cy=0;cy<CELLS;cy++) for (let cx=0;cx<CELLS;cx++){ const x=cx*32, y=cy*32;
+            c.fillStyle='rgba(225,220,210,0.55)'; c.fillRect(x+8,y+5,16,21);                    // stone surround
+            c.fillStyle='#14181d'; c.fillRect(x+9.5,y+6.5,13,18);                               // glass
+            c.fillStyle='rgba(120,130,140,0.35)'; c.fillRect(x+9.5,y+15,13,1.2); }              // sash
+          const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; };
+        const litTex=(()=>{ const cv=document.createElement('canvas'); cv.width=cv.height=512; const c=cv.getContext('2d');
+          c.fillStyle='#000'; c.fillRect(0,0,512,512);
+          for (let cy=0;cy<CELLS;cy++) for (let cx=0;cx<CELLS;cx++) if (rr()<0.38){ const x=cx*32, y=cy*32;
+            c.fillStyle=['#ffd39a','#ffe6c4','#fff4e4','#d6e2ff','#ffc98a'][Math.floor(rr()*5)]; c.globalAlpha=0.55+rr()*0.45; c.fillRect(x+9.5,y+6.5,13,18);
+            if (rr()<0.5){ c.globalAlpha=0.5; c.fillStyle='#000'; c.fillRect(x+9.5,y+6.5,13,7+rr()*8); } c.globalAlpha=1; }   // half-drawn shades
+          const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; return t; })();
+        const PALETTE=[['#6b3a2c','#5a3024'],['#4c342a','#3d2a22'],['#8b7560','#76624f'],['#6c6a66','#5a5855'],['#7a4a36','#64392a']];
+        const mats=PALETTE.map(([b,m])=>{ const mt=new THREE.MeshStandardMaterial({ map:facadeTex(b,m), emissiveMap:litTex, emissive:0xffffff, emissiveIntensity:0, roughness:0.92, metalness:0, envMapIntensity:0.5 });
+          facadeMats.push(mt); return mt; });
+        const roofM=new THREE.MeshStandardMaterial({ color:0x2a2a2d, roughness:0.95, metalness:0 });
+        const woodM=new THREE.MeshStandardMaterial({ color:0x4f3d2e, roughness:0.9, metalness:0 });
+        const building=(x0,x1,z0,z1,h,mat,shadow)=>{
+          const w=x1-x0, d=z1-z0, g=new THREE.BoxGeometry(w,h,d), uv=g.attributes.uv, off=Math.floor(rr()*CELLS)/CELLS;
+          // faces: +x,-x,+y,-y,+z,-z (4 verts each) — scale UVs so one cell = one bay × one storey
+          for (let f=0;f<6;f++){ const fw=(f<2)?d:w; for (let k=0;k<4;k++){ const i=f*4+k; uv.setXY(i, uv.getX(i)*fw/(BAY*CELLS)+off, uv.getY(i)*h/(STORY*CELLS)); } }
+          const m=new THREE.Mesh(g,[mat,mat,roofM,roofM,mat,mat]); m.position.set((x0+x1)/2, G+h/2, (z0+z1)/2);
+          m.castShadow=shadow; m.receiveShadow=true; scene.add(m);
+          // cornice + roof parapet
+          const cor=new THREE.Mesh(new THREE.BoxGeometry(w+0.5,0.45,d+0.5),roofM); cor.position.set((x0+x1)/2,G+h+0.1,(z0+z1)/2); cor.castShadow=shadow; scene.add(cor);
+          return m; };
+        const waterTower=(x,z,y)=>{ const g=new THREE.Group(); g.position.set(x,y,z);
+          for (const [dx,dz] of [[-1,-1],[1,-1],[-1,1],[1,1]]){ const l=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,2.6,6),roofM); l.position.set(dx*1.05,1.3,dz*1.05); g.add(l); }
+          const tank=new THREE.Mesh(new THREE.CylinderGeometry(1.7,1.75,3.2,18),woodM); tank.position.y=4.2; g.add(tank);
+          const cap=new THREE.Mesh(new THREE.ConeGeometry(1.85,1.3,18),roofM); cap.position.y=6.45; g.add(cap);
+          g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } }); scene.add(g); };
+        // two rows facing the line: +z side (platform side) and −z side, from far up the line to past the portal
+        for (const side of [1,-1]){
+          let x=-330; const zFront = side>0 ? 26 : -20;
+          while (x < T.x0+150){
+            const w=11+rr()*16, h=STORY*(5+Math.floor(rr()*4))+1.0, d=14+rr()*8, gap=rr()<0.3?2+rr()*5:0.15;
+            const z0=side>0?zFront+rr()*2:zFront-d-rr()*2, z1=z0+d;
+            const near=Math.abs(x+w/2-10)<120;                  // only buildings near the action cast shadows (perf)
+            building(x,x+w,z0,z1,h,mats[Math.floor(rr()*mats.length)],near);
+            if (rr()<0.32) waterTower(x+w*(0.3+rr()*0.4), (z0+z1)/2+(rr()-0.5)*3, G+h+0.3);
+            x+=w+gap;
+          }
+        }
+        // distant skyline to the south (seen over the portal on the way down): taller towers, no shadows
+        for (let i=0;i<22;i++){ const x=T.x0+230+rr()*380, z=(rr()-0.5)*520, w=16+rr()*28, d=16+rr()*28, h=40+Math.pow(rr(),1.6)*190;
+          building(x,x+w,z,z+d,h,mats[Math.floor(rr()*mats.length)],false); }
+        // a few more street lamps along the at-grade stretch where the train waits
+        for (const x of [-70,-40,-10]){ box(x-0.08,x+0.08, G, G+5.6, 7.4,7.56, plateM); box(x-0.08,x+0.08, G+5.5,G+5.62, 6.4,7.56, plateM,false);
+          box(x-0.35,x+0.35, G+5.42,G+5.5, 6.3,6.75, poleLampM,false);
+          const pl=new THREE.PointLight(0xf2efe8, 1.6, 22, 2); pl.position.set(x,G+5.2,6.5); scene.add(pl); poleRefs.push(pl); }
+      }
+      // tunnel shell: bed, roof, walls
+      box(T.x0,T.x1, yb-0.4, yb, T.z0, T.z1, concrete, false);
+      box(T.x0,T.x1, yt, yt+0.5, T.z0, T.z1, concrete);
+      box(T.x0,T.x1, yb, yt, T.z0-0.5, T.z0, concrete);
+      box(T.x0,T.x1, yb, yt, T.z1, T.z1+0.5, concrete);
+      // running lights on both walls — they stream past as the train moves
+      for (let x=T.x0+4; x<T.x1; x+=7){ box(x,x+1.4, 2.35,2.47, T.z0,T.z0+0.06, lampM,false); box(x,x+1.4, 2.35,2.47, T.z1-0.06,T.z1, lampM,false); }
+      // station: platform at door-sill height on the +z side, glowing gold wall, ceiling light bars
+      box(T.st0,T.st1, yb, -0.36, 1.62, T.z1, platM);
+      box(T.st0,T.st1, -0.36,-0.34, 1.62,1.95, edgeM,false);                 // platform edge strip
+      box(T.st0,T.st1, -0.34, yt, T.z1-0.08, T.z1, tileM,false);           // lit station wall
+      for (let x=T.st0+2; x<T.st1-2; x+=5) box(x,x+3.2, yt-0.12,yt, 2.4,3.6, lampM,false);
     }
 
     // camera: 3/4 oncoming (same framing as the line-art study)
@@ -757,72 +1090,157 @@
     controls.target.set(b.max.x-carLen*0.35, eyeY-carLen*0.06, 0);
     controls.update();
     homePos=camera.position.clone(); homeTgt=controls.target.clone();
+    homePos.y+=GRADE.h; homeTgt.y+=GRADE.h;                      // rest shot is up at street level
 
     // keep the key light's shadow following the action
     key.target.position.set(camera.position.x - carLen*0.8, eyeY, 0); scene.add(key.target);
+    keyOff = key.position.clone().sub(key.target.position);
 
-    // motion: full train arrives, passes, gap, repeats (constant velocity)
-    const span=carLen+gap;
-    const camPass = camera.position.x + carLen*2.0;
-    const leadFace=b.max.x, tailBack=-(NCARS-1)*span + b.min.x;
-    pStart=(-carLen*2.2)-leadFace;
-    const pEnd=camPass-tailBack;
-    speed=carLen*1.4;
-    loopDist=(pEnd-pStart)+carLen*5;
-    phase=0; train.position.x=pStart;
+    // where the train waits before you scroll: lead cab ~2.2 car-lengths down the track
+    pStart=(-carLen*2.2)-b.max.x;
+    train.position.x=pStart;
 
+    /* ---------- practical lights ---------- */
+    const lead=train.children[0];
+    // headlights: throw light down the track ahead of the cab
+    for (const z of [-0.95,0.95]){
+      const sp=new THREE.SpotLight(0xfff1dc, 5.0, 48, 0.34, 0.75, 1.4); sp.position.set(9.3,-0.3,z);
+      sp.target.position.set(40,-1.9,z*0.4); lead.add(sp); lead.add(sp.target); }
+    // the lead car's own interior light (spills out through the windows onto the tunnel walls)
+    { const il=new THREE.PointLight(0xfff4e4, 0.55, 9, 2); il.position.set(0,1.45,0); lead.add(il); }
+    // station lights over the platform
+    for (const dx of [-7,7]){ const sl=new THREE.PointLight(0xf6f3ec, 1.5, 18, 2); sl.position.set(STOP_X+dx,2.9,3.3); scene.add(sl); }
+    // tunnel lamps: two lights leapfrog the wall lamps nearest the camera (even / odd lamps), fading as
+    // they hand over so nothing pops — light sweeps over the train as it passes each lamp
+    for (let i=0;i<2;i++){ const tl=new THREE.PointLight(0xf4f1ea, 0, 9, 2); scene.add(tl); tunnelLights.push(tl); }
+    // every surface that reflects the studio environment, so the tunnel can actually get dark
+    scene.traverse(o=>{ const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
+      for (const m of ms) if (m && m.envMapIntensity!==undefined && !envMats.has(m)) envMats.set(m,m.envMapIntensity); });
+
+    setGround(); applyAtmosphere();
     window.__ready=true;
   }, (err)=>{ window.__err=String(err); });
 
   addEventListener('resize', ()=>{ camera.aspect=vw()/vh(); camera.updateProjectionMatrix(); renderer.setSize(vw(),vh(),false); });
 
   /* ---------- scroll drives the scene ----------
-     rest: the train runs past on its loop · scroll: it decelerates into the station and stops with
-     car 1's centre doors in front of you while the camera swings square-on · then the doors open. */
+     approach (static loop camera) → follow the lead car into the tunnel → fly in through its side window
+     → the train brakes into the station while the camera turns to the doors → the doors open. */
   const sceneEl = document.getElementById('scene');
   const progress = ()=>{ const total=sceneEl.offsetHeight-innerHeight; return total<=0 ? 0 : Math.min(1,Math.max(0,-sceneEl.getBoundingClientRect().top/total)); };
   const smooth = (e0,e1,x)=>{ const t=Math.min(1,Math.max(0,(x-e0)/(e1-e0))); return t*t*(3-2*t); };
-  const SCRUB_FROM=0.04, SCRUB_TO=0.82, LOOP_BACK=0.015;   // same scroll zones as the page overlay
-  const STOP_AT=0.72, ARRIVE_FROM=70;                      // scrub fraction where the train stops · run-in distance (m)
-  const CAM0p=new THREE.Vector3(16,0.4,7.0),  CAM0t=new THREE.Vector3(2,-0.2,0);    // oncoming 3/4 from the platform
-  const CAM1p=new THREE.Vector3(0,0.55,8.6),  CAM1t=new THREE.Vector3(0,0.55,0);    // square-on to the centre doors
-  const tgt=new THREE.Vector3();
-  let mode='loop', s=0;
-  // switching between the rest loop and the arrival is a cut; cover it with a short dissolve from a snapshot
-  const xf=document.getElementById('xfade'), xctx=xf.getContext('2d'), XFADE_MS=480; let xfT=-1;
-  function snapshot(){
-    renderer.render(scene, camera);                       // the outgoing state, drawn before we change it
-    if (xf.width!==canvas.width || xf.height!==canvas.height){ xf.width=canvas.width; xf.height=canvas.height; }
-    xctx.clearRect(0,0,xf.width,xf.height); xctx.drawImage(canvas,0,0);
-    xfT=performance.now(); xf.style.opacity='1';
-  }
+  const SCRUB_TO=0.82;                                     // scroll zone, as the page overlay
+  let s=0;                                                  // eased scroll position, 0..1
+  // train speed vs scroll: pull away from rest, cruise, brake into the station (integrated into a position table)
+  const BRAKE0=0.60, BRAKE1=0.82;
+  const vel = t => t<0.08 ? t/0.08 : t<BRAKE0 ? 1 : t<BRAKE1 ? 1-(t-BRAKE0)/(BRAKE1-BRAKE0) : 0;
+  const CUM=[0]; for (let i=1;i<=400;i++) CUM.push(CUM[i-1]+vel((i-0.5)/400)/400);
+  const trainX = t => { const f=Math.min(1,Math.max(0,t))*400, i=Math.floor(f), c=i>=400?CUM[400]:CUM[i]+(CUM[i+1]-CUM[i])*(f-i);
+    return pStart + (STOP_X-pStart)*c/CUM[400]; };
   function setDoors(f){ for (const car of train.children) for (const leaf of (car.userData.leaves||[])) leaf.position.x=leaf.userData.dir*0.79*f; }
-  function arrival(t){
-    train.position.x = -ARRIVE_FROM*Math.pow(1-Math.min(1,t/STOP_AT),2);   // linear deceleration to rest at x = 0
-    const c=smooth(0.18,0.8,t);
-    camera.position.lerpVectors(CAM0p,CAM1p,c); tgt.lerpVectors(CAM0t,CAM1t,c); camera.lookAt(tgt);
-    setDoors(smooth(0.76,0.95,t));
+  const V=(x,y,z)=>new THREE.Vector3(x,y,z), lerpV=(a,b,t)=>a.clone().lerp(b,t);
+  const bez=(p0,p1,p2,t)=>p0.clone().multiplyScalar((1-t)*(1-t)).add(p1.clone().multiplyScalar(2*(1-t)*t)).add(p2.clone().multiplyScalar(t*t));
+  // camera beats, in the lead car's frame (x relative to car 1's centre) where they ride with the train
+  const CHASE_P=V(6,1.1,3.3),  CHASE_T=V(40,0.8,0.5);       // alongside the cab, looking down the tunnel
+  const WIN=V(2.92,1.17,1.55);                              // the big side window we fly through
+  const SEAT_P=V(-0.4,0.85,-0.9), AISLE_T=V(8,0.8,-0.5);
+  const FACE_P=V(0,0.72,-0.9), DOOR_T=V(0,0.72,1.5);         // square-on: on the doors' centre line, at door-centre height
+  const FLY_C=WIN.clone().multiplyScalar(2).sub(CHASE_P.clone().add(SEAT_P).multiplyScalar(0.5));  // bezier passes through WIN
+  const pos=new THREE.Vector3(), tgt=new THREE.Vector3();
+  function choreo(t){
+    const X=trainX(t); train.position.x=X;
+    for (const car of train.children){ const cx=X+car.position.x, ya=gradeY(cx-6.5), yf=gradeY(cx+6.5);
+      car.position.y=(ya+yf)/2; car.rotation.z=Math.atan2(yf-ya,13); }
+    const PY=train.children[0].position.y, rel=v=>v.clone().add(V(X,PY,0));
+    if (t<0.42){                                            // approach, then arc up over the cut and follow the cab down into the portal
+      const c=smooth(0.22,0.42,t), ch=rel(CHASE_P);
+      const ctrl=homePos.clone().add(ch).multiplyScalar(0.5).add(V(0,4.0,3.0));   // clears the retaining walls (checked offline)
+      pos.copy(bez(homePos,ctrl,ch,c)); tgt.copy(lerpV(homeTgt, rel(CHASE_T), c));
+    } else if (t<0.62){                                     // fly in through the side window
+      const f=smooth(0.42,0.62,t);
+      pos.copy(rel(bez(CHASE_P,FLY_C,SEAT_P,f))); tgt.copy(rel(lerpV(CHASE_T,AISLE_T,f)));
+    } else {                                                // ride in, turning to the doors as the train stops
+      const c=smooth(0.62,0.82,t);
+      pos.copy(rel(lerpV(SEAT_P,FACE_P,c))); tgt.copy(rel(lerpV(AISLE_T,DOOR_T,c)));
+    }
+    camera.position.copy(pos); camera.lookAt(tgt);
+    setDoors(smooth(0.85,0.98,t));
+    // inside the tunnel the steel stops seeing the bright studio — only the lamps light it
+    const inT=smooth(TUNNEL.x0-4, TUNNEL.x0+14, pos.x);
+    for (const [m,base] of envMats) m.envMapIntensity=base*THREE.MathUtils.lerp(ATM.env,0.3,inT);
+    const out=1-inT;
+    hemi.intensity=ATM.hemi*(0.15+0.85*out); scene.fog.density=ATM.fog*out;
+    if (floorRef){ floorRef.material.uniforms.fogDen.value=scene.fog.density; floorRef.material.uniforms.fogCol.value.copy(scene.fog.color); }
+    keyOff.copy(ATM.keyDir).multiplyScalar(90); key.intensity=ATM.key;
+    const poles=ATM.poleOn?1:0; for (const pl of poleRefs) pl.intensity=1.6*poles; if (poleLampM) poleLampM.emissiveIntensity=2.4*poles;
+    for (const pm of [rain,snow]){ const u=pm.material.uniforms; u.camPos.value.copy(pos); u.opacity.value=ATM.precipOpacity*out; }
+    { const L0=TUNNEL.x0+4.7, SPC=7;
+      tunnelLights.forEach((tl,i)=>{ const k=Math.round((pos.x-L0-i*SPC)/(2*SPC))*2+i, lx=L0+k*SPC;
+        tl.position.set(lx,2.3,0.8); tl.intensity=inT*2.2*Math.max(0,1-Math.abs(pos.x-lx)/(2*SPC)); }); }
+    // depth of field: hold focus on the cab outside, rack to the doors inside the car
+    if (bokeh){ const cab=V(X+9,0.4+PY,0), inside=smooth(0.42,0.62,t);
+      const fd=THREE.MathUtils.lerp(pos.distanceTo(cab), pos.distanceTo(rel(DOOR_T)), inside);
+      bokeh.uniforms.focus.value=fd; bokeh.uniforms.aperture.value=THREE.MathUtils.lerp(0.00035,0.0022,inside); }
+    { const fwd=tgt.clone().sub(pos).setY(0); if (fwd.lengthSq()>1e-6) fwd.normalize();    // shadow box centred ~26 m into the shot
+      key.target.position.set(pos.x+fwd.x*26, PY-1, pos.z*0.3+fwd.z*26); key.position.copy(key.target.position).add(keyOff); }
   }
+  /* ---------- post: AO → bloom → depth of field → tone map → film finish ---------- */
+  const lowPower = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth,innerHeight) < 600;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, lowPower ? 1.5 : 2));
+  const rt = new THREE.WebGLRenderTarget(1,1,{ type:THREE.HalfFloatType, samples: lowPower?0:4 });
+  const composer = new EffectComposer(renderer, rt);
+  composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(vw(), vh());
+  composer.addPass(new RenderPass(scene, camera));
+  if (!lowPower){
+    const gtao = new GTAOPass(scene, camera, vw(), vh());
+    gtao.updateGtaoMaterial({ radius:0.55, distanceExponent:1.4, thickness:1.2, scale:1.15, samples:16 });
+    gtao.updatePdMaterial({ lumaPhi:10, depthPhi:2, normalPhi:3, radius:6, rings:2, samples:16 });
+    gtao.blendIntensity = 0.9; composer.addPass(gtao);
+    // AO must ignore the headlight glow cards (flat transparent sprites) or it darkens the panel behind them
+    gtao.overrideVisibility = function(){ const cache=this._visibilityCache;
+      this.scene.traverse(o=>{ cache.set(o,o.visible); if (o.isPoints||o.isLine||o.isSprite) o.visible=false; }); };
+  }
+  const bloom = new UnrealBloomPass(new THREE.Vector2(vw(),vh()), 0.45, 0.35, 1.9)   // threshold above any reflection: only real lights bloom; composer.addPass(bloom);
+  const bokeh = lowPower ? null : new BokehPass(scene, camera, { focus:20, aperture:0.00035, maxblur:0.006 });
+  if (bokeh) composer.addPass(bokeh);
+  composer.addPass(new OutputPass());
+  const finish = new ShaderPass({
+    uniforms:{ tDiffuse:{value:null}, time:{value:0}, res:{value:new THREE.Vector2(vw(),vh())} },
+    vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader:`
+      uniform sampler2D tDiffuse; uniform float time; uniform vec2 res; varying vec2 vUv;
+      float hash(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
+      void main(){
+        vec2 c=vUv-0.5; float r2=dot(c,c);
+        vec2 off=c*r2*0.010;                                          // faint lens fringing toward the edges
+        vec3 col=vec3(texture2D(tDiffuse,vUv+off).r, texture2D(tDiffuse,vUv).g, texture2D(tDiffuse,vUv-off).b);
+        col=mix(col, col*col*(3.0-2.0*col), 0.22);                    // gentle S-curve
+        float l=dot(col,vec3(0.2126,0.7152,0.0722));
+        col+=vec3(-0.006,0.0,0.010)*(1.0-l)*(1.0-l);                   // a breath of cool in the shadows
+        col*=mix(1.0, smoothstep(0.95,0.25,sqrt(r2)*1.2), 0.5);        // vignette
+        col+=(hash(floor(vUv*res)+fract(time*7.0)*vec2(97.0,57.0))-0.5)*0.03*(1.0-0.5*l);   // grain
+        gl_FragColor=vec4(col,1.0);
+      }`
+  });
+  composer.addPass(finish);
+  addEventListener('resize', ()=>{ composer.setSize(vw(),vh()); finish.uniforms.res.value.set(vw(),vh()); });
+
   const clock = new THREE.Clock();
   function tick(){
+    FRAME.n++; window.__frames=FRAME.n;
     const dt=Math.min(clock.getDelta(),0.1);
     if (train){
-      const p=progress();
-      if (reduce){ arrival(STOP_AT); }                          // reduced motion: a still of the train at the platform
-      else {
-        if (mode==='loop' && p>SCRUB_FROM){ snapshot(); mode='scrub'; s=0; }
-        else if (mode==='scrub' && p<LOOP_BACK){ snapshot(); mode='loop'; setDoors(0); }
-        if (mode==='loop'){
-          phase=(phase+dt*speed)%loopDist; train.position.x=pStart+phase;
-          camera.position.copy(homePos); camera.lookAt(homeTgt);
-        } else {
-          s += (smooth(SCRUB_FROM,SCRUB_TO,p)-s)*Math.min(1,dt*9);   // ease toward the scroll position
-          arrival(s);
-        }
-      }
+      if (reduce) choreo(0);                                    // reduced motion: the opening still, nothing moves
+      else { s += (smooth(0,SCRUB_TO,progress())-s)*Math.min(1,dt*9); choreo(s); }   // ease toward the scroll position
     }
-    renderer.render(scene, camera);
-    if (xfT>=0){ const o=1-(performance.now()-xfT)/XFADE_MS; xf.style.opacity=Math.max(0,o).toFixed(3); if (o<=0) xfT=-1; }
+    finish.uniforms.time.value = clock.elapsedTime;
+    rain.material.uniforms.time.value = snow.material.uniforms.time.value = clock.elapsedTime;
+    sky.position.copy(camera.position);
+    // lightning in thunderstorms: a double flicker every 6–14 s
+    if (WX.kind==='storm' && !reduce){ if (ATM.flashT<0 && Math.random()<dt/9) ATM.flashT=0;
+      if (ATM.flashT>=0){ ATM.flashT+=dt; const f=ATM.flashT, a=(f<0.08?1:f<0.16?0.2:f<0.26?0.8:Math.max(0,1-(f-0.26)*4));
+        sky.material.uniforms.flash.value=a; hemi.intensity+=a*2.2; if (f>0.6){ ATM.flashT=-1; sky.material.uniforms.flash.value=0; } } }
+    composer.render();
     requestAnimationFrame(tick);
   }
   tick();
