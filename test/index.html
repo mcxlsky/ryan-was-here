@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ryan was here — test</title>
+  <meta name="description" content="Scroll-driven subway arrival hero — a live 3D R142 pulls into the station." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #171715;
+      --accent: #e5ab00;
+      --ink: #ffffff;
+      --glass: rgba(127, 124, 117, 0.25);
+      --strip: rgba(255, 255, 255, 0.45);
+      --font-ui: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- Scroll scene ---------- */
+    .scene  { position: relative; height: 360vh; }
+    .sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; background: #000; }
+
+    /* video stage we scale slightly on scroll */
+    .stage { position: absolute; inset: 0; will-change: transform, opacity; }
+    .hero-canvas {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      display: block; background: #000;
+      filter: contrast(1.05) saturate(1.06);
+    }
+
+    /* Scrim over the video, under the UI */
+    .scrim {
+      position: absolute; inset: 0; z-index: 4; pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(15,15,14,0.55) 0%, rgba(15,15,14,0.16) 26%, rgba(15,15,14,0.22) 60%, rgba(15,15,14,0.66) 100%),
+        radial-gradient(90% 60% at 50% 50%, rgba(15,15,14,0.04) 0%, rgba(15,15,14,0.40) 100%);
+    }
+
+    /* Animated film grain over the footage, under the UI text */
+    .grain {
+      position: absolute; inset: -60%; z-index: 4; pointer-events: none;
+      opacity: 0.52; mix-blend-mode: overlay; will-change: transform;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 150px 150px;
+      animation: grain 0.55s steps(1) infinite;
+    }
+    @keyframes grain {
+      0%   { transform: translate(0,0); }
+      10%  { transform: translate(-4%,-5%); }
+      20%  { transform: translate(-9%,4%); }
+      30%  { transform: translate(5%,-8%); }
+      40%  { transform: translate(-4%,12%); }
+      50%  { transform: translate(-10%,5%); }
+      60%  { transform: translate(12%,0); }
+      70%  { transform: translate(0,9%); }
+      80%  { transform: translate(-12%,2%); }
+      90%  { transform: translate(8%,5%); }
+      100% { transform: translate(4%,0); }
+    }
+
+    /* ---------- Overlay UI ---------- */
+    .wrap {
+      position: absolute; inset: 0; z-index: 5;
+      height: 100%; max-width: 1124px; margin: 0 auto;
+      padding: 24px; display: flex; flex-direction: column;
+    }
+
+    .navbar {
+      backdrop-filter: blur(21px); -webkit-backdrop-filter: blur(21px);
+      background: var(--glass); border-radius: 10px;
+      box-shadow: 0 18px 36px -10px rgba(0,0,0,0.3);
+      overflow: hidden; width: 100%; flex-shrink: 0;
+      will-change: opacity;
+    }
+    .sign-content { display: flex; align-items: stretch; height: 132px; padding-bottom: 4px; overflow: hidden; }
+    .home { display: flex; align-items: center; justify-content: center; padding: 0 40px; }
+    .logo-r {
+      background: var(--accent); color: var(--bg);
+      width: 84px; height: 84px; border-radius: 128px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 46px; line-height: 1; user-select: none;
+    }
+    .nav-strip { flex: 1; display: flex; align-items: flex-end; padding: 0 18px; overflow: hidden; }
+    .nav-stops { display: flex; align-items: flex-end; height: 100%; }
+    .nav-slot { width: 92px; height: 100%; display: flex; align-items: center; justify-content: center; margin-right: -34px; }
+    .nav-stop {
+      -webkit-appearance: none; appearance: none;
+      transform: rotate(-58deg); width: 150px;
+      border: 0; border-bottom: 1px solid var(--ink);
+      padding: 17px 14px 14px 0; color: var(--ink);
+      font-size: 17px; font-weight: 700; letter-spacing: -0.36px; white-space: nowrap;
+      opacity: 0.25; transition: opacity 0.3s ease;
+      background: none; text-align: left; cursor: pointer;
+    }
+    .nav-slot:first-child .nav-stop { opacity: 1; }
+    .nav-slot:hover .nav-stop { opacity: 0.9; }
+    .service { position: relative; height: 26px; display: flex; align-items: center; padding: 0 28px; }
+    .service-line { height: 2px; width: 100%; background: var(--strip); border-radius: 4px; }
+    .station-dot {
+      position: absolute; top: 50%; left: 6%;
+      width: 12px; height: 12px; border-radius: 72px;
+      background: #fff; border: 1px solid #fff;
+      transform: translate(-50%, -50%); box-shadow: 0 0 12px rgba(255,255,255,0.6);
+    }
+
+    .center {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 0 24px 96px;
+      will-change: opacity, transform;
+    }
+    /* inner group that drops in on page load */
+    .drop {
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      animation: dropIn 0.95s cubic-bezier(0.2, 0.75, 0.25, 1) both;
+      animation-delay: 0.15s;
+    }
+    @keyframes dropIn {
+      from { opacity: 0; transform: translateY(-54px); }
+      to   { opacity: 1; transform: none; }
+    }
+    /* navbar is centered on screen at rest, docks to top on scroll (driven by JS) */
+    .navbar { will-change: opacity, transform; }
+    .tag {
+      width: 132px; height: auto; transform: rotate(-3deg);
+      filter: drop-shadow(0 4px 20px rgba(0,0,0,0.7)); user-select: none;
+    }
+    .bio {
+      max-width: 524px; font-size: 18px; font-weight: 500; line-height: 1.45;
+      color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,0.8);
+    }
+    .btn-more {
+      background: var(--accent); color: var(--bg);
+      border: 1px solid var(--accent); border-radius: 52px;
+      padding: 10px 26px; font-size: 20px; font-weight: 700; cursor: pointer;
+      transition: transform 0.15s ease;
+      box-shadow: none;
+    }
+    .btn-more:hover { transform: translateY(-2px); box-shadow: none; }
+
+    .scroll-hint {
+      position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+      z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(255,255,255,0.65); will-change: opacity;
+    }
+    .scroll-hint .chev {
+      width: 16px; height: 16px;
+      border-right: 2px solid rgba(255,255,255,0.65);
+      border-bottom: 2px solid rgba(255,255,255,0.65);
+      transform: rotate(45deg); animation: bob 1.6s ease-in-out infinite;
+    }
+    @keyframes bob { 0%,100%{ transform: rotate(45deg) translate(0,0);} 50%{ transform: rotate(45deg) translate(3px,3px);} }
+
+    /* hero rest state reads as near-black (nav floats on it); darkness lifts as you scroll into the arrival. JS-driven. Sits over the video, under the nav. */
+    .dark { position: absolute; inset: 0; z-index: 4; background: #000; opacity: 1; pointer-events: none; }
+
+    /* loading veil until the clip can play/seek */
+    .veil { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; background: #000; transition: opacity .6s ease; }
+    .veil.hide { opacity: 0; pointer-events: none; }
+    .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.18); border-top-color: var(--accent); animation: spin .9s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .after { background: var(--bg); padding: 120px 24px 160px; text-align: center; }
+    .after h3 { font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+    .after p { max-width: 620px; margin: 0 auto; color: rgba(255,255,255,0.7); font-size: 16px; line-height: 1.6; }
+
+    .badge {
+      position: fixed; left: 12px; bottom: 12px; z-index: 10;
+      font-size: 11px; letter-spacing: 0.08em; color: rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.12);
+      padding: 5px 10px; border-radius: 999px; backdrop-filter: blur(6px); pointer-events: none;
+    }
+
+    @media (max-width: 720px) {
+      .sign-content { height: 92px; }
+      .home { padding: 0 16px; }
+      .logo-r { width: 56px; height: 56px; font-size: 30px; }
+      .nav-slot { width: 62px; margin-right: -26px; }
+      .nav-stop { width: 118px; font-size: 13px; }
+      .tag { width: 100px; }
+      .bio { font-size: 15px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .chev, .grain, .drop { animation: none; } }
+  </style>
+</head>
+<body>
+  <main class="scene" id="scene">
+    <div class="sticky">
+      <div class="stage" id="stage">
+        <canvas class="hero-canvas" id="trainCanvas" aria-label="A New York City R142 subway train pulling into the station"></canvas>
+      </div>
+
+      <div class="scrim"></div>
+      <div class="grain" aria-hidden="true"></div>
+
+      <!-- Overlay UI -->
+      <div class="wrap">
+        <nav class="navbar" id="navbar" aria-label="Primary">
+          <div class="sign-content">
+            <div class="home"><div class="logo-r" aria-label="Ryan — home">R</div></div>
+            <div class="nav-strip">
+              <div class="nav-stops">
+                <div class="nav-slot"><button class="nav-stop">About</button></div>
+                <div class="nav-slot"><button class="nav-stop">Work</button></div>
+                <div class="nav-slot"><button class="nav-stop">Process</button></div>
+                <div class="nav-slot"><button class="nav-stop">Field notes</button></div>
+                <div class="nav-slot"><button class="nav-stop">Contact</button></div>
+              </div>
+            </div>
+            <div style="width:200px"></div>
+          </div>
+        </nav>
+
+      </div>
+
+      <div class="dark" id="darkLayer" aria-hidden="true"></div>
+      <div class="veil" id="veil"><div class="spinner"></div></div>
+    </div>
+  </main>
+
+  <section class="after">
+    <h3>Next stop</h3>
+    <p>The train runs until you scroll; then it pulls into the station and the doors open.
+       The rest of the portfolio picks up from here.</p>
+  </section>
+
+  <script>
+    (function () {
+      /* scroll zones (fraction of the pinned scene) — the train script uses the same ones */
+      var SCRUB_TO = 0.82;
+
+      var reduce  = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var scene   = document.getElementById('scene');
+      var stage   = document.getElementById('stage');
+      var navbar  = document.getElementById('navbar');
+      var veil    = document.getElementById('veil');
+      var darkLayer = document.getElementById('darkLayer');
+      var loadT0  = 0;
+
+      var clamp  = function (v,a,b){ return v<a?a:(v>b?b:v); };
+      var smooth = function (a,b,x){ var t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); };
+
+      /* geometry: how far to drop the nav to screen-center */
+      var navCenter = 0;
+      function measure(){
+        var vh = window.innerHeight;
+        var nh = navbar.offsetHeight || 158;
+        navCenter = Math.max(0, vh/2 - (24 + nh/2));   // dock-top -> vertical center
+      }
+      measure();
+      window.addEventListener('resize', measure);
+
+      function progress(){
+        var total = scene.offsetHeight - window.innerHeight;
+        if (total <= 0) return 0;
+        return clamp(-scene.getBoundingClientRect().top / total, 0, 1);
+      }
+
+      var ready = false;
+      function frame(){
+        if (!ready && window.__ready){
+          ready = true;
+          loadT0 = performance.now();        // begin the from-black load settle
+          veil.style.display = 'none';
+        }
+        var p = progress();
+
+        // hero rest state is near-black; darkness lifts as the train pulls in. Plus a from-black settle on load.
+        var reveal   = smooth(0.02, 0.24, p);
+        var restDark = 0.84 * (1 - reveal);
+        var loadFade = (ready && !reduce) ? (1 - clamp((performance.now() - loadT0) / 1500, 0, 1)) : 0;
+        darkLayer.style.opacity = Math.max(restDark, loadFade).toFixed(3);
+
+        // intro: nav sits centered at rest, docks to top on the first scroll
+        var early = smooth(0.0, 0.12, p);
+        navbar.style.transform = 'translateY(' + (navCenter * (1 - early)).toFixed(1) + 'px)';
+        navbar.style.opacity = (1 - smooth(0.55, 0.9, p)).toFixed(3);
+
+        // gentle scale + fade of the scene near the end
+        var vfade = 1 - smooth(SCRUB_TO + 0.05, 1.0, p);
+        stage.style.opacity = vfade.toFixed(3);
+        stage.style.transform = 'scale(' + (1 + 0.06 * clamp(p/SCRUB_TO,0,1)).toFixed(4) + ')';
+
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    })();
+  </script>
+  <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/objects/Reflector.js"></script>
+  <script src="train-data.js"></script>
+  <script>
+(function () {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const canvas = document.getElementById('trainCanvas');
+  const host = document.getElementById('stage');
+  const vw = ()=>host.clientWidth||innerWidth, vh = ()=>host.clientHeight||innerHeight;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(vw(), vh(), false);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.60;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  const BG = 0x8b8d91;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(BG);
+
+  const camera = new THREE.PerspectiveCamera(42, vw()/vh(), 0.4, 600);
+  // no orbiting in a scroll hero — the camera is driven by scroll; this stub keeps the framing code readable
+  const controls = { target: new THREE.Vector3(), update(){ camera.lookAt(this.target); } };
+
+  /* ---------- procedural studio environment (reflections on the steel, no HDRI) ---------- */
+  function studioEnv(){
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const s = new THREE.Scene();
+    s.background = new THREE.Color(0x3a3c40);
+    // dome with a bright horizon BAND (studio sweep) → reads as a specular waterline on the steel,
+    // darker above and below for metallic contrast.
+    const dome = new THREE.Mesh(
+      new THREE.SphereGeometry(60, 48, 32),
+      new THREE.MeshBasicMaterial({ side: THREE.BackSide, vertexColors:true })
+    );
+    { const g=dome.geometry, pos=g.attributes.position, col=[];
+      for(let i=0;i<pos.count;i++){
+        const yy = pos.getY(i)/60;                         // -1..1
+        const band = Math.exp(-Math.pow((yy-0.06)/0.12,2));// tight bright strip near the horizon
+        const base = 0.09 + 0.14*(yy*0.5+0.5);             // deep dark field, a touch brighter up top
+        const v = Math.min(1, base + 1.0*band);
+        col.push(v,v,v);
+      }
+      g.setAttribute('color', new THREE.Float32BufferAttribute(col,3)); }
+    s.add(dome);
+    // soft panels = studio softboxes → crisp streaks on the stainless
+    const panel=(x,y,z,w,h,i)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({color:0xffffff})); m.position.set(x,y,z); m.lookAt(0,0,0); m.material.color.multiplyScalar(i); s.add(m); };
+    panel(0, 34, 4, 46, 12, 2.2);     // key overhead strip
+    panel(-28, 12, 16, 10, 26, 1.6);  // tall left softbox (vertical streak)
+    panel(26, 10, -12, 10, 24, 1.1);  // right/back
+    const tex = pmrem.fromScene(s, 0, 0.1, 120).texture;
+    pmrem.dispose(); s.traverse(o=>{ if(o.geometry) o.geometry.dispose(); });
+    return tex;
+  }
+  scene.environment = studioEnv();
+
+  /* ---------- lights ---------- */
+  const key = new THREE.DirectionalLight(0xffffff, 2.0);
+  key.position.set(-14, 22, 10);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.bias = -0.0004;
+  { const d=26, c=key.shadow.camera; c.left=-d; c.right=d; c.top=d; c.bottom=-d; c.near=1; c.far=90; c.updateProjectionMatrix(); }
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.5);
+  rim.position.set(18, 10, -14); scene.add(rim);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.06));
+
+  /* ---------- materials (R142: brushed stainless, maroon accents, glass) ---------- */
+  const steel = new THREE.MeshStandardMaterial({ color:0xc6c8cc, metalness:1.0, roughness:0.30, envMapIntensity:1.2 });
+  const steelDark = new THREE.MeshStandardMaterial({ color:0x45474b, metalness:0.9, roughness:0.5, envMapIntensity:0.85 });
+  const red     = new THREE.MeshStandardMaterial({ color:0x7a1f24, metalness:0.1, roughness:0.45, envMapIntensity:0.6 }); // MTA maroon front/belt
+  const glass = new THREE.MeshStandardMaterial({ color:0x05070a, metalness:0.4, roughness:0.05, envMapIntensity:1.5, transparent:true, opacity:0.9 });
+  const windMat = new THREE.MeshStandardMaterial({ color:0x0b0e13, metalness:0.95, roughness:0.07, envMapIntensity:2.8 }); // reflective cab windshield
+  const roofDark= new THREE.MeshStandardMaterial({ color:0x2a303b, metalness:0.15, roughness:0.42, envMapIntensity:0.8 });    // dark roof band
+  const frameSteel= new THREE.MeshStandardMaterial({ color:0xd3d5d8, metalness:1.0, roughness:0.28, envMapIntensity:1.2 });  // bright silver door frame
+  const ropeMat = new THREE.MeshStandardMaterial({ color:0xd8dadd, metalness:0.2, roughness:0.6 });                          // safety ropes
+  const rubber = new THREE.MeshStandardMaterial({ color:0x121214, metalness:0.0, roughness:0.85 });
+  const seatMat = new THREE.MeshStandardMaterial({ color:0x2c4f8c, emissive:0x0e1a33, emissiveIntensity:0.6, metalness:0.0, roughness:0.7 });   // R142 blue seats
+  const poleMat = new THREE.MeshStandardMaterial({ color:0xb7b9bd, metalness:0.92, roughness:0.32, envMapIntensity:0.9 });
+  const ceilMat = new THREE.MeshStandardMaterial({ color:0xd8d6cf, emissive:0xfff0d2, emissiveIntensity:0.55, metalness:0.0, roughness:0.9 });
+  const lightMat= new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xfff4e0, emissiveIntensity:1.2, roughness:0.6 });
+  const signMat = new THREE.MeshStandardMaterial({ color:0x0a0a0a, emissive:0x3fae57, emissiveIntensity:1.7, roughness:0.5 }); // green "5" bullet glow
+  const headMat = new THREE.MeshStandardMaterial({ color:0x120d04, emissive:0xffc877, emissiveIntensity:2.8, roughness:0.4 }); // warm headlight
+  const greenMat= new THREE.MeshStandardMaterial({ color:0x04120a, emissive:0x8fd6b8, emissiveIntensity:2.2, roughness:0.4 }); // green marker lamp
+  const markMat = new THREE.MeshStandardMaterial({ color:0x200406, emissive:0xd21f1f, emissiveIntensity:2.2, roughness:0.5 }); // red marker lights
+  const floorMat= new THREE.MeshStandardMaterial({ color:0xc0c1c4, metalness:0.0, roughness:0.62 });
+  const railMat = new THREE.MeshStandardMaterial({ color:0x74777c, metalness:0.95, roughness:0.34, envMapIntensity:0.9 });
+  const tieMat  = new THREE.MeshStandardMaterial({ color:0x76766f, metalness:0.0, roughness:0.95 });
+
+  function matFor(name){
+    if (/glass/i.test(name)) return glass;
+    if (/rubber/i.test(name)) return rubber;
+    if (/seat/i.test(name)) return seatMat;
+    if (/pole|_rail_/i.test(name)) return poleMat;
+    if (/lightstrip/i.test(name)) return lightMat;
+    if (/ceiling/i.test(name)) return ceilMat;
+    if (/floor/i.test(name)) return steelDark;
+    if (/bogie/i.test(name)) return steelDark;
+    return steel; // walls, roof, ends, skirt, door panels
+  }
+
+  let carProto=null, train=null, carLen=18, NCARS=10, gap=0.4;
+  let pStart=0, loopDist=1, speed=1, phase=0, homePos=null, homeTgt=null;
+
+  const loader = new THREE.GLTFLoader();
+  const bin = atob(window.__GLB_B64); const buf = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) buf[i]=bin.charCodeAt(i);
+
+  loader.parse(buf.buffer, '', (gltf)=>{
+    const model = gltf.scene;
+    model.updateWorldMatrix(true,true);
+    model.traverse(o=>{
+      if (o.isMesh){
+        o.material = matFor(o.name||'');
+        o.castShadow = true; o.receiveShadow = true;
+      }
+    });
+    // the GLB geometry is offset from its origin — center each car inside its own group
+    const box = new THREE.Box3().setFromObject(model);
+    const ctr = new THREE.Vector3(); box.getCenter(ctr);
+    const size = new THREE.Vector3(); box.getSize(size);
+    carLen = size.x;
+    const b = new THREE.Box3(size.clone().multiplyScalar(-0.5), size.clone().multiplyScalar(0.5)); // centered box
+
+    /* ================= R142 body + cab, built from measurements of the reference photo =================
+       Reference front (358px photo): face spans px x 14–344 (= 3.0 m, the GLB width), roof arch crown at
+       py 18, shoulder py 62 (= GLB wall top, y 1.85), skirt py 338. Viewer-left = +z.
+       Every cab feature below is placed in those photo pixel coordinates and mapped to metres. */
+    const PXC = 179, PS = 3.0/330, THETA = 9*Math.PI/180;
+    const pyToY = py => 1.85 - (py-62)*PS;
+    const pxToZ = px => (PXC-px)*PS;
+    const mx = px => 2*PXC - px;                                   // mirror to the right-hand column
+    const archPy = px => 18 + 44*Math.pow(Math.min(1, Math.abs(px-PXC)/165), 4);
+    const roofY = z => 1.85 + 44*PS*(1 - Math.pow(Math.min(1, Math.abs(z)/1.5), 4));
+    const xEnd = size.x/2;                                        // GLB end-wall plane
+    const xF = xEnd + 0.873*Math.tan(THETA);                      // door plane: side columns angle back to meet the walls
+
+    // extra materials for the cab
+    const cabRed    = new THREE.MeshStandardMaterial({ color:0x8c262d, metalness:0.15, roughness:0.4, envMapIntensity:0.7 });
+    const doorPanel = new THREE.MeshStandardMaterial({ color:0xcfd3d9, metalness:0.95, roughness:0.32, envMapIntensity:1.3 });
+    const gasketW   = new THREE.MeshStandardMaterial({ color:0xf4f5f6, emissive:0x3a3b3c, metalness:0.0, roughness:0.4 });
+    const gasketD   = new THREE.MeshStandardMaterial({ color:0x3e4248, metalness:0.2, roughness:0.6 });
+    const cableMat  = new THREE.MeshStandardMaterial({ color:0x34373c, metalness:0.3, roughness:0.6 });
+    const roofMat   = new THREE.MeshStandardMaterial({ color:0xb4b7bc, metalness:0.95, roughness:0.38, envMapIntensity:1.1 });
+    const underMat  = new THREE.MeshStandardMaterial({ color:0x1d1e21, metalness:0.1, roughness:0.85 });
+    const wheelMat  = new THREE.MeshStandardMaterial({ color:0x3a3b3e, metalness:0.7, roughness:0.45 });
+
+    // rounded rect in photo px (screen coords, y down); separate top/bottom radii
+    const rrPts=(l,t,r,b,rt,rb)=>{ if(rb===undefined) rb=rt; const p=[];
+      const arc=(cx,cy,rad,a0,a1)=>{ if(rad<=0){ p.push([cx,cy]); return; }
+        for(let i=0;i<=6;i++){ const a=a0+(a1-a0)*i/6; p.push([cx+rad*Math.cos(a), cy+rad*Math.sin(a)]); } };
+      arc(l+rt,t+rt,rt,Math.PI,1.5*Math.PI); arc(r-rt,t+rt,rt,1.5*Math.PI,2*Math.PI);
+      arc(r-rb,b-rb,rb,0,0.5*Math.PI);       arc(l+rb,b-rb,rb,0.5*Math.PI,Math.PI); return p; };
+    const archPts=(x0,x1,py1)=>{ const p=[]; for(let x=x0;x<=x1+0.01;x+=(x1-x0)/24) p.push([x,archPy(x)]);
+      p.push([x1,py1],[x0,py1]); return p; };
+
+    // the face is three panels: flat centre (door) and two side columns hinged at the door edges, angled back
+    function makePanel(cab, x0, x1, hingePx, yaw){
+      const g = new THREE.Group(); g.position.set(xF, 0, pxToZ(hingePx)); g.rotation.y = yaw; cab.add(g);
+      const c = Math.cos(yaw), zh = pxToZ(hingePx);
+      const L = (px,py)=>[ -((pxToZ(px)-zh)/c), pyToY(py) ];     // shape X = -local z (mesh is swung +90° about Y)
+      const shape=(pts,holes)=>{ const s=new THREE.Shape(); pts.forEach((q,i)=>{ const [X,Y]=L(q[0],q[1]); i?s.lineTo(X,Y):s.moveTo(X,Y); });
+        (holes||[]).forEach(h=>{ const pa=new THREE.Path(); h.forEach((q,i)=>{ const [X,Y]=L(q[0],q[1]); i?pa.lineTo(X,Y):pa.moveTo(X,Y); }); s.holes.push(pa); });
+        return s; };
+      // extrude a px outline: back face at local x=z0 (0 = panel plane), `depth` toward the viewer
+      const part=(pts,mat,z0,depth,holes,bevel)=>{
+        const geo=new THREE.ExtrudeGeometry(shape(pts,holes),{ depth, bevelEnabled:!!bevel, bevelThickness:0.004, bevelSize:0.004, bevelSegments:2, curveSegments:6 });
+        const m=new THREE.Mesh(geo,mat); m.rotation.y=Math.PI/2; m.position.x=z0; m.castShadow=m.receiveShadow=true; g.add(m); return m; };
+      // round lamp / bezel stack at a px centre
+      const disc=(px,py,rpx,mat,z0,depth)=>{ const r=rpx*PS;
+        const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,depth,32), mat); m.rotation.z=Math.PI/2;
+        const [X,Y]=L(px,py); m.position.set(z0+depth/2, Y, -X); m.castShadow=true; g.add(m); return m; };
+      // cable between two px points, hanging `off` in front of the panel
+      const cable=(a,b,off)=>{ const [ax,ay]=L(a[0],a[1]), [bx,by]=L(b[0],b[1]);
+        const A=new THREE.Vector3(off,ay,-ax), B=new THREE.Vector3(off,by,-bx), d=B.clone().sub(A);
+        const m=new THREE.Mesh(new THREE.CylinderGeometry(1.2*PS,1.2*PS,d.length(),8), cableMat);
+        m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), d.normalize()); g.add(m); };
+      // body slab with the arched silhouette — the stainless face itself
+      part(archPts(x0,x1,338), steel, -0.26, 0.26);
+      // dark roof cap following the arch, down to py 72
+      part(archPts(x0,x1,72), roofDark, 0, 0.012);
+      return { g, part, disc, cable, L };
+    }
+
+    const glowMat = (()=>{ const cv=document.createElement('canvas'); cv.width=cv.height=128; const x2=cv.getContext('2d');
+      const gr=x2.createRadialGradient(64,64,0,64,64,64); gr.addColorStop(0,'rgba(255,240,205,0.95)'); gr.addColorStop(0.18,'rgba(255,225,170,0.55)'); gr.addColorStop(1,'rgba(255,210,150,0)');
+      x2.fillStyle=gr; x2.fillRect(0,0,128,128);
+      return new THREE.SpriteMaterial({ map:new THREE.CanvasTexture(cv), blending:THREE.AdditiveBlending, depthWrite:false, transparent:true }); })();
+    function buildCab(){
+      const cab = new THREE.Group();
+      const C = makePanel(cab, 110, 248, PXC, 0);          // centre: storm door
+      const Lp = makePanel(cab, 14, 110, 110, -THETA);     // viewer-left column
+      const Rp = makePanel(cab, 248, 344, 248, THETA);     // viewer-right column
+
+      /* --- centre door: raised silver frame w/ highlight lip, recessed panel, white-gasket window, cable V's --- */
+      C.part(rrPts(110,64,248,324,12,0), frameSteel, 0, 0.034, [rrPts(130,82,228,318,4)], true);
+      C.part(rrPts(128,80,230,320,4), doorPanel, 0, 0.012);
+      C.part(rrPts(130,82,228,91,2), rubber, 0.012, 0.002);                       // shadowed head of the opening
+      C.part(rrPts(142,95,218,207,15), gasketW, 0.012, 0.016, [rrPts(150,103,210,199,10)], true);
+      C.part(rrPts(150,103,210,199,10), windMat, 0.012, 0.004);
+      // three safety cables strung in V's between handles on the jambs
+      for (const [ay,apex] of [[153,200],[193,236],[235,272]]){
+        for (const l of [116,230]) C.part(rrPts(l,ay-6,l+12,ay+6,3), frameSteel, 0.034, 0.03);
+        C.cable([124,ay],[179,apex],0.07); C.cable([179,apex],[236,ay],0.07); }
+      // red LED route sign on the roof cap
+      C.part(rrPts(156,22,202,60,6), rubber, 0.012, 0.018);
+      { const cv=document.createElement('canvas'); cv.width=184; cv.height=152; const x2=cv.getContext('2d');
+        x2.fillStyle='#050505'; x2.fillRect(0,0,184,152);
+        x2.strokeStyle='#ff3a2c'; x2.lineWidth=9; x2.beginPath(); x2.arc(92,76,56,0,Math.PI*2); x2.stroke();
+        x2.fillStyle='#ff3a2c'; x2.font='bold 84px Helvetica, Arial, sans-serif'; x2.textAlign='center'; x2.textBaseline='middle'; x2.fillText('5',92,80);
+        const tex=new THREE.CanvasTexture(cv); tex.encoding=THREE.sRGBEncoding;
+        const sm=new THREE.MeshBasicMaterial({ map:tex }); sm.color.setScalar(1.5);
+        const p=new THREE.Mesh(new THREE.PlaneGeometry(42*PS,34*PS), sm); p.rotation.y=Math.PI/2;
+        p.position.set(0.031, pyToY(41), 0); C.g.add(p); }
+
+      /* --- side columns: dark window surround (rounded bottom overlaps the maroon box), recessed glass,
+             maroon lamp box, marker over headlight in chrome bezels --- */
+      const column=(P, X, marker)=>{
+        P.part(rrPts(X(30)<X(110)?X(30):X(110),70, X(30)<X(110)?X(110):X(30),214,0,18), roofDark, 0, 0.028,
+               [rrPts(Math.min(X(36),X(104)),84,Math.max(X(36),X(104)),206,15)], true);
+        P.part(rrPts(Math.min(X(36),X(104)),84,Math.max(X(36),X(104)),206,15), gasketD, 0, 0.02,
+               [rrPts(Math.min(X(40),X(100)),90,Math.max(X(40),X(100)),200,12)]);
+        P.part(rrPts(Math.min(X(40),X(100)),90,Math.max(X(40),X(100)),200,12), windMat, 0, 0.008);
+        P.part(rrPts(Math.min(X(32),X(100)),208,Math.max(X(32),X(100)),308,7), cabRed, 0, 0.016, null, true);
+        for (const [px,py,lens,rl] of [[72,243,marker,9],[68,277,headMat,10]]){
+          P.disc(X(px),py,13,poleMat,0.016,0.022);        // chrome bezel
+          P.disc(X(px),py,10.5,rubber,0.038,0.002);       // dark reflector ring
+          P.disc(X(px),py,rl,lens,0.038,0.006);           // lens
+        }
+        // soft glow on the lit headlight
+        const [GX,GY]=P.L(X(68),277); const glow=new THREE.Sprite(glowMat); glow.scale.set(0.36,0.36,1);
+        glow.position.set(0.07,GY,-GX); P.g.add(glow);
+      };
+      column(Lp, px=>px, markMat);
+      column(Rp, mx, greenMat);
+      // left windshield wiper, parked diagonally
+      Lp.cable([72,66],[98,150],0.04);
+
+      /* --- anticlimber ledge + coupler under the face (world-straight, not angled) --- */
+      const ledge=new THREE.Mesh(new THREE.BoxGeometry(0.34, pyToY(322)-pyToY(338), 2.92), steelDark);
+      ledge.position.set(xF-0.1, (pyToY(322)+pyToY(338))/2, 0); ledge.castShadow=ledge.receiveShadow=true; cab.add(ledge);
+      for (let k=0;k<3;k++){ const rib=new THREE.Mesh(new THREE.BoxGeometry(0.06,0.018,2.8), steelDark);
+        rib.position.set(xF+0.08, pyToY(325)-k*0.035, 0); cab.add(rib); }
+      const coup=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.26,0.34), underMat); coup.position.set(xF+0.05, pyToY(338)-0.32, 0); cab.add(coup);
+      const coupHead=new THREE.Mesh(new THREE.BoxGeometry(0.14,0.3,0.42), frameSteel); coupHead.position.set(xF+0.3, pyToY(338)-0.32, 0); cab.add(coupHead);
+      return cab;
+    }
+
+    // plain end plate with the arched silhouette (rear of the train / between cars)
+    function endPlate(atX){
+      const out = Math.sign(atX), g=new THREE.Group();
+      const s=new THREE.Shape(); archPts(14,344,338).forEach((q,i)=>{ const X=-pxToZ(q[0]), Y=pyToY(q[1]); i?s.lineTo(X,Y):s.moveTo(X,Y); });
+      const win=[[-0.27,0.78],[0.27,0.78],[0.27,1.55],[-0.27,1.55]];                  // end-door window opening
+      s.holes.push(new THREE.Path(win.map(q=>new THREE.Vector2(q[0],q[1]))));
+      const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:0.08,bevelEnabled:false}), steel);
+      m.rotation.y=Math.PI/2; m.position.x=atX-0.04; m.castShadow=m.receiveShadow=true; g.add(m);
+      // end door: dark frame ring + gasket, glass, red marker lamps at the corners
+      const ring=(x0,y0,x1,y1,t,mat,dz)=>{ const sh=new THREE.Shape([[x0-t,y0-t],[x1+t,y0-t],[x1+t,y1+t],[x0-t,y1+t]].map(q=>new THREE.Vector2(q[0],q[1])));
+        sh.holes.push(new THREE.Path([[x0,y0],[x1,y0],[x1,y1],[x0,y1]].map(q=>new THREE.Vector2(q[0],q[1]))));
+        const r=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:dz,bevelEnabled:false}),mat); r.rotation.y=Math.PI/2; r.position.x=atX+(out>0?0.04:-0.04-dz); g.add(r); };
+      ring(-0.47,-0.5,0.47,1.74,0.035,frameDark,0.02);
+      ring(-0.27,0.78,0.27,1.55,0.03,gasketS,0.025);
+      const gl=new THREE.Mesh(new THREE.PlaneGeometry(0.54,0.77), sideGlass); gl.rotation.y=out*Math.PI/2; gl.position.set(atX,1.165,0); g.add(gl);
+      for (const z of [-1.28,1.28]){ const mk=new THREE.Mesh(new THREE.BoxGeometry(0.03,0.18,0.07), markMat); mk.position.set(atX+out*0.05,0.32,z); g.add(mk); }
+      return g;
+    }
+    // three sagging safety chains each side, spanning the gap to the car ahead
+    function chains(car){
+      const x0=xEnd+0.04, x1=xEnd+gap-0.04;
+      for (const z of [-1.3,1.3]) for (const y of [0.68,0.38,0.08]){
+        const pts=[]; for(let k=0;k<=6;k++){ const t=k/6; pts.push(new THREE.Vector3(x0+(x1-x0)*t, y-0.09*4*t*(1-t), z)); }
+        const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),12,0.011,6,false), cableMat); car.add(tube); }
+    }
+    // arched roof along the car (replaces the GLB's flat slab)
+    function roof(){
+      const s=new THREE.Shape(); const N=40;
+      for(let i=0;i<=N;i++){ const z=-1.5+3*i/N; const p=[-z, roofY(z)]; i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1]); }
+      s.lineTo(1.5,1.80); s.lineTo(-1.5,1.80);
+      const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:carLen,bevelEnabled:false,curveSegments:2}), roofMat);
+      m.rotation.y=Math.PI/2; m.position.x=-carLen/2; m.castShadow=m.receiveShadow=true; return m;
+    }
+    /* ================= R142 side walls, measured from a perspective-rectified side photo =================
+       IRT car: 3 door pairs per side, symmetric about the centre door. Rectified photo metres map to
+       car-local x by (xr - 9.95) * 0.905. The GLB's 4-door walls are hidden and replaced by these. */
+    const sideGlass = new THREE.MeshStandardMaterial({ color:0x1a2228, metalness:0.3, roughness:0.06, envMapIntensity:1.3, transparent:true, opacity:0.42 });
+    const frameDark = new THREE.MeshStandardMaterial({ color:0x4a4e54, metalness:0.6, roughness:0.45 });
+    const gasketS   = new THREE.MeshStandardMaterial({ color:0xc8cbcf, metalness:0.1, roughness:0.5 });
+    const DOORS = [-5.84, 0, 5.84];                 // door-pair centres
+    const BIGWIN = [-2.92, 2.92], ENDWIN = [-8.39, 8.39];
+    const rrM=(x0,y0,x1,y1,r)=>{ if(r<=0) return [[x0,y0],[x1,y0],[x1,y1],[x0,y1]]; const p=[];
+      const arc=(cx,cy,a0,a1)=>{ for(let i=0;i<=5;i++){ const a=a0+(a1-a0)*i/5; p.push([cx+r*Math.cos(a), cy+r*Math.sin(a)]); } };
+      arc(x1-r,y0+r,-Math.PI/2,0); arc(x1-r,y1-r,0,Math.PI/2); arc(x0+r,y1-r,Math.PI/2,Math.PI); arc(x0+r,y0+r,Math.PI,1.5*Math.PI); return p; };
+    const toShape=(pts,holes)=>{ const s=new THREE.Shape(pts.map(q=>new THREE.Vector2(q[0],q[1])));
+      (holes||[]).forEach(h=>s.holes.push(new THREE.Path(h.map(q=>new THREE.Vector2(q[0],q[1]))))); return s; };
+    // one part on both flanks: extruded outward from |z| = zBack (scale.z = -1 mirrors it onto the -z side)
+    const flank=(car,pts,holes,mat,zBack,depth)=>{
+      const geo=new THREE.ExtrudeGeometry(toShape(pts,holes),{ depth, bevelEnabled:false, curveSegments:4 });
+      for (const s of [1,-1]){ const m=new THREE.Mesh(geo,mat); m.position.z=s*zBack; m.scale.z=s; m.castShadow=m.receiveShadow=true; car.add(m); } };
+    const decal=(car,tex,x,y,w,h)=>{ const mat=new THREE.MeshStandardMaterial({ map:tex, roughness:0.5, metalness:0.1 });
+      for (const s of [1,-1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat); p.position.set(x,y,s*1.507); if(s<0) p.rotation.y=Math.PI; car.add(p); } };
+    const canvasTex=(w,h,draw)=>{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; draw(cv.getContext('2d'),w,h);
+      const t=new THREE.CanvasTexture(cv); t.encoding=THREE.sRGBEncoding; t.anisotropy=4; return t; };
+    const numTex = canvasTex(256,84,(c,w,h)=>{ c.fillStyle='#111214'; c.fillRect(0,0,w,h);
+      c.fillStyle='#f4f4f2'; c.font='bold 64px Helvetica, Arial, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('6675',w/2,h/2+3); });
+    const flagTex = canvasTex(190,100,(c,w,h)=>{ for(let i=0;i<13;i++){ c.fillStyle=i%2?'#f2f2f2':'#b5232f'; c.fillRect(0,i*h/13,w,h/13+1); }
+      c.fillStyle='#2b3a67'; c.fillRect(0,0,w*0.42,h*7/13); });
+    const rouTex = canvasTex(256,256,(c)=>{ c.clearRect(0,0,256,256);
+      c.fillStyle='#f7f7f5'; c.beginPath(); c.arc(128,128,124,0,Math.PI*2); c.fill();
+      c.fillStyle='#1f4fa3'; c.beginPath(); c.arc(128,92,40,0,Math.PI*2); c.fill();          // logo disc
+      c.strokeStyle='#f7f7f5'; c.lineWidth=7; c.beginPath(); c.arc(128,92,24,0,Math.PI*2); c.stroke();
+      c.fillStyle='#2a5ab0'; for (const [y,w] of [[158,118],[182,132],[206,84]]) c.fillRect(128-w/2,y,w,11); }); // lettering
+    // maroon livery stripe: solid at the door edge (u = 1), fading out over the far third
+    const stripeTex = canvasTex(256,8,(c,w,h)=>{ const g=c.createLinearGradient(0,0,w,0);
+      g.addColorStop(0,'rgba(128,28,40,0)'); g.addColorStop(0.36,'rgba(128,28,40,1)'); g.addColorStop(1,'rgba(128,28,40,1)'); c.fillStyle=g; c.fillRect(0,0,w,h); });
+    // LED destination sign inside the big windows: route number cell + destination, dot-matrix
+    // LED destination sign inside the big windows: fixed route cell + a destination that cycles like the real
+    // signs, with a brief blank between messages. One shared canvas, so every window on the train stays in sync.
+    const LED_MSGS = [['FLATBUSH','AV','EXP'], ['BROOKLYN','COLLEGE'], ['LEXINGTON','AV','EXP']];
+    const ledCv = document.createElement('canvas'); ledCv.width=1024; ledCv.height=190;
+    const ledTex = new THREE.CanvasTexture(ledCv); ledTex.encoding=THREE.sRGBEncoding; ledTex.anisotropy=4;
+    function drawLed(words){ const c=ledCv.getContext('2d'), w=ledCv.width, h=ledCv.height;
+      c.fillStyle='#050605'; c.fillRect(0,0,w,h);
+      c.fillStyle='rgba(60,110,40,0.55)'; c.fillRect(34,46,74,104);
+      c.font='bold 96px "Arial Narrow", Arial, sans-serif'; c.textBaseline='middle';
+      c.fillStyle='#f2e84a'; c.fillText('5',48,100);
+      if (words){
+        let size=62; const fit=()=>{ c.font='bold '+size+'px "Arial Narrow", Arial, sans-serif';
+          return words.reduce((t,wd)=>t+c.measureText(wd).width,0) + 40*(words.length-1); };
+        while (fit() > w-190 && size > 36) size -= 2;                  // shrink long messages to fit the band
+        let x=150; for (const word of words){ const ww=c.measureText(word).width;
+          c.fillStyle='rgba(60,110,40,0.45)'; c.fillRect(x-14,62,10,74); c.fillStyle='#e4ee6a'; c.fillText(word,x,102); x+=ww+40; }
+      }
+      c.fillStyle='rgba(0,0,0,0.5)'; for (let i=0;i<w;i+=5) c.fillRect(i,0,1.6,h); for (let j=0;j<h;j+=5) c.fillRect(0,j,w,1.6);
+      ledTex.needsUpdate = true; }
+    let ledIdx = 0, ledHold = false; drawLed(LED_MSGS[0]);
+    setInterval(()=>{ if (ledHold) return; drawLed(null);
+      setTimeout(()=>{ if (ledHold) return; ledIdx=(ledIdx+1)%LED_MSGS.length; drawLed(LED_MSGS[ledIdx]); }, 180); }, 3500);
+    window.__led = (i)=>{ ledHold = i!=null; if (i!=null){ ledIdx=i; drawLed(LED_MSGS[i]); } };   // QA: pin a message / release
+
+    function sides(car){
+      const holes=[];
+      for (const c of DOORS) holes.push(rrM(c-0.88,-0.37,c+0.88,1.83,0));
+      for (const c of BIGWIN) holes.push(rrM(c-0.905,0.675,c+0.905,1.675,0.16));
+      for (const c of ENDWIN) holes.push(rrM(c-0.385,0.675,c+0.385,1.675,0.16));
+      // stainless side sheet with the openings cut out
+      flank(car, rrM(-9.0,-0.55,9.0,1.85,0), holes, steel, 1.44, 0.06);
+      // windows: light gasket ring proud of the sheet, glass set just behind it
+      for (const [c,hw] of BIGWIN.map(c=>[c,0.86]).concat(ENDWIN.map(c=>[c,0.34]))){
+        const g=rrM(c-hw,0.72,c+hw,1.63,0.12);
+        flank(car, rrM(c-hw-0.045,0.675,c+hw+0.045,1.675,0.16), [g], gasketS, 1.44, 0.075);
+        flank(car, g, null, sideGlass, 1.45, 0.01);
+        const fx=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,3.06,16), frameSteel); // small round fixture under the big windows
+        if (hw>0.5){ fx.rotation.x=Math.PI/2; fx.position.set(c,0.27,0); car.add(fx); }
+      }
+      // door pairs: dark frame, recessed brushed leaves with light-gasket windows, threshold plate
+      for (const c of DOORS){
+        flank(car, rrM(c-0.88,-0.37,c+0.88,1.83,0), [rrM(c-0.82,-0.33,c+0.82,1.78,0)], frameDark, 1.44, 0.07);
+        for (const [l0,l1,dir] of [[c-0.82,c-0.012,-1],[c+0.012,c+0.82,1]]){
+          const leaf=new THREE.Group(); leaf.userData.dir=dir; car.add(leaf); (car.userData.leaves=car.userData.leaves||[]).push(leaf);
+          const m=(l0+l1)/2, g=rrM(m-0.27,0.73,m+0.27,1.69,0.09), gk=rrM(m-0.305,0.695,m+0.305,1.725,0.12);
+          flank(leaf, rrM(l0,-0.33,l1,1.78,0), [gk], doorPanel, 1.42, 0.05);
+          flank(leaf, gk, [g], gasketS, 1.42, 0.058);
+          flank(leaf, g, null, sideGlass, 1.43, 0.01);
+          if (dir<0) flank(leaf, rrM(c-0.012,-0.33,c+0.012,1.78,0), null, rubber, 1.42, 0.04);   // leaf seam
+        }
+        flank(car, rrM(c-0.88,-0.55,c+0.88,-0.37,0), null, frameSteel, 1.44, 0.09);  // threshold
+      }
+      // longitudinal blue benches between the doorways, stanchions at the bench ends
+      for (const [x0,x1] of [[-8.7,-6.8],[-4.88,-0.96],[0.96,4.88],[6.8,8.7]]) for (const s of [1,-1]){
+        const seat=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,0.43,0.44), seatMat); seat.position.set((x0+x1)/2,-0.335,s*1.2); car.add(seat);
+        const back=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,0.54,0.1), seatMat); back.position.set((x0+x1)/2,0.15,s*1.37); car.add(back);
+        for (const px of [x0,x1]) if (Math.abs(Math.abs(px)-8.7)>0.01){ const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,2.22,10), poleMat); pole.position.set(px,0.56,s*0.98); car.add(pole); }
+      }
+      // rain gutter along the top of the side
+      flank(car, rrM(-9.0,1.84,9.0,1.885,0), null, frameSteel, 1.48, 0.04);
+      // decals: car number, roundel + lettering by the end, flag past the centre door
+      decal(car, numTex, -7.49, 1.67, 0.68, 0.22);
+      { const rm=new THREE.MeshStandardMaterial({ map:rouTex, transparent:true, roughness:0.5 });
+        for (const s of [1,-1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(0.48,0.48),rm); p.position.set(-7.49,1.1,s*1.507); if(s<0) p.rotation.y=Math.PI; car.add(p); } }
+      decal(car, flagTex, 1.58, 1.49, 0.63, 0.29);
+      // gradient stripes flanking the two OUTER door pairs (solid at the door frame, fading away from it)
+      const stM=new THREE.MeshStandardMaterial({ map:stripeTex, transparent:true, roughness:0.45, metalness:0.1, depthWrite:false });
+      for (const [x0,d] of [[-6.72,1],[-4.96,-1],[4.96,1],[6.72,-1]]){     // d: +1 = stripe ends at x0 coming from the left
+        const L=1.55, cx = d>0 ? x0-L/2 : x0+L/2;
+        for (const s of [1,-1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(L,0.145),stM); p.position.set(cx,0.37,s*1.5065);
+          if(s<0) p.rotation.y=Math.PI; p.scale.x=d*s; car.add(p); } }
+      // LED destination sign across the top of each big window, just inside the glass
+      const ledM=new THREE.MeshBasicMaterial({ map:ledTex }); ledM.color.setScalar(1.25);
+      for (const c of BIGWIN) for (const s of [1,-1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(1.72,0.32),ledM);
+        p.position.set(c,1.47,s*1.435); if(s<0) p.rotation.y=Math.PI; car.add(p); }
+    }
+    // underfloor equipment boxes between the trucks
+    function underframe(car){
+      // dark body sill, then a near-continuous run of underfloor equipment between the trucks
+      const box=(x,y,z,w,h,d,mat)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat||underMat); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; car.add(m); return m; };
+      box(0,-0.61,0, carLen-0.1,0.12,2.96);
+      box(0,-0.9,0, 10.2,0.5,2.2);                                        // main equipment mass
+      for (const [x,w,h] of [[-4.3,1.1,0.52],[-0.95,1.6,0.6],[0.9,1.3,0.48],[4.2,1.2,0.56]]) box(x,-0.62-h/2,0, w,h,2.62);
+      for (const x of [-2.98,2.98]) box(x,-0.85,0, 1.54,0.46,2.66, wheelMat);  // grey equipment case (photo)
+      for (const sx of [-1,1]) box(sx*8.45,-0.82,0, 1.0,0.38,2.3);          // end sills beyond the trucks
+      // trucks: side frames outboard of the wheels hide most of each wheel, bolster, four wheels on the rail heads
+      for (const tx of [-6.5, 6.5]){
+        box(tx,-1.0,0, 0.7,0.42,2.3);
+        for (const wz of [-0.94,0.94]){ box(tx,-1.46,wz, 2.75,0.44,0.16);
+          for (const dx of [-1.05,1.05]) box(tx+dx,-1.42,wz*1.06, 0.36,0.3,0.12, frameDark); }   // journal boxes
+        box(tx,-1.36,0, 0.5,0.3,1.7);
+        for (const dx of [-1.05,1.05]) for (const wz of [-0.72,0.72]){
+          const w=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.12,28), wheelMat); w.rotation.x=Math.PI/2;
+          w.position.set(tx+dx,-1.55,wz); w.castShadow=true; car.add(w); }
+      }
+    }
+
+    carProto = model;
+    // the flat GLB roof and plain end walls are replaced by the arched roof / measured cab
+    carProto.traverse(o=>{ if (o.isMesh && /TRAIN_roof$|TRAIN_end[AB]_|TRAIN_skirt|TRAIN_bogie|TRAIN_[PT]wall_|TRAIN_door_|TRAIN_seat|TRAIN_pole_/.test(o.name)) o.visible=false; });
+    train = new THREE.Group();
+    for (let i=0;i<NCARS;i++){
+      const car = new THREE.Group();
+      const m = carProto.clone();
+      m.position.set(-ctr.x, -ctr.y, -ctr.z);   // bring geometry to the group origin
+      car.add(m);
+      car.add(roof());
+      car.add(i===0 ? buildCab() : endPlate(xEnd));   // lead car gets the R142 cab
+      car.add(endPlate(-xEnd));
+      sides(car); underframe(car);
+      if (i>0) chains(car);
+      car.position.x = -i*(carLen+gap);
+      train.add(car);
+    }
+    scene.add(train);
+    window.__xF = xF; window.__pyToY = pyToY;
+
+    // ground: planar reflector with a realistic falloff — dimmed, blended toward the floor
+    // colour, and faded out with distance (a polished floor, not a hard mirror).
+    const floorY = b.min.y - 0.24;
+    const reflShader = {
+      uniforms: {
+        color:        { value: new THREE.Color(0xdadbdd) },  // reflection tint / dim
+        tDiffuse:     { value: null },
+        textureMatrix:{ value: new THREE.Matrix4() },
+        floorColor:   { value: new THREE.Color(0x9a9ca0) },  // the matte floor it fades into
+        reflectivity: { value: 0.46 },
+        fadeNear:     { value: 7.0 },
+        fadeFar:      { value: 46.0 }
+      },
+      vertexShader: `
+        uniform mat4 textureMatrix; varying vec4 vUv; varying vec3 vWorld;
+        void main(){
+          vUv = textureMatrix * vec4(position,1.0);
+          vWorld = (modelMatrix * vec4(position,1.0)).xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        }`,
+      fragmentShader: `
+        uniform vec3 color, floorColor; uniform float reflectivity, fadeNear, fadeFar;
+        uniform sampler2D tDiffuse; varying vec4 vUv; varying vec3 vWorld;
+        void main(){
+          vec3 refl = texture2DProj(tDiffuse, vUv).rgb * color;
+          float d = distance(vWorld, cameraPosition);
+          float fade = 1.0 - smoothstep(fadeNear, fadeFar, d);
+          vec3 outc = mix(floorColor, refl, clamp(reflectivity*fade, 0.0, 1.0));
+          gl_FragColor = vec4(outc, 1.0);
+        }`
+    };
+    const reflector = new THREE.Reflector(new THREE.PlaneGeometry(2400, 200), {
+      textureWidth: 1024, textureHeight: 1024, clipBias: 0.003, shader: reflShader
+    });
+    reflector.rotation.x = -Math.PI/2; reflector.position.y = floorY; scene.add(reflector);
+    const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(2400, 200), new THREE.ShadowMaterial({ opacity:0.3 }));
+    shadowPlane.rotation.x = -Math.PI/2; shadowPlane.position.y = floorY + 0.002; shadowPlane.receiveShadow = true;
+    scene.add(shadowPlane);
+
+    // track: two running rails + sleepers
+    const gauge = 0.72, run0 = -carLen*6, run1 = carLen*6, railY = b.min.y - 0.06;
+    for (const z of [gauge,-gauge]){
+      const r = new THREE.Mesh(new THREE.BoxGeometry(run1-run0, 0.12, 0.12), railMat);
+      r.position.set((run0+run1)/2, railY, z); r.castShadow=true; r.receiveShadow=true; scene.add(r);
+    }
+    for (let x=Math.ceil(run0/0.8)*0.8; x<=run1; x+=0.8){
+      const t = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.12, 3.0), tieMat);
+      t.position.set(x, railY-0.10, 0); t.castShadow=true; t.receiveShadow=true; scene.add(t);
+    }
+
+    // camera: 3/4 oncoming (same framing as the line-art study)
+    const eyeY=(b.max.y+b.min.y)/2;
+    camera.position.set(b.max.x+carLen*0.38, eyeY-carLen*0.03, b.max.z+carLen*0.26);
+    controls.target.set(b.max.x-carLen*0.35, eyeY-carLen*0.06, 0);
+    controls.update();
+    homePos=camera.position.clone(); homeTgt=controls.target.clone();
+
+    // keep the key light's shadow following the action
+    key.target.position.set(camera.position.x - carLen*0.8, eyeY, 0); scene.add(key.target);
+
+    // motion: full train arrives, passes, gap, repeats (constant velocity)
+    const span=carLen+gap;
+    const camPass = camera.position.x + carLen*2.0;
+    const leadFace=b.max.x, tailBack=-(NCARS-1)*span + b.min.x;
+    pStart=(-carLen*2.2)-leadFace;
+    const pEnd=camPass-tailBack;
+    speed=carLen*1.4;
+    loopDist=(pEnd-pStart)+carLen*5;
+    phase=0; train.position.x=pStart;
+
+    window.__ready=true;
+  }, (err)=>{ window.__err=String(err); });
+
+  addEventListener('resize', ()=>{ camera.aspect=vw()/vh(); camera.updateProjectionMatrix(); renderer.setSize(vw(),vh(),false); });
+
+  /* ---------- scroll drives the scene ----------
+     rest: the train runs past on its loop · scroll: it decelerates into the station and stops with
+     car 1's centre doors in front of you while the camera swings square-on · then the doors open. */
+  const sceneEl = document.getElementById('scene');
+  const progress = ()=>{ const total=sceneEl.offsetHeight-innerHeight; return total<=0 ? 0 : Math.min(1,Math.max(0,-sceneEl.getBoundingClientRect().top/total)); };
+  const smooth = (e0,e1,x)=>{ const t=Math.min(1,Math.max(0,(x-e0)/(e1-e0))); return t*t*(3-2*t); };
+  const SCRUB_FROM=0.04, SCRUB_TO=0.82, LOOP_BACK=0.015;   // same scroll zones as the page overlay
+  const STOP_AT=0.72, ARRIVE_FROM=70;                      // scrub fraction where the train stops · run-in distance (m)
+  const CAM0p=new THREE.Vector3(16,0.4,7.0),  CAM0t=new THREE.Vector3(2,-0.2,0);    // oncoming 3/4 from the platform
+  const CAM1p=new THREE.Vector3(0,0.55,8.6),  CAM1t=new THREE.Vector3(0,0.55,0);    // square-on to the centre doors
+  const tgt=new THREE.Vector3();
+  let mode='loop', s=0;
+  function setDoors(f){ for (const car of train.children) for (const leaf of (car.userData.leaves||[])) leaf.position.x=leaf.userData.dir*0.79*f; }
+  function arrival(t){
+    train.position.x = -ARRIVE_FROM*Math.pow(1-Math.min(1,t/STOP_AT),2);   // linear deceleration to rest at x = 0
+    const c=smooth(0.18,0.8,t);
+    camera.position.lerpVectors(CAM0p,CAM1p,c); tgt.lerpVectors(CAM0t,CAM1t,c); camera.lookAt(tgt);
+    setDoors(smooth(0.76,0.95,t));
+  }
+  const clock = new THREE.Clock();
+  function tick(){
+    const dt=Math.min(clock.getDelta(),0.1);
+    if (train){
+      const p=progress();
+      if (reduce){ arrival(STOP_AT); }                          // reduced motion: a still of the train at the platform
+      else {
+        if (mode==='loop' && p>SCRUB_FROM){ mode='scrub'; s=0; }
+        else if (mode==='scrub' && p<LOOP_BACK){ mode='loop'; setDoors(0); }
+        if (mode==='loop'){
+          phase=(phase+dt*speed)%loopDist; train.position.x=pStart+phase;
+          camera.position.copy(homePos); camera.lookAt(homeTgt);
+        } else {
+          s += (smooth(SCRUB_FROM,SCRUB_TO,p)-s)*Math.min(1,dt*9);   // ease toward the scroll position
+          arrival(s);
+        }
+      }
+    }
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+  </script>
+</body>
+</html>
