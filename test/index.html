@@ -273,11 +273,16 @@ THREE.ColorManagement.enabled = false;
   };
   const THEME = THEMES[new URLSearchParams(location.search).get('theme')] || THEMES.black;
   /* tunnel mouth at x0, station platform st0..st1, car 1 comes to rest centred at STOP_X (inside the station) */
-  const TUNNEL = { x0:90, x1:340, z0:-3.2, z1:4.8, top:3.4, st0:158, st1:222 };
+  const TUNNEL = { x0:180, x1:430, z0:-3.2, z1:4.8, top:3.4, st0:248, st1:312 };
   /* grade: street level outside, an eased ramp down an open cut (like the Bronx portal by 3 Av–149 St), level underground.
      gradeY(x) is the track's height above its underground level at x. */
-  const GRADE = { a:18, b:TUNNEL.x0-2, h:3.6 };
+  /* the line near 3 Av–149 St (from Google 3D references): elevated steel over the avenue, down a ramp — steel, then a
+     walled embankment, then an open cut below the street — into a portal at the edge of a plaza by the Hub.
+     Heights are above the underground track level: the street is 6.2 m up (over the tunnel roof), the elevated deck 5 m above that. */
+  const STREET = 6.2, GRADE = { a:-10, b:TUNNEL.x0-2, h:STREET+5.0 };
   const gradeY = x => x<=GRADE.a ? GRADE.h : x>=GRADE.b ? 0 : GRADE.h*(1+Math.cos(Math.PI*(x-GRADE.a)/(GRADE.b-GRADE.a)))/2;
+  const gradeX = y => GRADE.a + (GRADE.b-GRADE.a)*Math.acos(2*y/GRADE.h-1)/Math.PI;   // where the track is at height y on the ramp
+  const STEEL_END = gradeX(STREET+2.2), CUT0 = gradeX(STREET);                         // steel until ~2 m above the street; below the street is the cut
   const BG = THEME.bg;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BG);   // replaced by the sky dome below
@@ -543,7 +548,7 @@ THREE.ColorManagement.enabled = false;
   let carProto=null, train=null, carLen=18, NCARS=10, gap=0.4;
   let pStart=0, homePos=null, homeTgt=null, keyOff=null;
   const FRAME={n:0}, tunnelLights=[], envMats=new Map();
-  const STOP_X=190;                                        // where car 1 comes to rest, inside the station
+  const STOP_X=280;                                        // where car 1 comes to rest, inside the station
 
   const loader = new GLTFLoader();
   const bin = atob(window.__GLB_B64); const buf = new Uint8Array(bin.length);
@@ -908,14 +913,14 @@ THREE.ColorManagement.enabled = false;
           gl_FragColor = vec4(outc, 1.0);
         }`
     };
-    const reflector = new Reflector(new THREE.PlaneGeometry(GRADE.a+1200, 200), {
+    const reflector = new Reflector(new THREE.PlaneGeometry(CUT0+1200, 200), {
       textureWidth: 1024, textureHeight: 1024, clipBias: 0.003, shader: reflShader
     });
-    reflector.rotation.x = -Math.PI/2; reflector.position.set((GRADE.a-1200)/2, floorY+GRADE.h, 0); scene.add(reflector); floorRef=reflector;
+    reflector.rotation.x = -Math.PI/2; reflector.position.set((CUT0-1200)/2, floorY+STREET, 0); scene.add(reflector); floorRef=reflector;
     { const before=reflector.onBeforeRender; let last=-1;
       reflector.onBeforeRender=function(r,sc,cam){ if (last===FRAME.n) return; last=FRAME.n; before.call(this,r,sc,cam); }; }
-    const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(GRADE.a+1200, 200), new THREE.ShadowMaterial({ opacity:0.3 })); shadowRef=shadowPlane;
-    shadowPlane.rotation.x = -Math.PI/2; shadowPlane.position.set((GRADE.a-1200)/2, floorY+GRADE.h+0.002, 0); shadowPlane.receiveShadow = true;
+    const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(CUT0+1200, 200), new THREE.ShadowMaterial({ opacity:0.3 })); shadowRef=shadowPlane;
+    shadowPlane.rotation.x = -Math.PI/2; shadowPlane.position.set((CUT0-1200)/2, floorY+STREET+0.002, 0); shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
 
     // track: two running rails + sleepers
@@ -943,9 +948,9 @@ THREE.ColorManagement.enabled = false;
       c.fillStyle='#0c0b0a'; c.fillRect(0,0,256,256);
       for (let i=0;i<2800;i++){ const g=14+(rnd()*30|0); c.fillStyle='rgb('+(g+(rnd()*14|0))+','+g+','+Math.max(0,g-8)+')';
         c.beginPath(); c.arc(rnd()*256,rnd()*256,1+rnd()*2.6,0,Math.PI*2); c.fill(); }
-      const tex=new THREE.CanvasTexture(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(LEN/1.6,2.4); tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=8;
-      const bed=new THREE.Mesh(new THREE.BoxGeometry(LEN,0.08,3.9,SEG), new THREE.MeshStandardMaterial({ map:tex, roughness:1, metalness:0 }));
-      bed.position.set((run0+run1)/2, b.min.y-0.24+0.04, -0.15); bed.receiveShadow=true; scene.add(bend(bed)); }
+      const tex=new THREE.CanvasTexture(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set((run1-STEEL_END)/1.6,2.4); tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=8;
+      const bedLen=run1-STEEL_END, bed=new THREE.Mesh(new THREE.BoxGeometry(bedLen,0.08,3.9,Math.ceil(bedLen)), new THREE.MeshStandardMaterial({ map:tex, roughness:1, metalness:0 }));
+      bed.position.set((STEEL_END+run1)/2, b.min.y-0.24+0.04, -0.15); bed.receiveShadow=true; scene.add(bend(bed)); }
     // sleepers: every 4th is long, carrying the third-rail insulator and cover-board bracket
     const SP=0.62, n=Math.floor(LEN/SP), longs=[];
     { const ties=inst(new THREE.BoxGeometry(0.23,TIE_H,2.6), timberM, n), plates=inst(new THREE.BoxGeometry(0.2,0.016,0.34), plateM, n*2);
@@ -986,31 +991,64 @@ THREE.ColorManagement.enabled = false;
       const tileM   =new THREE.MeshStandardMaterial({ color:THEME.station, emissive:THEME.station, emissiveIntensity:0.42, roughness:0.5 });
       const edgeM   =new THREE.MeshStandardMaterial({ color:THEME.edge, emissive:THEME.edge, emissiveIntensity:0.6 });
       // open cut: street-level ground either side of a concrete trough whose floor follows the grade down to the portal
-      const G=floorY+GRADE.h, cutM=new THREE.MeshStandardMaterial({ color:0x161513, roughness:0.95, metalness:0.0, envMapIntensity:0.45 });
+      const G=floorY+STREET, cutM=new THREE.MeshStandardMaterial({ color:0x161513, roughness:0.95, metalness:0.0, envMapIntensity:0.45 });
       const groundM=new THREE.MeshStandardMaterial({ color:0x060607, roughness:0.95, metalness:0.0, envMapIntensity:0.2 });   // street level beside the cut (colour set by the weather)
       groundRef=groundM; poleLampM=new THREE.MeshStandardMaterial({ color:0x111111, emissive:THEME.lamp, emissiveIntensity:2.4 });
-      { const f=new THREE.Mesh(new THREE.BoxGeometry(T.x0-GRADE.a, 0.4, T.z1-T.z0, Math.ceil(T.x0-GRADE.a)), cutM);
-        f.position.set((GRADE.a+T.x0)/2, floorY-0.2, (T.z0+T.z1)/2); f.receiveShadow=true; scene.add(bend(f)); }
+      { const f=new THREE.Mesh(new THREE.BoxGeometry(T.x0-CUT0, 0.4, T.z1-T.z0, Math.ceil(T.x0-CUT0)), cutM);
+        f.position.set((CUT0+T.x0)/2, floorY-0.2, (T.z0+T.z1)/2); f.receiveShadow=true; scene.add(bend(f)); }
       for (const [za,zb] of [[T.z1,80],[-80,T.z0]]){                     // retaining walls (inner faces) + ground on top
-        box(GRADE.a,T.x0-1.5, floorY-1, G-0.05, za,zb, cutM);
-        box(GRADE.a,T.x0-1.5, G-0.05, G, za,zb, groundM, false);
+        box(CUT0,T.x0-1.5, floorY-1, G-0.05, za,zb, cutM);
+        box(CUT0,T.x0-1.5, G-0.05, G, za,zb, groundM, false);
         // pipe railing along the top of each wall
         const zr = za===T.z1 ? T.z1+0.15 : T.z0-0.15;
-        for (const hy of [0.55,1.05]) box(GRADE.a,T.x0-1.5, G+hy-0.025, G+hy+0.025, zr-0.025, zr+0.025, plateM, false);
-        for (let x=GRADE.a+1; x<T.x0-1.5; x+=2.5) box(x-0.03,x+0.03, G, G+1.05, zr-0.03, zr+0.03, plateM, false);
+        for (const hy of [0.55,1.05]) box(CUT0,T.x0-1.5, G+hy-0.025, G+hy+0.025, zr-0.025, zr+0.025, plateM, false);
+        for (let x=CUT0+1; x<T.x0-1.5; x+=2.5) box(x-0.03,x+0.03, G, G+1.05, zr-0.03, zr+0.03, plateM, false);
       }
       // light poles along the cut — they light the ramp walls at night
-      for (const x of [34,56,78]){ box(x-0.08,x+0.08, G, G+5.6, T.z1+1.4, T.z1+1.56, plateM);
+      for (const x of [CUT0+14,CUT0+44,CUT0+74]){ box(x-0.08,x+0.08, G, G+5.6, T.z1+1.4, T.z1+1.56, plateM);
         box(x-0.08,x+0.08, G+5.5, G+5.62, T.z1+0.4, T.z1+1.56, plateM, false);
         box(x-0.35,x+0.35, G+5.42, G+5.5, T.z1+0.3, T.z1+0.75, poleLampM, false);
         const pl=new THREE.PointLight(0xf2efe8, 1.6, 20, 2); pl.position.set(x,G+5.2,T.z1+0.5); scene.add(pl); poleRefs.push(pl); }
       // headwall with the tunnel mouth, parapet on top, embankment over the tunnel behind it
-      const H2=yt+0.5;
+      const H2=Math.max(G, yt+0.5);                       // street level over the tunnel roof
       box(T.x0-1.5,T.x1, floorY-1, H2, T.z1+0.5, 80, portalM);  box(T.x0-1.5,T.x1, floorY-1, H2, -80, T.z0-0.5, portalM);
       box(T.x0-1.5,T.x0, yt, H2, T.z0-0.5, T.z1+0.5, portalM);
       box(T.x0-1.5,T.x0, yb, yt, T.z1, T.z1+0.5, portalM);  box(T.x0-1.5,T.x0, yb, yt, T.z0-0.5, T.z0, portalM);
       box(T.x0-1.75,T.x0-1.35, H2, H2+0.8, T.z0-1.5, T.z1+1.5, cutM);
       box(T.x0-1.5,T.x1, H2-0.05, H2, -80, 80, groundM, false);
+
+      /* ---------- elevated structure: bents of paired columns + cap girders, two plate girders under the rails ---------- */
+      { const steelM=new THREE.MeshStandardMaterial({ color:0x2e3833, metalness:0.55, roughness:0.62, envMapIntensity:0.6 });   // painted steel, dark green
+        const deckTop = x => b.min.y - 0.296 + gradeY(x);                 // underside of the ties
+        // plate girders follow the grade (bent like the track)
+        for (const z of [-0.95,0.95]){ const L=STEEL_END+2-run0, gird=new THREE.Mesh(new THREE.BoxGeometry(L,1.05,0.32,Math.ceil(L)), steelM);
+          gird.position.set((run0+STEEL_END+2)/2, b.min.y-0.296-0.525, z); gird.castShadow=gird.receiveShadow=true; scene.add(bend(gird));
+          const fl=new THREE.Mesh(new THREE.BoxGeometry(L,0.05,0.56,Math.ceil(L)), steelM); fl.position.set((run0+STEEL_END+2)/2, b.min.y-0.296-1.05, z); scene.add(bend(fl)); }
+        // a catwalk on the outside of the girders (far side, by the third rail)
+        { const L=STEEL_END-run0, cw=new THREE.Mesh(new THREE.BoxGeometry(L,0.05,0.7,Math.ceil(L)), steelM); cw.position.set((run0+STEEL_END)/2, b.min.y-0.31, -2.25); cw.receiveShadow=true; scene.add(bend(cw)); }
+        for (let x=run0+6; x<STEEL_END-1; x+=12){
+          const top=deckTop(x)-1.05, capY=top-0.35, colTop=capY-0.35, h=colTop-G;
+          box(x-0.3,x+0.3, capY-0.35, capY+0.35, -2.7, 2.7, steelM);                                    // cap girder
+          for (const z of [-2.35,2.35]){
+            box(x-0.24,x+0.24, G, colTop, z-0.24, z+0.24, steelM);                                       // column
+            box(x-0.38,x+0.38, G, G+0.5, z-0.38, z+0.38, cutM);                                          // concrete footing
+            const br=new THREE.Mesh(new THREE.BoxGeometry(0.14,1.7,0.14), steelM);                       // knee brace
+            br.position.set(x, colTop-0.55, z*0.78); br.rotation.x = z>0 ? 0.65 : -0.65; br.castShadow=true; scene.add(br); }
+          if (h>3) box(x-0.08,x+0.08, G+h*0.45, G+h*0.45+0.16, -2.35, 2.35, steelM, false);             // tie strut between the columns
+        }
+        // walled embankment where the ramp is too low for steel: solid fill from the street up to the track bed
+        { const L=CUT0-STEEL_END+0.5, segs=Math.ceil(L*2), g=new THREE.BoxGeometry(L,1,5.4,segs); g.translate((STEEL_END+CUT0)/2-0.25,0.5,-0.25);
+          const pa=g.attributes.position; for (let i=0;i<pa.count;i++){ const x=pa.getX(i); pa.setY(i, pa.getY(i)>0.5 ? b.min.y-0.24+gradeY(x) : G-0.02); }
+          g.computeVertexNormals(); const emb=new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color:0x3b3935, roughness:0.95, envMapIntensity:0.45 }));
+          emb.castShadow=emb.receiveShadow=true; scene.add(emb); }
+      }
+
+      /* ---------- the plaza over the portal: trees, lamps ---------- */
+      { const trunkM=new THREE.MeshStandardMaterial({ color:0x2b231c, roughness:0.95 }), leafM=new THREE.MeshStandardMaterial({ color:0x2f4a2a, roughness:0.9, envMapIntensity:0.4 });
+        const rt=(()=>{ let a=777; return ()=>((a=(Math.imul(a,1103515245)+12345)>>>0)/4294967296); })();
+        for (let i=0;i<12;i++){ const x=T.x0+4+rt()*46, z=(rt()<0.5?-1:1)*(7+rt()*12);
+          const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.22,3.2,8),trunkM); tr.position.set(x,H2+1.6,z); tr.castShadow=true; scene.add(tr);
+          const cn=new THREE.Mesh(new THREE.IcosahedronGeometry(2.2+rt()*1.2,1),leafM); cn.position.set(x,H2+4.4,z); cn.scale.y=0.8; cn.castShadow=cn.receiveShadow=true; scene.add(cn); } }
 
       /* ---------- the neighbourhood around 3 Av–149 St: 5–8 storey walk-ups lining the line ---------- */
       { const rr=(()=>{ let a=424242; return ()=>((a=(Math.imul(a,1103515245)+12345)>>>0)/4294967296); })();
@@ -1056,12 +1094,29 @@ THREE.ColorManagement.enabled = false;
           while (x < T.x0+150){
             const w=11+rr()*16, h=STORY*(5+Math.floor(rr()*4))+1.0, d=14+rr()*8, gap=rr()<0.3?2+rr()*5:0.15;
             const z0=side>0?zFront+rr()*2:zFront-d-rr()*2, z1=z0+d;
-            const near=Math.abs(x+w/2-10)<120;                  // only buildings near the action cast shadows (perf)
+            const near=Math.abs(x+w/2-60)<160;                  // only buildings near the action cast shadows (perf)
+            if (x+w>CUT0-20 && x<T.x0-10){ x+=w+gap; continue; }   // the ramp's own neighbours go here (below)
             building(x,x+w,z0,z1,h,mats[Math.floor(rr()*mats.length)],near);
             if (rr()<0.32) waterTower(x+w*(0.3+rr()*0.4), (z0+z1)/2+(rr()-0.5)*3, G+h+0.3);
             x+=w+gap;
           }
         }
+        // flanking the ramp (from the 3D references): a big brick apartment complex on one side…
+        building(CUT0-18, T.x0-8, -40, -9, STORY*10+1, mats[0], true);
+        building(CUT0+10, CUT0+38, -52, -40, STORY*12+1, mats[4], true);
+        // …and a low rooftop parking garage on the other, cars on the deck
+        { const gcv=document.createElement('canvas'); gcv.width=256; gcv.height=256; const c=gcv.getContext('2d');
+          c.fillStyle='#8b8a85'; c.fillRect(0,0,256,256); c.fillStyle='#1b1c1e'; for (let k=0;k<4;k++) c.fillRect(0,k*64+18,256,30);
+          c.fillStyle='rgba(0,0,0,0.25)'; for (let x=0;x<256;x+=64) c.fillRect(x,0,6,256);
+          const gt=new THREE.CanvasTexture(gcv); gt.wrapS=THREE.RepeatWrapping; gt.colorSpace=THREE.SRGBColorSpace;
+          const gx0=CUT0-24, gx1=T.x0-12, gz0=8.5, gz1=44, gh=12.4, gm=new THREE.MeshStandardMaterial({ map:gt, roughness:0.9, envMapIntensity:0.45 });
+          const gg=new THREE.BoxGeometry(gx1-gx0,gh,gz1-gz0), uv=gg.attributes.uv;
+          for (let f=0;f<6;f++){ const fw=(f<2)?(gz1-gz0):(gx1-gx0); for (let k=0;k<4;k++){ const i=f*4+k; uv.setX(i, uv.getX(i)*fw/16); } }
+          const gar=new THREE.Mesh(gg,[gm,gm,roofM,roofM,gm,gm]); gar.position.set((gx0+gx1)/2,G+gh/2,(gz0+gz1)/2); gar.castShadow=gar.receiveShadow=true; scene.add(gar);
+          const carCols=[0x9a9da2,0x2a2c30,0xd9d9d6,0x6e1f22,0x1f3550,0x55585c];
+          for (let i=0;i<34;i++){ const cx=gx0+3+rr()*(gx1-gx0-6), cz=gz0+3+rr()*(gz1-gz0-6);
+            const car=new THREE.Mesh(new THREE.BoxGeometry(4.4,1.35,1.8), new THREE.MeshStandardMaterial({ color:carCols[Math.floor(rr()*carCols.length)], metalness:0.6, roughness:0.4 }));
+            car.position.set(cx,G+gh+0.7,cz); car.rotation.y=(rr()<0.5?0:Math.PI/2)+(rr()-0.5)*0.1; car.castShadow=true; scene.add(car); } }
         // distant skyline to the south (seen over the portal on the way down): taller towers, no shadows
         for (let i=0;i<22;i++){ const x=T.x0+230+rr()*380, z=(rr()-0.5)*520, w=16+rr()*28, d=16+rr()*28, h=40+Math.pow(rr(),1.6)*190;
           building(x,x+w,z,z+d,h,mats[Math.floor(rr()*mats.length)],false); }
@@ -1090,7 +1145,7 @@ THREE.ColorManagement.enabled = false;
     controls.target.set(b.max.x-carLen*0.35, eyeY-carLen*0.06, 0);
     controls.update();
     homePos=camera.position.clone(); homeTgt=controls.target.clone();
-    homePos.y+=GRADE.h; homeTgt.y+=GRADE.h;                      // rest shot is up at street level
+    homePos.y+=GRADE.h; homeTgt.y+=GRADE.h;                      // rest shot is up beside the elevated deck
 
     // keep the key light's shadow following the action
     key.target.position.set(camera.position.x - carLen*0.8, eyeY, 0); scene.add(key.target);
@@ -1132,7 +1187,7 @@ THREE.ColorManagement.enabled = false;
   const SCRUB_TO=0.82;                                     // scroll zone, as the page overlay
   let s=0;                                                  // eased scroll position, 0..1
   // train speed vs scroll: pull away from rest, cruise, brake into the station (integrated into a position table)
-  const BRAKE0=0.60, BRAKE1=0.82;
+  const BRAKE0=0.66, BRAKE1=0.84;
   const vel = t => t<0.08 ? t/0.08 : t<BRAKE0 ? 1 : t<BRAKE1 ? 1-(t-BRAKE0)/(BRAKE1-BRAKE0) : 0;
   const CUM=[0]; for (let i=1;i<=400;i++) CUM.push(CUM[i-1]+vel((i-0.5)/400)/400);
   const trainX = t => { const f=Math.min(1,Math.max(0,t))*400, i=Math.floor(f), c=i>=400?CUM[400]:CUM[i]+(CUM[i+1]-CUM[i])*(f-i);
@@ -1152,19 +1207,24 @@ THREE.ColorManagement.enabled = false;
     for (const car of train.children){ const cx=X+car.position.x, ya=gradeY(cx-6.5), yf=gradeY(cx+6.5);
       car.position.y=(ya+yf)/2; car.rotation.z=Math.atan2(yf-ya,13); }
     const PY=train.children[0].position.y, rel=v=>v.clone().add(V(X,PY,0));
-    if (t<0.42){                                            // approach, then arc up over the cut and follow the cab down into the portal
-      const c=smooth(0.22,0.42,t), ch=rel(CHASE_P);
-      const ctrl=homePos.clone().add(ch).multiplyScalar(0.5).add(V(0,4.0,3.0));   // clears the retaining walls (checked offline)
-      pos.copy(bez(homePos,ctrl,ch,c)); tgt.copy(lerpV(homeTgt, rel(CHASE_T), c));
-    } else if (t<0.62){                                     // fly in through the side window
-      const f=smooth(0.42,0.62,t);
+    // narrow (portrait) screens: aim toward the waiting train and widen the lens a little
+    const k=Math.min(1,Math.max(0,(1.25-camera.aspect)/0.65)), hT=homeTgt.clone().lerp(V(homeTgt.x-40,homeTgt.y-0.6,-1), 0.55*k);
+    if (Math.abs(camera.fov-(42+12*k))>0.01){ camera.fov=42+12*k; camera.updateProjectionMatrix(); }
+    if (t<0.50){                                            // approach, then arc up and follow the cab down the ramp into the portal
+      const c=smooth(0.20,0.50,t), ch=rel(CHASE_P);
+      const ctrl=homePos.clone().add(ch).multiplyScalar(0.5).add(V(0,30.0,1.0));   // drone rise (~23 m) over the ramp, then a dive into the cut; clears the steel, walls and garage (checked offline)
+      pos.copy(bez(homePos,ctrl,ch,c));
+      // aim: lock onto the lead cab early (so from up high we follow the front down the ramp), then look down the tunnel
+      tgt.copy(lerpV(lerpV(hT, rel(V(14,0.2,0)), smooth(0.20,0.29,t)), rel(CHASE_T), smooth(0.42,0.50,t)));
+    } else if (t<0.64){                                     // fly in through the side window
+      const f=smooth(0.50,0.64,t);
       pos.copy(rel(bez(CHASE_P,FLY_C,SEAT_P,f))); tgt.copy(rel(lerpV(CHASE_T,AISLE_T,f)));
     } else {                                                // ride in, turning to the doors as the train stops
-      const c=smooth(0.62,0.82,t);
+      const c=smooth(0.64,0.84,t);
       pos.copy(rel(lerpV(SEAT_P,FACE_P,c))); tgt.copy(rel(lerpV(AISLE_T,DOOR_T,c)));
     }
     camera.position.copy(pos); camera.lookAt(tgt);
-    setDoors(smooth(0.85,0.98,t));
+    setDoors(smooth(0.86,0.98,t));
     // inside the tunnel the steel stops seeing the bright studio — only the lamps light it
     const inT=smooth(TUNNEL.x0-4, TUNNEL.x0+14, pos.x);
     for (const [m,base] of envMats) m.envMapIntensity=base*THREE.MathUtils.lerp(ATM.env,0.3,inT);
@@ -1178,7 +1238,7 @@ THREE.ColorManagement.enabled = false;
       tunnelLights.forEach((tl,i)=>{ const k=Math.round((pos.x-L0-i*SPC)/(2*SPC))*2+i, lx=L0+k*SPC;
         tl.position.set(lx,2.3,0.8); tl.intensity=inT*2.2*Math.max(0,1-Math.abs(pos.x-lx)/(2*SPC)); }); }
     // depth of field: hold focus on the cab outside, rack to the doors inside the car
-    if (bokeh){ const cab=V(X+9,0.4+PY,0), inside=smooth(0.42,0.62,t);
+    if (bokeh){ const cab=V(X+9,0.4+PY,0), inside=smooth(0.50,0.64,t);
       const fd=THREE.MathUtils.lerp(pos.distanceTo(cab), pos.distanceTo(rel(DOOR_T)), inside);
       bokeh.uniforms.focus.value=fd; bokeh.uniforms.aperture.value=THREE.MathUtils.lerp(0.00035,0.0022,inside); }
     { const fwd=tgt.clone().sub(pos).setY(0); if (fwd.lengthSq()>1e-6) fwd.normalize();    // shadow box centred ~26 m into the shot
