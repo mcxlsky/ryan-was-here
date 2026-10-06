@@ -42,35 +42,11 @@
       display: block; background: #000;
       filter: contrast(1.05) saturate(1.06);
     }
-
-    /* Scrim over the video, under the UI */
-    .scrim {
-      position: absolute; inset: 0; z-index: 4; pointer-events: none;
-      background:
-        linear-gradient(180deg, rgba(15,15,14,0.55) 0%, rgba(15,15,14,0.16) 26%, rgba(15,15,14,0.22) 60%, rgba(15,15,14,0.66) 100%),
-        radial-gradient(90% 60% at 50% 50%, rgba(15,15,14,0.04) 0%, rgba(15,15,14,0.40) 100%);
-    }
-
-    /* Animated film grain over the footage, under the UI text */
-    .grain {
-      position: absolute; inset: -60%; z-index: 4; pointer-events: none;
-      opacity: 0.52; mix-blend-mode: overlay; will-change: transform;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 150px 150px;
-      animation: grain 0.55s steps(1) infinite;
-    }
-    @keyframes grain {
-      0%   { transform: translate(0,0); }
-      10%  { transform: translate(-4%,-5%); }
-      20%  { transform: translate(-9%,4%); }
-      30%  { transform: translate(5%,-8%); }
-      40%  { transform: translate(-4%,12%); }
-      50%  { transform: translate(-10%,5%); }
-      60%  { transform: translate(12%,0); }
-      70%  { transform: translate(0,9%); }
-      80%  { transform: translate(-12%,2%); }
-      90%  { transform: translate(8%,5%); }
-      100% { transform: translate(4%,0); }
+    /* last frame of the outgoing state, dissolved over the incoming one when the scene switches modes */
+    .hero-xfade {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; opacity: 0;
+      filter: contrast(1.05) saturate(1.06);
     }
 
     /* ---------- Overlay UI ---------- */
@@ -167,8 +143,6 @@
     }
     @keyframes bob { 0%,100%{ transform: rotate(45deg) translate(0,0);} 50%{ transform: rotate(45deg) translate(3px,3px);} }
 
-    /* hero rest state reads as near-black (nav floats on it); darkness lifts as you scroll into the arrival. JS-driven. Sits over the video, under the nav. */
-    .dark { position: absolute; inset: 0; z-index: 4; background: #000; opacity: 1; pointer-events: none; }
 
     /* loading veil until the clip can play/seek */
     .veil { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; background: #000; transition: opacity .6s ease; }
@@ -196,7 +170,7 @@
       .tag { width: 100px; }
       .bio { font-size: 15px; }
     }
-    @media (prefers-reduced-motion: reduce) { .chev, .grain, .drop { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
   </style>
 </head>
 <body>
@@ -204,10 +178,9 @@
     <div class="sticky">
       <div class="stage" id="stage">
         <canvas class="hero-canvas" id="trainCanvas" aria-label="A New York City R142 subway train pulling into the station"></canvas>
+        <canvas class="hero-xfade" id="xfade" aria-hidden="true"></canvas>
       </div>
 
-      <div class="scrim"></div>
-      <div class="grain" aria-hidden="true"></div>
 
       <!-- Overlay UI -->
       <div class="wrap">
@@ -229,7 +202,6 @@
 
       </div>
 
-      <div class="dark" id="darkLayer" aria-hidden="true"></div>
       <div class="veil" id="veil"><div class="spinner"></div></div>
     </div>
   </main>
@@ -250,8 +222,6 @@
       var stage   = document.getElementById('stage');
       var navbar  = document.getElementById('navbar');
       var veil    = document.getElementById('veil');
-      var darkLayer = document.getElementById('darkLayer');
-      var loadT0  = 0;
 
       var clamp  = function (v,a,b){ return v<a?a:(v>b?b:v); };
       var smooth = function (a,b,x){ var t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); };
@@ -276,16 +246,9 @@
       function frame(){
         if (!ready && window.__ready){
           ready = true;
-          loadT0 = performance.now();        // begin the from-black load settle
-          veil.style.display = 'none';
+          veil.classList.add('hide');        // loading veil fades out once the train is built
         }
         var p = progress();
-
-        // hero rest state is near-black; darkness lifts as the train pulls in. Plus a from-black settle on load.
-        var reveal   = smooth(0.02, 0.24, p);
-        var restDark = 0.84 * (1 - reveal);
-        var loadFade = (ready && !reduce) ? (1 - clamp((performance.now() - loadT0) / 1500, 0, 1)) : 0;
-        darkLayer.style.opacity = Math.max(restDark, loadFade).toFixed(3);
 
         // intro: nav sits centered at rest, docks to top on the first scroll
         var early = smooth(0.0, 0.12, p);
@@ -825,6 +788,14 @@
   const CAM1p=new THREE.Vector3(0,0.55,8.6),  CAM1t=new THREE.Vector3(0,0.55,0);    // square-on to the centre doors
   const tgt=new THREE.Vector3();
   let mode='loop', s=0;
+  // switching between the rest loop and the arrival is a cut; cover it with a short dissolve from a snapshot
+  const xf=document.getElementById('xfade'), xctx=xf.getContext('2d'), XFADE_MS=480; let xfT=-1;
+  function snapshot(){
+    renderer.render(scene, camera);                       // the outgoing state, drawn before we change it
+    if (xf.width!==canvas.width || xf.height!==canvas.height){ xf.width=canvas.width; xf.height=canvas.height; }
+    xctx.clearRect(0,0,xf.width,xf.height); xctx.drawImage(canvas,0,0);
+    xfT=performance.now(); xf.style.opacity='1';
+  }
   function setDoors(f){ for (const car of train.children) for (const leaf of (car.userData.leaves||[])) leaf.position.x=leaf.userData.dir*0.79*f; }
   function arrival(t){
     train.position.x = -ARRIVE_FROM*Math.pow(1-Math.min(1,t/STOP_AT),2);   // linear deceleration to rest at x = 0
@@ -839,8 +810,8 @@
       const p=progress();
       if (reduce){ arrival(STOP_AT); }                          // reduced motion: a still of the train at the platform
       else {
-        if (mode==='loop' && p>SCRUB_FROM){ mode='scrub'; s=0; }
-        else if (mode==='scrub' && p<LOOP_BACK){ mode='loop'; setDoors(0); }
+        if (mode==='loop' && p>SCRUB_FROM){ snapshot(); mode='scrub'; s=0; }
+        else if (mode==='scrub' && p<LOOP_BACK){ snapshot(); mode='loop'; setDoors(0); }
         if (mode==='loop'){
           phase=(phase+dt*speed)%loopDist; train.position.x=pStart+phase;
           camera.position.copy(homePos); camera.lookAt(homeTgt);
@@ -851,6 +822,7 @@
       }
     }
     renderer.render(scene, camera);
+    if (xfT>=0){ const o=1-(performance.now()-xfT)/XFADE_MS; xf.style.opacity=Math.max(0,o).toFixed(3); if (o<=0) xfT=-1; }
     requestAnimationFrame(tick);
   }
   tick();
