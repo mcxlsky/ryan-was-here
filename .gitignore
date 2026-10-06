@@ -15,3 +15,8 @@ index_old.html
 
 # Local experiments
 Dither Mapping Experiment/
+
+# Local secrets (API keys) — never commit
+.env
+.env.*
+!.env.example
