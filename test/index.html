@@ -230,6 +230,7 @@
   <script type="module">
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -712,10 +713,12 @@ THREE.ColorManagement.enabled = false;
         const tube=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),12,0.011,6,false), cableMat); car.add(tube); }
     }
     // arched roof along the car (replaces the GLB's flat slab)
-    function roof(){
-      const s=new THREE.Shape(); const N=40;
+    function roof(){        // a shell: arched outside, ceiling cavity inside (the interior ceiling sits under it)
+      const s=new THREE.Shape(), N=40, zi=1.44;
       for(let i=0;i<=N;i++){ const z=-1.5+3*i/N; const p=[-z, roofY(z)]; i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1]); }
-      s.lineTo(1.5,1.80); s.lineTo(-1.5,1.80);
+      s.lineTo(-1.5,1.80); s.lineTo(-zi,1.80);
+      for(let i=N;i>=0;i--){ const z=-zi+2*zi*i/N; s.lineTo(-z, roofY(z)-0.05); }
+      s.lineTo(zi,1.80); s.lineTo(1.5,1.80);
       const m=new THREE.Mesh(new THREE.ExtrudeGeometry(s,{depth:carLen,bevelEnabled:false,curveSegments:2}), roofMat);
       m.rotation.y=Math.PI/2; m.position.x=-carLen/2; m.castShadow=m.receiveShadow=true; return m;
     }
@@ -777,6 +780,16 @@ THREE.ColorManagement.enabled = false;
       setTimeout(()=>{ if (ledHold) return; ledIdx=(ledIdx+1)%LED_MSGS.length; drawLed(LED_MSGS[ledIdx]); }, 180); }, 3500);
     window.__led = (i)=>{ ledHold = i!=null; if (i!=null){ ledIdx=i; drawLed(LED_MSGS[i]); } };   // QA: pin a message / release
 
+    const sticker=(txt)=>canvasTex(512,72,(c,w,h)=>{ c.fillStyle='#141414'; c.fillRect(0,0,w,h); c.fillStyle='#fff'; c.beginPath(); c.arc(36,36,24,0,Math.PI*2); c.fill();
+      c.fillStyle='#d01f1f'; c.beginPath(); c.arc(36,36,20,0,Math.PI*2); c.fill(); c.fillStyle='#fff'; c.fillRect(33,22,6,20); c.beginPath(); c.arc(36,48,3.5,0,Math.PI*2); c.fill();
+      c.fillStyle='#f4f4f0'; c.font='600 38px Helvetica, Arial, sans-serif'; c.textBaseline='middle'; c.fillText(txt,74,38); });
+    // inside face of the doors: brushed, slightly grimy stainless that still reads light when the tunnel env is dimmed
+    const brushT=canvasTex(256,256,(c,w,h)=>{ c.fillStyle='#b4b7bb'; c.fillRect(0,0,w,h); let sd=42; const r=()=>(sd=(sd*16807)%2147483647)/2147483647;
+      for (let k=0;k<900;k++){ c.fillStyle=`rgba(${r()<0.5?'255,255,255':'60,62,66'},${0.04+r()*0.08})`; c.fillRect(0,r()*h,w,0.6+r()*1.2); }
+      for (let k=0;k<12;k++){ const g=c.createRadialGradient(r()*w,h*(0.4+r()*0.6),0,r()*w,h*(0.5+r()*0.5),30+r()*60); g.addColorStop(0,'rgba(70,66,60,0.16)'); g.addColorStop(1,'rgba(70,66,60,0)'); c.fillStyle=g; c.fillRect(0,0,w,h); } });
+    brushT.wrapS=brushT.wrapT=THREE.RepeatWrapping; brushT.repeat.set(1.2,1.2);
+    const innerSteel=new THREE.MeshStandardMaterial({ map:brushT, color:0xffffff, emissive:0x2b2c2e, emissiveIntensity:1.0, metalness:0.45, roughness:0.36, envMapIntensity:1.0 });
+    const leanM=new THREE.MeshStandardMaterial({ map:sticker('Do not lean on door'), roughness:0.5 }), holdM=new THREE.MeshStandardMaterial({ map:sticker('Do not hold doors'), roughness:0.5 });
     function sides(car){
       const holes=[];
       for (const c of DOORS) holes.push(rrM(c-0.88,-0.37,c+0.88,1.83,0));
@@ -803,14 +816,11 @@ THREE.ColorManagement.enabled = false;
           flank(leaf, gk, [g], gasketS, 1.42, 0.058);
           flank(leaf, g, null, sideGlass, 1.43, 0.01);
           if (dir<0) flank(leaf, rrM(c-0.012,-0.33,c+0.012,1.78,0), null, rubber, 1.42, 0.04);   // leaf seam
+          flank(leaf, rrM(l0,-0.33,l1,1.78,0), [gk], innerSteel, 1.4185, 0.0015);   // brushed inner skin (faces the cabin)
+          for (const s of [1,-1]) for (const [mat,y,w,h] of [[leanM,0.6,0.36,0.052],[holdM,1.738,0.34,0.046]]){   // inside stickers
+            const p=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat); p.position.set(m,y,s*1.417); p.rotation.y=s>0?Math.PI:0; leaf.add(p); }
         }
         flank(car, rrM(c-0.88,-0.55,c+0.88,-0.37,0), null, frameSteel, 1.44, 0.09);  // threshold
-      }
-      // longitudinal blue benches between the doorways, stanchions at the bench ends
-      for (const [x0,x1] of [[-8.7,-6.8],[-4.88,-0.96],[0.96,4.88],[6.8,8.7]]) for (const s of [1,-1]){
-        const seat=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,0.43,0.44), seatMat); seat.position.set((x0+x1)/2,-0.335,s*1.2); car.add(seat);
-        const back=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,0.54,0.1), seatMat); back.position.set((x0+x1)/2,0.15,s*1.37); car.add(back);
-        for (const px of [x0,x1]) if (Math.abs(Math.abs(px)-8.7)>0.01){ const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,2.22,10), poleMat); pole.position.set(px,0.56,s*0.98); car.add(pole); }
       }
       // rain gutter along the top of the side
       flank(car, rrM(-9.0,1.84,9.0,1.885,0), null, frameSteel, 1.48, 0.04);
@@ -829,6 +839,149 @@ THREE.ColorManagement.enabled = false;
       const ledM=new THREE.MeshBasicMaterial({ map:ledTex }); ledM.color.setScalar(1.25);
       for (const c of BIGWIN) for (const s of [1,-1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(1.72,0.32),ledM);
         p.position.set(c,1.47,s*1.435); if(s<0) p.rotation.y=Math.PI; car.add(p); }
+    }
+    /* ================= R142 interior (from photos): off-white lining with grey window bezels, angled ad-card band,
+       continuous light strips, glossy blue-grey cantilevered benches with stainless standee screens, centre poles,
+       speckled charcoal floor, and an end bulkhead with the end door, LED sign, car number and intercom.
+       Built once, merged by material (a dozen draw calls), and cloned into every car. ================= */
+    function buildInterior(){
+      const G=new THREE.Group(), FL=-0.37, XB=xEnd-0.16, ZW=1.385, CE=1.93;
+      const add=(geo,mat,x,y,z,rx,ry)=>{ const m=new THREE.Mesh(geo,mat); m.position.set(x||0,y||0,z||0); m.rotation.set(rx||0,ry||0,0); G.add(m); return m; };
+      const both=(geo,mat,x,y,z,rx)=>{ add(geo,mat,x,y,z,rx,0); const m=add(geo,mat,-x,y,-z,0,Math.PI); m.rotation.set(rx||0,Math.PI,0,'YXZ'); };
+      const boxB=(x0,x1,y0,y1,z0,z1,mat,mirror)=>{ const g=new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0);
+        if (mirror) both(g,mat,(x0+x1)/2,(y0+y1)/2,(z0+z1)/2); else add(g,mat,(x0+x1)/2,(y0+y1)/2,(z0+z1)/2); };
+      // flat card with explicit orientation: right = image +u, up = image +v (so text always reads correctly)
+      const card=(mat,w,h,pos,right,up)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);
+        m.matrix.makeBasis(right,up,right.clone().cross(up)).setPosition(pos); m.matrixAutoUpdate=false; G.add(m); return m; };
+      const tube=(pts,r,mat)=>{ const m=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)),false,'catmullrom',0.2),40,r,8,false),mat); G.add(m); return m; };
+      const pole=(x,z,y0,y1,r)=>add(new THREE.CylinderGeometry(r||0.019,r||0.019,y1-y0,12),poleMat,x,(y0+y1)/2,z);
+      const tex=(w,h,draw,rx,ry)=>{ const t=canvasTex(w,h,draw); t.anisotropy=8; if(rx){ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rx,ry); } return t; };
+
+      const linerM =new THREE.MeshStandardMaterial({ color:0xe4e2dc, emissive:0xfff6e8, emissiveIntensity:0.16, roughness:0.42, metalness:0, envMapIntensity:0.5 });
+      const bezelM =new THREE.MeshStandardMaterial({ color:0xc4c6c6, emissive:0xfff6e8, emissiveIntensity:0.08, roughness:0.5, metalness:0, envMapIntensity:0.5 });
+      const ceilM  =new THREE.MeshStandardMaterial({ color:0xefede7, emissive:0xfff4e0, emissiveIntensity:0.34, roughness:0.85, metalness:0 });
+      const seatM  =new THREE.MeshStandardMaterial({ color:0x7090b8, emissive:0x1b2a40, emissiveIntensity:0.35, roughness:0.3, metalness:0, envMapIntensity:0.7 });
+      const heatM  =new THREE.MeshStandardMaterial({ color:0x85888c, roughness:0.55, metalness:0.5, envMapIntensity:0.5 });
+      const greyM  =new THREE.MeshStandardMaterial({ color:0xb9bbbd, emissive:0x2a2a2a, emissiveIntensity:1, roughness:0.5, metalness:0.3, envMapIntensity:0.6 });
+      const stripM =new THREE.MeshStandardMaterial({ color:0xffffff, emissive:0xfff6e6, emissiveIntensity:1.7, roughness:0.6 });
+      const ventT =tex(128,64,(c,w,h)=>{ c.fillStyle='#d9d8d3'; c.fillRect(0,0,w,h); c.fillStyle='#6d6e70'; for (let x=8;x<w-6;x+=8) c.fillRect(x,8,3,h-16); });
+      const ventM =new THREE.MeshStandardMaterial({ map:ventT, emissive:0xffffff, emissiveMap:ventT, emissiveIntensity:0.25, roughness:0.7 });
+      const endDoorM=innerSteel;
+      const blackM =new THREE.MeshStandardMaterial({ color:0x111214, roughness:0.5, metalness:0.2 });
+      const darkGl =new THREE.MeshStandardMaterial({ color:0x0b0e11, roughness:0.08, metalness:0.6, envMapIntensity:1.2 });
+      const floorT =tex(256,256,(c,w,h)=>{ c.fillStyle='#2b2c2f'; c.fillRect(0,0,w,h); let sd=6590; const r=()=>(sd=(sd*16807)%2147483647)/2147483647;
+        for (let k=0;k<5000;k++){ const v=r(); c.fillStyle=v<0.5?'rgba(14,14,16,0.6)':v<0.85?'rgba(78,80,84,0.55)':'rgba(150,152,156,0.5)'; c.fillRect(r()*w,r()*h,1+r()*1.6,1+r()*1.6); }
+        for (let k=0;k<10;k++){ c.fillStyle=`rgba(0,0,0,${0.05+r()*0.06})`; c.beginPath(); c.ellipse(r()*w,r()*h,8+r()*30,5+r()*16,r()*3,0,Math.PI*2); c.fill(); } }, 2*XB/0.9, 2*ZW/0.9);
+      const floorM =new THREE.MeshStandardMaterial({ map:floorT, roughness:0.45, metalness:0, envMapIntensity:0.7 });
+
+      // floor, flush with the door thresholds
+      boxB(-XB,XB, FL-0.03,FL, -ZW,ZW, floorM);
+      // side lining: holes for the doors and window bezels; bezels are light-grey rings running back to the glass
+      { const holes=[], bez=[];
+        for (const c of DOORS) holes.push(rrM(c-0.86,FL-0.01,c+0.86,1.80,0));
+        for (const [c,hw] of BIGWIN.map(c=>[c,0.86]).concat(ENDWIN.map(c=>[c,0.34]))){
+          const o=rrM(c-hw-0.07,0.65,c+hw+0.07,1.70,0.18); holes.push(o); bez.push([o, rrM(c-hw,0.72,c+hw,1.63,0.12)]); }
+        const lg=new THREE.ExtrudeGeometry(toShape(rrM(-XB,FL-0.03,XB,1.87,0),holes),{ depth:0.03, bevelEnabled:false, curveSegments:4 });
+        both(lg, linerM, 0,0,ZW);
+        for (const [o,i] of bez) both(new THREE.ExtrudeGeometry(toShape(o,[i]),{ depth:0.062, bevelEnabled:false, curveSegments:4 }), bezelM, 0,0,ZW-0.004);
+        // stainless door surrounds and the header over each door
+        for (const c of DOORS){ boxB(c-0.92,c-0.86, FL,1.80, ZW-0.035,ZW+0.005, frameSteel,true); boxB(c+0.86,c+0.92, FL,1.80, ZW-0.035,ZW+0.005, frameSteel,true);
+          boxB(c-0.92,c+0.92, 1.80,1.87, ZW-0.035,ZW+0.005, frameSteel,true); } }
+      // ceiling: angled ad-card band off the wall, a continuous light strip, flat centre panel
+      { const a=Math.atan2(0.06,0.28), bw=Math.hypot(0.06,0.28);
+        both(new THREE.BoxGeometry(2*XB,0.012,bw), linerM, 0,1.89,1.26, a);
+        both(new THREE.BoxGeometry(2*XB,0.02,0.25), stripM, 0,CE-0.005,1.0);
+        both(new THREE.BoxGeometry(2*XB,0.03,0.025), greyM, 0,CE-0.01,0.865);
+        boxB(-XB,XB, CE,CE+0.012, -0.86,0.86, ceilM);
+        for (let x=-XB+1.3; x<XB-1; x+=2.9) boxB(x-0.5,x+0.5, CE-0.004,CE, -0.14,0.14, ventM);   // air diffusers
+        // ad cards along the band, over the seats (originals, plus one for the site)
+        const ads=['ryan was here','Bronx Night Market','Ride kind','Learn to swim','Bodega cat','Night school'];
+        const adT=tex(1536,768,(c)=>{ const W=768,H=256;
+          const draw=(i,x,y)=>{ c.save(); c.translate(x,y); c.beginPath(); c.rect(0,0,W,H); c.clip();
+            const P=[['#111','#f2f2ee','#f2c94c'],['#e8641c','#fff7ea','#2a1a10'],['#e9f0f6','#1d3f8f','#c9302c'],['#0f6e73','#f4f1e6','#f2c94c'],['#f3e2c4','#3b2b1f','#c9302c'],['#22253a','#f2f2ee','#7ec4cf']][i];
+            c.fillStyle=P[0]; c.fillRect(0,0,W,H); c.fillStyle=P[2];
+            if (i===0){ c.font='italic 600 92px Georgia, serif'; c.fillStyle=P[1]; c.fillText('ryan was here',46,150); c.fillStyle=P[2]; c.beginPath(); for (let k=0;k<10;k++){ const rr=k%2?14:34, an=k*Math.PI/5-Math.PI/2; c.lineTo(690+rr*Math.cos(an),120+rr*Math.sin(an)); } c.fill();
+              c.font='500 26px Helvetica, Arial, sans-serif'; c.fillStyle='#9a9a96'; c.fillText('portfolio — scroll on',50,212); }
+            else if (i===1){ c.beginPath(); c.arc(640,130,150,0,Math.PI*2); c.fill(); c.fillStyle=P[1]; c.font='bold 78px Helvetica, Arial, sans-serif'; c.fillText('Bronx Night',40,110); c.fillText('Market',40,190); c.font='500 28px Helvetica, Arial, sans-serif'; c.fillText('Saturdays · Fordham Plaza',42,236); }
+            else if (i===2){ c.fillRect(0,0,22,H); c.fillStyle=P[1]; c.font='bold 84px Helvetica, Arial, sans-serif'; c.fillText('Offer your seat.',50,128); c.font='500 34px Helvetica, Arial, sans-serif'; c.fillText('Someone might need it more than you.',52,190); }
+            else if (i===3){ c.fillStyle='#1b8e94'; for (let k=0;k<5;k++){ c.beginPath(); c.arc(560+k*40,200-k*10,60,Math.PI,0); c.fill(); }
+              c.fillStyle=P[1]; c.font='bold 80px Helvetica, Arial, sans-serif'; c.fillText('Learn to swim',40,120); c.font='500 30px Helvetica, Arial, sans-serif'; c.fillText('Free classes at your local pool',42,180); }
+            else if (i===4){ c.fillStyle=P[1]; c.font='bold 70px Georgia, serif'; c.fillText('Bodega',44,104); c.fillText('Cat Calendar',44,180); c.fillStyle='#2a2a2a'; c.beginPath(); c.ellipse(640,150,70,60,0,0,Math.PI*2); c.fill();
+              c.beginPath(); c.moveTo(585,110); c.lineTo(600,50); c.lineTo(625,100); c.moveTo(655,100); c.lineTo(680,50); c.lineTo(695,110); c.fill(); c.fillStyle='#f2c94c'; c.fillRect(612,135,14,10); c.fillRect(654,135,14,10); }
+            else { c.fillStyle=P[1]; c.font='bold 76px Helvetica, Arial, sans-serif'; c.fillText('Night school',44,116); c.font='500 32px Helvetica, Arial, sans-serif'; c.fillStyle=P[2]; c.fillText('Classes start when the city sleeps.',46,182); }
+            c.restore(); };
+          for (let i=0;i<4;i++) draw(i,(i%2)*W,Math.floor(i/2)*H); draw(4,0,2*H); draw(5,W,2*H); });
+        const adM=new THREE.MeshStandardMaterial({ map:adT, emissive:0xffffff, emissiveMap:adT, emissiveIntensity:0.22, roughness:0.35, envMapIntensity:0.4 });
+        const n=new THREE.Vector3(0,0.06,-0.28).normalize();       // "up" on the +z band: toward the ceiling, away from the wall
+        let k=0;
+        for (const [x0,x1] of [[-8.7,-6.8],[-4.88,-0.96],[0.96,4.88],[6.8,8.7]]){ const cnt=Math.max(1,Math.round((x1-x0)/0.95));
+          for (let j=0;j<cnt;j++){ const x=x0+(x1-x0)*(j+0.5)/cnt;
+            for (const s of [1,-1]){ const ai=(k++*7+ (s>0?0:3))%6, col=ai%2, row=Math.floor(ai/2);
+              const m=card(adM,0.84,0.26, new THREE.Vector3(x,1.889-0.008,s*1.26), new THREE.Vector3(-s,0,0), new THREE.Vector3(0,n.y,s*n.z));
+              const uv=m.geometry.attributes.uv; for (let q=0;q<uv.count;q++) uv.setXY(q,(col+uv.getX(q))/2, 1-(row+1-uv.getY(q))/3); } } } }
+      // benches: one glossy cantilevered shell per bay, heater duct along the wall below, stainless screens at the door ends
+      { const prof=[[0.94,0.03],[0.925,0.07],[0.95,0.095],[1.05,0.088],[1.24,0.075],[1.29,0.1],[1.31,0.16],[1.335,0.575],[1.36,0.605],[ZW,0.585],[ZW,0.02],[1.30,0.0],[1.0,0.012]];
+        const sh=new THREE.Shape(prof.map(q=>new THREE.Vector2(q[0],q[1])));
+        const bays=[[-8.7,-6.8],[-4.88,-0.96],[0.96,4.88],[6.8,8.7]];
+        for (const [x0,x1] of bays){ const L=x1-x0-0.04;
+          both(new THREE.ExtrudeGeometry(sh,{ depth:L, bevelEnabled:true, bevelThickness:0.012, bevelSize:0.012, bevelSegments:2, curveSegments:4 }).rotateY(-Math.PI/2).translate(x1-0.02,0,0), seatM, 0,0,0);
+          both(new THREE.BoxGeometry(L,0.24,0.16), heatM, (x0+x1)/2,FL+0.12,ZW-0.08);
+          // seat dividers: shallow ridges every ~0.46 m read as individual buckets
+          const nseat=Math.round(L/0.46); for (let j=1;j<nseat;j++) both(new THREE.BoxGeometry(0.03,0.018,0.32), seatM, x0+0.02+L*j/nseat,0.094,1.1);
+        }
+        for (const xe of [-6.8,-4.88,-0.96,0.96,4.88,6.8]){ const d=Math.sign(xe)*(Math.abs(xe)===0.96||Math.abs(xe)===6.8?-1:1)*0.0;
+          for (const s of [1,-1]){ const z=v=>s*v, x=xe;
+            pole(x, z(0.97), FL, CE);                                                   // floor-to-ceiling stanchion at the screen
+            tube([[x,0.98,z(0.97)],[x,1.0,z(1.12)],[x,0.93,z(1.30)],[x,0.86,z(1.37)]],0.017,poleMat);   // curved top rail back to the wall
+            for (const y of [0.16,0.36,0.56,0.76]) add(new THREE.CylinderGeometry(0.012,0.012,0.40,8),poleMat,x,y,z(1.17),Math.PI/2);
+            add(new THREE.CylinderGeometry(0.014,0.014,0.86,8),poleMat,x,0.43,z(1.37)); } } }
+      // centre poles in the outer vestibules and near each end (kept clear of the middle doors — that's the reveal)
+      for (const x of [-5.84,5.84,-8.05,8.05]) pole(x,0,FL,CE,0.021);
+      // end bulkheads: panel with the end-door opening, stainless door with its window, LED sign, number, intercom, grab handles
+      { const B=new THREE.Group(), keep=G.children.length;
+        const prof=[[-ZW,FL-0.03],[ZW,FL-0.03],[ZW,1.87],[1.12,1.92],[0.86,CE+0.01],[-0.86,CE+0.01],[-1.12,1.92],[-ZW,1.87]];
+        const panel=new THREE.ExtrudeGeometry(toShape(prof,[rrM(-0.43,FL-0.01,0.43,1.62,0)]),{ depth:0.03, bevelEnabled:false });
+        add(panel, linerM, XB+0.03,0,0, 0,-Math.PI/2);
+        const door=new THREE.ExtrudeGeometry(toShape(rrM(-0.42,FL,0.42,1.61,0),[rrM(-0.2,0.74,0.2,1.42,0.1)]),{ depth:0.03, bevelEnabled:false, curveSegments:6 });
+        add(door, endDoorM, XB+0.075,0,0, 0,-Math.PI/2);
+        add(new THREE.BoxGeometry(0.01,0.68,0.4), darkGl, XB+0.06,1.08,0);
+        add(new THREE.ExtrudeGeometry(toShape(rrM(-0.235,0.705,0.235,1.455,0.12),[rrM(-0.2,0.74,0.2,1.42,0.1)]),{ depth:0.02, bevelEnabled:false, curveSegments:6 }), rubber, XB+0.045,0,0, 0,-Math.PI/2);
+        for (const zz of [-0.455,0.455]) boxB(XB-0.02,XB+0.03, FL,1.62, zz-0.025,zz+0.025, frameSteel);
+        boxB(XB-0.02,XB+0.03, 1.62,1.67, -0.48,0.48, frameSteel);
+        const R=new THREE.Vector3(0,0,1), U=new THREE.Vector3(0,1,0), at=(y,z,dx)=>new THREE.Vector3(XB-(dx||0.002),y,z);
+        // LED next-stop sign over the door
+        boxB(XB-0.09,XB, 1.68,1.84, -0.56,0.56, blackM);
+        const ledT=tex(512,64,(c,w,h)=>{ c.fillStyle='#050505'; c.fillRect(0,0,w,h);
+          const t=document.createElement('canvas'); t.width=w; t.height=h; const x=t.getContext('2d'); x.fillStyle='#ff3a1e'; x.font='bold 46px Helvetica, Arial, sans-serif'; x.textBaseline='middle';
+          x.beginPath(); x.arc(30,32,24,0,Math.PI*2); x.lineWidth=5; x.strokeStyle='#ff3a1e'; x.stroke(); x.textAlign='center'; x.fillText('5',30,34); x.textAlign='left'; x.fillText('Next: 3 Av–149 St',70,34);
+          const d=x.getImageData(0,0,w,h).data; for (let yy=2;yy<h;yy+=4) for (let xx=2;xx<w;xx+=4){ const o=(yy*w+xx)*4; c.fillStyle=d[o+3]>90?'#ff4a24':'#1a0805'; c.beginPath(); c.arc(xx,yy,1.5,0,Math.PI*2); c.fill(); } });
+        const ledM=new THREE.MeshBasicMaterial({ map:ledT }); ledM.color.setScalar(1.6);
+        card(ledM,1.0,0.125, at(1.76,0,0.092), R,U);
+        // car number, intercom, stickers, grille, grab handles
+        const num=tex(256,96,(c,w,h)=>{ c.fillStyle='#f4f3ef'; c.fillRect(0,0,w,h); c.fillStyle='#111'; c.font='bold 64px Helvetica, Arial, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('6675',w/2,h/2+3); });
+        card(new THREE.MeshStandardMaterial({ map:num, emissive:0xffffff, emissiveMap:num, emissiveIntensity:0.15, roughness:0.5 }),0.24,0.09, at(1.5,0.78), R,U);
+        boxB(XB-0.03,XB, 0.86,1.22, 0.62,0.86, greyM);
+        const icT=tex(128,192,(c,w,h)=>{ c.fillStyle='#9fa3a8'; c.fillRect(0,0,w,h); c.fillStyle='#2a2c2f'; for (let y=20;y<90;y+=9) for (let x=20;x<108;x+=9){ c.beginPath(); c.arc(x,y,2.4,0,Math.PI*2); c.fill(); }
+          c.fillStyle='#c8231e'; c.fillRect(22,112,84,30); c.fillStyle='#fff'; c.font='bold 17px Helvetica'; c.fillText('EMERGENCY',24,133); c.fillStyle='#2a2c2f'; c.fillRect(40,152,48,24); });
+        card(new THREE.MeshStandardMaterial({ map:icT, roughness:0.5, metalness:0.3 }),0.2,0.3, at(1.04,0.74,0.032), R,U);
+        const stT=tex(256,128,(c,w,h)=>{ c.clearRect(0,0,w,h); c.fillStyle='#fff'; c.beginPath(); c.arc(56,64,50,0,Math.PI*2); c.fill(); c.fillStyle='#d01f1f'; c.beginPath(); c.arc(56,64,44,0,Math.PI*2); c.fill();
+          c.fillStyle='#fff'; c.fillRect(22,56,68,16); c.fillStyle='#f2c230'; c.fillRect(132,14,96,100); c.fillStyle='#222'; c.font='bold 18px Helvetica'; for (let i=0;i<4;i++) c.fillRect(142,34+i*18,76-i*8,6); });
+        card(new THREE.MeshStandardMaterial({ map:stT, transparent:true, roughness:0.5 }),0.26,0.13, at(0.55,0.0,-0.043), R,U);
+        const grT=tex(128,128,(c,w,h)=>{ c.fillStyle='#8c9095'; c.fillRect(0,0,w,h); c.fillStyle='#2b2d30'; for (let y=8;y<h;y+=10) for (let x=8;x<w;x+=10) c.fillRect(x-2,y-2,5,5); });
+        card(new THREE.MeshStandardMaterial({ map:grT, roughness:0.5, metalness:0.6 }),0.26,0.26, at(0.05,0,-0.043), R,U);
+        for (const zz of [-0.62,0.62]){ add(new THREE.CylinderGeometry(0.015,0.015,0.6,10),poleMat, XB-0.07,1.05,zz);
+          for (const y of [0.77,1.33]) add(new THREE.CylinderGeometry(0.01,0.01,0.07,8),poleMat, XB-0.035,y,zz,0,0).rotation.z=Math.PI/2; }
+        // move this end's parts into B, mirror a copy to the other end
+        const parts=G.children.splice(keep); parts.forEach(p=>B.add(p)); G.add(B); const B2=B.clone(); B2.rotation.y=Math.PI; G.add(B2); }
+
+      // merge everything by material (flipping winding where a transform mirrors)
+      G.updateMatrixWorld(true); const by=new Map();
+      G.traverse(o=>{ if(!o.isMesh) return; let g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
+        for (const k of Object.keys(g.attributes)) if(!['position','normal','uv'].includes(k)) g.deleteAttribute(k);
+        g.clearGroups(); if(!by.has(o.material)) by.set(o.material,[]); by.get(o.material).push(g); });
+      const out=new THREE.Group();
+      for (const [m,gs] of by){ const mm=new THREE.Mesh(mergeGeometries(gs,false),m); mm.receiveShadow=true; mm.castShadow=(m===seatM); out.add(mm); }
+      return out;
     }
     // underfloor equipment boxes between the trucks
     function underframe(car){
@@ -853,7 +1006,8 @@ THREE.ColorManagement.enabled = false;
 
     carProto = model;
     // the flat GLB roof and plain end walls are replaced by the arched roof / measured cab
-    carProto.traverse(o=>{ if (o.isMesh && /TRAIN_roof$|TRAIN_end[AB]_|TRAIN_skirt|TRAIN_bogie|TRAIN_[PT]wall_|TRAIN_door_|TRAIN_seat|TRAIN_pole_/.test(o.name)) o.visible=false; });
+    carProto.traverse(o=>{ if (o.isMesh && /TRAIN_roof$|TRAIN_end[AB]_|TRAIN_skirt|TRAIN_bogie|TRAIN_[PT]wall_|TRAIN_door_|TRAIN_seat|TRAIN_pole_|TRAIN_ceiling|TRAIN_floor|TRAIN_lightstrip/.test(o.name)) o.visible=false; });
+    const interior = buildInterior();
     train = new THREE.Group();
     for (let i=0;i<NCARS;i++){
       const car = new THREE.Group();
@@ -863,7 +1017,7 @@ THREE.ColorManagement.enabled = false;
       car.add(roof());
       car.add(i===0 ? buildCab() : endPlate(xEnd));   // lead car gets the R142 cab
       car.add(endPlate(-xEnd));
-      sides(car); underframe(car);
+      sides(car); underframe(car); car.add(interior.clone());
       if (i>0) chains(car);
       car.position.x = -i*(carLen+gap);
       train.add(car);
