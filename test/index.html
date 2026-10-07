@@ -273,7 +273,7 @@ THREE.ColorManagement.enabled = false;
   };
   const THEME = THEMES[new URLSearchParams(location.search).get('theme')] || THEMES.black;
   /* tunnel mouth at x0, station platform st0..st1, car 1 comes to rest centred at STOP_X (inside the station) */
-  const TUNNEL = { x0:180, x1:430, z0:-3.2, z1:4.8, top:3.4, st0:248, st1:312 };
+  const TUNNEL = { x0:180, x1:430, z0:-3.2, z1:4.8, top:3.4, st0:190, st1:345, wall:6.4 };   // platform starts just inside the portal
   /* grade: street level outside, an eased ramp down an open cut (like the Bronx portal by 3 Av–149 St), level underground.
      gradeY(x) is the track's height above its underground level at x. */
   /* the line near 3 Av–149 St (from Google 3D references): elevated steel over the avenue, down a ramp — steel, then a
@@ -980,16 +980,13 @@ THREE.ColorManagement.enabled = false;
       const board=new THREE.Mesh(new THREE.BoxGeometry(LEN,0.032,0.34,SEG),boardM); board.position.set((run0+run1)/2,boardY,-1.66); board.castShadow=board.receiveShadow=true; scene.add(bend(board));
       const arm=new THREE.Mesh(new THREE.BoxGeometry(LEN,0.03,0.04,SEG),plateM); arm.position.set((run0+run1)/2,boardY-0.03,-1.82); scene.add(bend(arm)); }
 
-    /* ---------- tunnel cut into a gold wall, with a lit gold station inside ---------- */
+    /* ---------- open cut, portal, tunnel and the station ---------- */
     { const T=TUNNEL, yb=railY-0.17, yt=T.top, box=(x0,x1,y0,y1,z0,z1,mat,shadow)=>{
         const m=new THREE.Mesh(new THREE.BoxGeometry(x1-x0,y1-y0,z1-z0),mat); m.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
         m.castShadow=shadow!==false; m.receiveShadow=true; scene.add(m); return m; };
       const concrete=new THREE.MeshStandardMaterial({ color:0x1d1b17, roughness:0.92, metalness:0.0 });
       const portalM =new THREE.MeshStandardMaterial({ color:THEME.portal, roughness:0.85, metalness:0.0, envMapIntensity:0.35 });
       const lampM   =new THREE.MeshStandardMaterial({ color:0x111111, emissive:THEME.lamp, emissiveIntensity:2.4 });
-      const platM   =new THREE.MeshStandardMaterial({ color:THEME.platform, emissive:THEME.platform, emissiveIntensity:0.22, roughness:0.85 });
-      const tileM   =new THREE.MeshStandardMaterial({ color:THEME.station, emissive:THEME.station, emissiveIntensity:0.42, roughness:0.5 });
-      const edgeM   =new THREE.MeshStandardMaterial({ color:THEME.edge, emissive:THEME.edge, emissiveIntensity:0.6 });
       // open cut: street-level ground either side of a concrete trough whose floor follows the grade down to the portal
       const G=floorY+STREET, cutM=new THREE.MeshStandardMaterial({ color:0x161513, roughness:0.95, metalness:0.0, envMapIntensity:0.45 });
       const groundM=new THREE.MeshStandardMaterial({ color:0x060607, roughness:0.95, metalness:0.0, envMapIntensity:0.2 });   // street level beside the cut (colour set by the weather)
@@ -1011,7 +1008,8 @@ THREE.ColorManagement.enabled = false;
         const pl=new THREE.PointLight(0xf2efe8, 1.6, 20, 2); pl.position.set(x,G+5.2,T.z1+0.5); scene.add(pl); poleRefs.push(pl); }
       // headwall with the tunnel mouth, parapet on top, embankment over the tunnel behind it
       const H2=Math.max(G, yt+0.5);                       // street level over the tunnel roof
-      box(T.x0-1.5,T.x1, floorY-1, H2, T.z1+0.5, 80, portalM);  box(T.x0-1.5,T.x1, floorY-1, H2, -80, T.z0-0.5, portalM);
+      box(T.x0-1.5,T.st0-0.5, floorY-1, H2, T.z1+0.5, 80, portalM);  box(T.st0-0.5,T.st1+0.5, floorY-1, H2, T.wall+0.5, 80, portalM);
+      box(T.st1+0.5,T.x1, floorY-1, H2, T.z1+0.5, 80, portalM);  box(T.x0-1.5,T.x1, floorY-1, H2, -80, T.z0-0.5, portalM);
       box(T.x0-1.5,T.x0, yt, H2, T.z0-0.5, T.z1+0.5, portalM);
       box(T.x0-1.5,T.x0, yb, yt, T.z1, T.z1+0.5, portalM);  box(T.x0-1.5,T.x0, yb, yt, T.z0-0.5, T.z0, portalM);
       box(T.x0-1.75,T.x0-1.35, H2, H2+0.8, T.z0-1.5, T.z1+1.5, cutM);
@@ -1125,18 +1123,173 @@ THREE.ColorManagement.enabled = false;
           box(x-0.35,x+0.35, G+5.42,G+5.5, 6.3,6.75, poleLampM,false);
           const pl=new THREE.PointLight(0xf2efe8, 1.6, 22, 2); pl.position.set(x,G+5.2,6.5); scene.add(pl); poleRefs.push(pl); }
       }
-      // tunnel shell: bed, roof, walls
+      // tunnel shell: bed, roof, walls (the +z wall opens out into the station)
       box(T.x0,T.x1, yb-0.4, yb, T.z0, T.z1, concrete, false);
       box(T.x0,T.x1, yt, yt+0.5, T.z0, T.z1, concrete);
       box(T.x0,T.x1, yb, yt, T.z0-0.5, T.z0, concrete);
-      box(T.x0,T.x1, yb, yt, T.z1, T.z1+0.5, concrete);
-      // running lights on both walls — they stream past as the train moves
-      for (let x=T.x0+4; x<T.x1; x+=7){ box(x,x+1.4, 2.35,2.47, T.z0,T.z0+0.06, lampM,false); box(x,x+1.4, 2.35,2.47, T.z1-0.06,T.z1, lampM,false); }
-      // station: platform at door-sill height on the +z side, glowing gold wall, ceiling light bars
-      box(T.st0,T.st1, yb, -0.36, 1.62, T.z1, platM);
-      box(T.st0,T.st1, -0.36,-0.34, 1.62,1.95, edgeM,false);                 // platform edge strip
-      box(T.st0,T.st1, -0.34, yt, T.z1-0.08, T.z1, tileM,false);           // lit station wall
-      for (let x=T.st0+2; x<T.st1-2; x+=5) box(x,x+3.2, yt-0.12,yt, 2.4,3.6, lampM,false);
+      box(T.x0,T.st0, yb, yt, T.z1, T.z1+0.5, concrete);  box(T.st1,T.x1, yb, yt, T.z1, T.z1+0.5, concrete);
+      // running lights on both walls — they stream past as the train moves (none along the platform)
+      for (let x=T.x0+4; x<T.x1; x+=7){ box(x,x+1.4, 2.35,2.47, T.z0,T.z0+0.06, lampM,false);
+        if (x+1.4<T.st0 || x>T.st1) box(x,x+1.4, 2.35,2.47, T.z1-0.06,T.z1, lampM,false); }
+
+      /* ---------- 3 Av–149 St (from photos): a wide side platform right inside the portal — beige tile floor, yellow tactile
+         edge, maroon columns with flared bases and caps, white tile walls over a red band, a low concrete ceiling with long
+         fluorescent strips, black name signs; a mosaic and a wooden bench centred where car 1's doors open ---------- */
+      { const W=T.wall, PT=-0.36, P0=1.62, xs0=T.st0, xs1=T.st1, L=xs1-xs0, xm=(xs0+xs1)/2, H=yt-PT, CZ=3.25;
+        let sd=149; const rnd=()=>(sd=(sd*16807)%2147483647)/2147483647;
+        const tex=(w,h,draw,rx,ry)=>{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; draw(cv.getContext('2d'),w,h);
+          const t=new THREE.CanvasTexture(cv); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8;
+          if (rx||ry){ t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(rx||1,ry||1); } return t; };
+        // textures read as lit tile even far from the lamps: a little of the map is fed back as emission
+        const lit=(map,e,o)=>new THREE.MeshStandardMaterial(Object.assign({ map, emissive:0xffffff, emissiveMap:map, emissiveIntensity:e, roughness:0.6, metalness:0 }, o||{}));
+        const plane=(w,h,mat,x,y,z,ry,rx)=>{ const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat); m.rotation.order='YXZ';
+          m.rotation.set(rx||0,ry||0,0); m.position.set(x,y,z); m.receiveShadow=true; scene.add(m); return m; };
+        const jit=(hex,a)=>{ const c=new THREE.Color(hex), f=1+(rnd()-0.5)*a; return `rgb(${Math.min(255,c.r*255*f)|0},${Math.min(255,c.g*255*f)|0},${Math.min(255,c.b*255*f)|0})`; };
+        const label=(w,h,text,font,bg,fg)=>tex(w,h,(c)=>{ c.fillStyle=bg||'#141415'; c.fillRect(0,0,w,h);
+          c.fillStyle=fg||'#f2f2ee'; c.font=font; c.textBaseline='middle'; c.fillText(text, h*0.32, h/2+2); });
+
+        // shell: back wall, end walls, ceiling slab, the platform itself
+        const concLt=new THREE.MeshStandardMaterial({ color:0x6f6b63, roughness:0.95, metalness:0, envMapIntensity:0.3 });
+        const ceilM =new THREE.MeshStandardMaterial({ color:0x67635c, emissive:0x67635c, emissiveIntensity:0.035, roughness:0.97, envMapIntensity:0.3, metalness:0 });
+        box(xs0,xs1, yb, yt, W, W+0.5, concrete);
+        box(xs0-0.5,xs0, yb, yt, T.z1, W+0.5, concLt);  box(xs1,xs1+0.5, yb, yt, T.z1, W+0.5, concLt);
+        box(xs0,xs1, yt, yt+0.5, T.z1, W+0.5, ceilM);
+        box(xs0,xs1, yt-0.38, yt, P0, P0+0.5, ceilM);                               // deep beam over the platform edge
+        for (let x=xs0+2.25; x<xs1; x+=4.5) box(x-0.2,x+0.2, yt-0.22, yt, P0+0.5, W, ceilM, false);   // cross beams between column bays
+        box(xs0,xs1, yb, PT, P0, W, concLt);
+
+        // floor: big beige-grey tiles, a little worn
+        const floorT=tex(512,512,(c,w,h)=>{ const n=2, s=w/n;
+          for (let i=0;i<n;i++) for (let j=0;j<n;j++){ c.fillStyle=jit(0xbdb5a5,0.08); c.fillRect(i*s,j*s,s,s); }
+          for (let k=0;k<2600;k++){ c.fillStyle=`rgba(${rnd()<0.5?'60,55,48':'230,226,216'},${0.05+rnd()*0.08})`; c.fillRect(rnd()*w,rnd()*h,1+rnd()*3,1+rnd()*3); }
+          for (let k=0;k<14;k++){ const g=c.createRadialGradient(rnd()*w,rnd()*h,0, rnd()*w,rnd()*h,40+rnd()*90); g.addColorStop(0,'rgba(70,62,52,0.10)'); g.addColorStop(1,'rgba(70,62,52,0)'); c.fillStyle=g; c.fillRect(0,0,w,h); }
+          c.fillStyle='#8a8376'; for (let i=0;i<=n;i++){ c.fillRect(i*s-2,0,4,h); c.fillRect(0,i*s-2,w,4); } }, L/1.2, (W-P0)/1.2);
+        plane(L,W-P0, lit(floorT,0.10,{ roughness:0.42, envMapIntensity:0.6 }), xm,PT+0.002,(P0+W)/2, 0,-Math.PI/2);
+        // platform edge: a pale concrete lip, then the yellow tactile strip
+        const dotT=tex(128,128,(c,w,h)=>{ c.fillStyle='#d6ac1e'; c.fillRect(0,0,w,h);
+          for (let i=0;i<5;i++) for (let j=0;j<5;j++){ const x=(i+0.5+(j%2)*0.5)*w/5, y=(j+0.5)*h/5;
+            c.fillStyle='rgba(90,64,0,0.35)'; c.beginPath(); c.arc(x+1.5,y+1.5,7.5,0,Math.PI*2); c.fill();
+            c.fillStyle='#ecc634'; c.beginPath(); c.arc(x,y,7,0,Math.PI*2); c.fill(); }
+          for (let k=0;k<500;k++){ c.fillStyle=`rgba(70,50,10,${rnd()*0.12})`; c.fillRect(rnd()*w,rnd()*h,2,2); } }, L/0.6, 1);
+        plane(L,0.6, lit(dotT,0.16,{ roughness:0.7 }), xm,PT+0.005,P0+0.08+0.3, 0,-Math.PI/2);
+        plane(L,0.08, new THREE.MeshStandardMaterial({ color:0xb8b4aa, emissive:0xb8b4aa, emissiveIntensity:0.08, roughness:0.8 }), xm,PT+0.005,P0+0.04, 0,-Math.PI/2);
+
+        // walls: white subway tile over a red band with a green stripe (repeats every 2 m)
+        const wallT=tex(512,1024,(c,w,h)=>{ const ppm=h/H, tw=0.15*ppm, th=0.075*ppm;
+          const band=y=>{ const m=(h-y)/ppm; return m<1.02?0x9c2a20 : m<1.18?0x5f8a73 : m<1.25?0x9c2a20 : 0xe9e6de; };
+          for (let y=h; y>0; y-=th){ const col=band(y-th/2), off=0;
+            for (let x=-tw+off; x<w; x+=tw){ c.fillStyle=jit(col, col===0xe9e6de?0.05:0.14); c.fillRect(x,y-th,tw,th); } }
+          for (let y=h; y>0; y-=th){ const col=band(y-th/2); c.fillStyle=col===0xe9e6de?'#b9b5ab':'#5a1a14'; c.fillRect(0,y-1,w,2); }
+          for (let x=0; x<w; x+=tw){ c.fillStyle='rgba(120,110,100,0.55)'; c.fillRect(x-1,0,2,h); }
+          const g=c.createLinearGradient(0,h,0,h-1.4*ppm); g.addColorStop(0,'rgba(30,20,14,0.35)'); g.addColorStop(1,'rgba(30,20,14,0)'); c.fillStyle=g; c.fillRect(0,0,w,h);
+          for (let k=0;k<40;k++){ c.fillStyle=`rgba(60,50,40,${0.03+rnd()*0.05})`; c.fillRect(rnd()*w, rnd()*h*0.7, 2+rnd()*6, 20+rnd()*120); } }, L/2.0, 1);
+        plane(L,H, lit(wallT,0.16,{ roughness:0.32, envMapIntensity:0.8 }), xm,PT+H/2,W-0.001, Math.PI);
+
+        // columns: round maroon steel, flared base and cap, a band near the foot (instanced)
+        const prof=[[0.001,0],[0.27,0],[0.27,0.07],[0.20,0.13],[0.165,0.30],[0.172,0.40],[0.172,0.44],[0.155,0.48],
+                    [0.155,H-0.62],[0.165,H-0.55],[0.20,H-0.34],[0.25,H-0.18],[0.30,H-0.1],[0.30,H],[0.001,H]].map(([r,y])=>new THREE.Vector2(r,y));
+        const colM=new THREE.MeshStandardMaterial({ color:0x7a2a21, emissive:0x7a2a21, emissiveIntensity:0.10, roughness:0.48, metalness:0.25, envMapIntensity:0.7 });
+        const colX=[]; for (let x=STOP_X-2.25; x>xs0+1; x-=4.5) colX.push(x); for (let x=STOP_X+2.25; x<xs1-1; x+=4.5) colX.push(x);
+        const cols=new THREE.InstancedMesh(new THREE.LatheGeometry(prof,22), colM, colX.length); cols.castShadow=cols.receiveShadow=true;
+        colX.forEach((x,i)=>{ M4.makeTranslation(x,PT,CZ); cols.setMatrixAt(i,M4); }); scene.add(cols);
+        // little black "149 St" plates on the track side of every other column
+        const plateT=label(256,96,'149 St','bold 54px Helvetica, Arial, sans-serif');
+        const plates=new THREE.InstancedMesh(new THREE.PlaneGeometry(0.3,0.112), new THREE.MeshStandardMaterial({ map:plateT, emissive:0xffffff, emissiveMap:plateT, emissiveIntensity:0.25, roughness:0.4 }), colX.length);
+        colX.forEach((x,i)=>{ P.set(x,PT+1.95,CZ-0.162); Q.setFromAxisAngle(V(0,1,0),Math.PI); S.set(i%2?0:1,1,1); M4.compose(P,Q,S); plates.setMatrixAt(i,M4); }); scene.add(plates);
+        // black I-beam columns along the trackway on the far side (between the tracks at the real station)
+        { const n=Math.floor(L/1.6), ib=new THREE.InstancedMesh(new THREE.BoxGeometry(0.2,yt-yb,0.26), new THREE.MeshStandardMaterial({ color:0x0c0c0d, roughness:0.85, metalness:0, envMapIntensity:0.12 }), n);
+          for (let i=0;i<n;i++){ M4.makeTranslation(xs0+0.8+i*1.6,(yt+yb)/2,T.z0+0.5); ib.setMatrixAt(i,M4); } scene.add(ib); }
+
+        // long fluorescent strips in two rows along the ceiling (instanced)
+        { const xs=[]; for (let x=xs0+1.2; x<xs1-3; x+=4.5) for (const z of [2.45,4.9]) xs.push([x+1.0,z]);
+          const tubes=new THREE.InstancedMesh(new THREE.BoxGeometry(2.6,0.06,0.13), lampM, xs.length);
+          xs.forEach(([x,z],i)=>{ M4.makeTranslation(x,yt-0.035,z); tubes.setMatrixAt(i,M4); }); scene.add(tubes); }
+
+        // name signs: black with white type, on the wall and hanging over the platform (kept clear of the doors' view)
+        const nameT=label(1024,128,'3 Avenue – 149 Street','bold 70px Helvetica, Arial, sans-serif');
+        const nameM=new THREE.MeshStandardMaterial({ map:nameT, emissive:0xffffff, emissiveMap:nameT, emissiveIntensity:0.3, roughness:0.4 });
+        for (let x=STOP_X-9; x>xs0+3; x-=18) plane(2.6,0.325, nameM, x,PT+2.4,W-0.01, Math.PI);
+        for (let x=STOP_X+9; x<xs1-3; x+=18) plane(2.6,0.325, nameM, x,PT+2.4,W-0.01, Math.PI);
+        for (let x=xs0+13.5; x<xs1-3; x+=18){ if (Math.abs(x-STOP_X)<5) continue;
+          box(x-0.9,x-0.88, PT+3.1, yt-0.38, P0+0.75,P0+0.77, plateM,false); box(x+0.88,x+0.9, PT+3.1, yt-0.38, P0+0.75,P0+0.77, plateM,false);
+          box(x-1.2,x+1.2, PT+2.78, PT+3.1, P0+0.73,P0+0.79, new THREE.MeshStandardMaterial({ color:0x141415 }),false);
+          plane(2.4,0.3, nameM, x,PT+2.94,P0+0.725, Math.PI); plane(2.4,0.3, nameM, x,PT+2.94,P0+0.795, 0); }
+        // LED countdown clock hanging by the next column bay
+        { const clkT=tex(512,128,(c,w,h)=>{ c.fillStyle='#070707'; c.fillRect(0,0,w,h);
+            c.fillStyle='#00933c'; c.beginPath(); c.arc(56,64,36,0,Math.PI*2); c.fill();
+            c.fillStyle='#fff'; c.font='bold 50px Helvetica, Arial, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('5',56,67);
+            c.fillStyle='#ffb21e'; c.font='bold 40px "Courier New", monospace'; c.textAlign='left'; c.fillText('Flatbush Av',110,66);
+            c.textAlign='right'; c.fillText('2 min',w-18,66);
+            c.fillStyle='rgba(0,0,0,0.35)'; for (let y=0;y<h;y+=4) c.fillRect(0,y,w,1); for (let x=0;x<w;x+=4) c.fillRect(x,0,1,h); });
+          const cx=STOP_X+4.5+2.25, cz=P0+1.15;
+          box(cx-0.75,cx+0.75, PT+2.72, PT+3.06, cz-0.08,cz+0.08, new THREE.MeshStandardMaterial({ color:0x202124, roughness:0.5, metalness:0.4 }));
+          box(cx-0.02,cx+0.02, PT+3.06, yt, cz-0.02,cz+0.02, plateM,false);
+          const cm=new THREE.MeshStandardMaterial({ map:clkT, emissive:0xffffff, emissiveMap:clkT, emissiveIntensity:1.0, roughness:0.3 });
+          plane(1.4,0.3, cm, cx,PT+2.89,cz-0.081, Math.PI); plane(1.4,0.3, cm, cx,PT+2.89,cz+0.081, 0); }
+
+        // the reveal: a glass-tile mosaic over a wooden bench, centred on car 1's doors
+        { const MW=3.4, MH=1.3, mx=STOP_X, my=PT+2.16;
+          const mosT=tex(1024,392,(c,w,h)=>{
+            const src=document.createElement('canvas'); src.width=w; src.height=h; const s=src.getContext('2d');
+            const blob=(col,pts)=>{ s.fillStyle=col; s.beginPath(); s.moveTo(pts[0]*w,pts[1]*h); for (let i=2;i<pts.length;i+=6) s.bezierCurveTo(pts[i]*w,pts[i+1]*h,pts[i+2]*w,pts[i+3]*h,pts[i+4]*w,pts[i+5]*h); s.closePath(); s.fill(); };
+            const rib=(col,wd,pts)=>{ s.strokeStyle=col; s.lineWidth=wd; s.lineCap='round'; s.beginPath(); s.moveTo(pts[0]*w,pts[1]*h); for (let i=2;i<pts.length;i+=6) s.bezierCurveTo(pts[i]*w,pts[i+1]*h,pts[i+2]*w,pts[i+3]*h,pts[i+4]*w,pts[i+5]*h); s.stroke(); };
+            // ground: night-blue sky, a red band of the Bronx, a gold sun
+            s.fillStyle='#1d3f8f'; s.fillRect(0,0,w,h);
+            blob('#c9302c',[0,0.55, 0.3,0.45,0.6,0.62,1,0.5, 1,1,1,1,0,1]);
+            blob('#e9b52a',[0.56,0.05, 0.66,-0.02,0.80,0.10,0.78,0.30, 0.74,0.48,0.56,0.44,0.56,0.26]);
+            blob('#3c8c5a',[0.04,1, 0.06,0.55,0.26,0.48,0.30,1]);                         // green arch
+            blob('#1d3f8f',[0.10,1, 0.12,0.75,0.22,0.72,0.24,1]);
+            s.fillStyle='#262626'; s.fillRect(0.02*w,0.06*h,0.14*w,0.62*h);                  // a walk-up with lit windows
+            s.fillStyle='#f1e7c8'; for (let i=0;i<3;i++) for (let j=0;j<5;j++) s.fillRect((0.035+i*0.04)*w,(0.11+j*0.1)*h,0.022*w,0.055*h);
+            // the elevated: girders and a train crossing into the sun
+            s.fillStyle='#202020'; s.fillRect(0.18*w,0.47*h,0.62*w,0.05*h); for (let x=0.22;x<0.8;x+=0.09) s.fillRect(x*w,0.52*h,0.018*w,0.48*h);
+            s.fillStyle='#b9bcc2'; s.fillRect(0.30*w,0.32*h,0.36*w,0.15*h); s.fillStyle='#7a2a21'; s.fillRect(0.30*w,0.39*h,0.36*w,0.025*h);
+            s.fillStyle='#22324a'; for (let x=0.32;x<0.64;x+=0.05) s.fillRect(x*w,0.345*h,0.03*w,0.04*h);
+            s.fillStyle='#00933c'; s.beginPath(); s.arc(0.69*w,0.395*h,0.05*h,0,Math.PI*2); s.fill();
+            rib('#f4f0e6',22,[0.17,0.92, 0.32,0.70,0.48,0.98,0.60,0.80]);                    // swirling ribbons
+            rib('#e9b52a',16,[0.20,0.98, 0.36,0.78,0.50,1.04,0.64,0.86]);
+            rib('#4aa3c8',12,[0.08,0.30, 0.18,0.10,0.26,0.26,0.30,0.18]);
+            // a figure on the right, looking back at the train
+            s.fillStyle='#24346e'; s.beginPath(); s.arc(0.88*w,0.2*h,0.07*h,0,Math.PI*2); s.fill();
+            blob('#24346e',[0.86,0.28, 0.93,0.27,0.94,0.42,0.92,0.58, 0.9,0.6,0.85,0.6,0.84,0.4]);
+            s.fillStyle='#e9b52a'; s.fillRect(0.855*w,0.58*h,0.025*w,0.36*h); s.fillRect(0.892*w,0.58*h,0.025*w,0.36*h);
+            s.fillStyle='rgba(30,30,30,0.9)'; for (let y=0.62;y<0.94;y+=0.06) s.fillRect(0.85*w,y*h,0.07*w,0.008*h);
+            const px=s.getImageData(0,0,w,h).data;
+            // set it in tesserae: irregular little tiles, each a shade off the design, in dark grout
+            c.fillStyle='#2a2826'; c.fillRect(0,0,w,h);
+            const T=11;
+            for (let y=0;y<h;y+=T) for (let x=0;x<w;x+=T){
+              const sx=Math.min(w-1,(x+T/2)|0), sy=Math.min(h-1,(y+T/2)|0), o=(sy*w+sx)*4, f=0.82+rnd()*0.32;
+              c.fillStyle=`rgb(${Math.min(255,px[o]*f)|0},${Math.min(255,px[o+1]*f)|0},${Math.min(255,px[o+2]*f)|0})`;
+              const j=()=>(rnd()-0.5)*2.4;
+              c.beginPath(); c.moveTo(x+1+j(),y+1+j()); c.lineTo(x+T-1+j(),y+1+j()); c.lineTo(x+T-1+j(),y+T-1+j()); c.lineTo(x+1+j(),y+T-1+j()); c.closePath(); c.fill();
+              if (rnd()<0.25){ c.fillStyle='rgba(255,255,255,0.18)'; c.fillRect(x+2,y+2,3,2); } }
+            // border: navy glass with red corner squares
+            c.strokeStyle='#1a2350'; c.lineWidth=18; c.strokeRect(9,9,w-18,h-18);
+            c.fillStyle='#c9302c'; for (const [x,y] of [[0,0],[w-18,0],[0,h-18],[w-18,h-18]]) c.fillRect(x,y,18,18); });
+          plane(MW,MH, lit(mosT,0.22,{ roughness:0.28, metalness:0.05, envMapIntensity:1.0 }), mx,my,W-0.012, Math.PI);
+          // a slightly proud white-tile surround, like the real panel's setting
+          box(mx-MW/2-0.06,mx+MW/2+0.06, my-MH/2-0.06,my+MH/2+0.06, W-0.011,W-0.005, new THREE.MeshStandardMaterial({ color:0xd8d5cd, emissive:0xd8d5cd, emissiveIntensity:0.12, roughness:0.35 }),false);
+
+          const woodT=tex(512,64,(c,w,h)=>{ c.fillStyle='#a87742'; c.fillRect(0,0,w,h);
+            for (let k=0;k<60;k++){ c.strokeStyle=`rgba(${rnd()<0.5?'90,55,25':'205,160,105'},${0.15+rnd()*0.25})`; c.lineWidth=0.6+rnd()*1.6;
+              const y=rnd()*h; c.beginPath(); c.moveTo(0,y); c.bezierCurveTo(w*0.3,y+(rnd()-0.5)*8,w*0.7,y+(rnd()-0.5)*8,w,y+(rnd()-0.5)*6); c.stroke(); }
+            for (let k=0;k<30;k++){ c.fillStyle=`rgba(40,25,10,${rnd()*0.15})`; c.fillRect(rnd()*w,rnd()*h,4+rnd()*20,1+rnd()*3); } });
+          const woodM=lit(woodT,0.12,{ roughness:0.55, envMapIntensity:0.5 });
+          const BW=2.5, bz0=W-0.5, bz1=W-0.06;
+          box(mx-BW/2,mx+BW/2, PT+0.41,PT+0.47, bz0,bz1, woodM);                                         // seat
+          for (const dx of [-0.85,0.85]) box(mx+dx-0.07,mx+dx+0.07, PT,PT+0.41, bz0+0.08,bz1-0.04, woodM); // legs
+          for (const dx of [-1.2,-0.4,0.4,1.2]) box(mx+dx-0.045,mx+dx+0.045, PT+0.47,PT+0.66, bz0+0.04,bz1-0.02, woodM);   // dividers
+          // a folded newspaper someone left behind
+          const newsT=tex(256,192,(c,w,h)=>{ c.fillStyle='#e8e4da'; c.fillRect(0,0,w,h); c.fillStyle='#1d1d1d'; c.font='bold 30px Georgia, serif'; c.fillText('DAILY',14,36);
+            for (let y=54;y<h-8;y+=9) c.fillRect(14+(y%2)*4, y, w-28-rnd()*40, 3); c.fillStyle='#c23a2e'; c.fillRect(150,60,80,52); });
+          const news=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.02,0.32), [0,0,new THREE.MeshStandardMaterial({ map:newsT, roughness:0.9 }),0,0,0].map(m=>m||new THREE.MeshStandardMaterial({ color:0xdcd8ce, roughness:0.9 })));
+          news.position.set(mx+0.8,PT+0.48,(bz0+bz1)/2); news.rotation.y=0.25; news.castShadow=true; scene.add(news);
+          // a waste basket by the far column
+          const bin=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.22,0.78,18,1,true), new THREE.MeshStandardMaterial({ color:0x1d1e1f, roughness:0.6, metalness:0.4, side:THREE.DoubleSide }));
+          bin.position.set(STOP_X+5.6,PT+0.39,W-0.45); bin.castShadow=true; scene.add(bin);
+        }
+      }
     }
 
     // camera: 3/4 oncoming (same framing as the line-art study)
@@ -1164,7 +1317,7 @@ THREE.ColorManagement.enabled = false;
     // the lead car's own interior light (spills out through the windows onto the tunnel walls)
     { const il=new THREE.PointLight(0xfff4e4, 0.55, 9, 2); il.position.set(0,1.45,0); lead.add(il); }
     // station lights over the platform
-    for (const dx of [-7,7]){ const sl=new THREE.PointLight(0xf6f3ec, 1.5, 18, 2); sl.position.set(STOP_X+dx,2.9,3.3); scene.add(sl); }
+    for (const dx of [-15,-3.4,3.4,15]){ const sl=new THREE.PointLight(0xf3f5f2, Math.abs(dx)<5?1.3:1.6, 16, 2); sl.position.set(STOP_X+dx,2.8,4.0); scene.add(sl); }
     // tunnel lamps: two lights leapfrog the wall lamps nearest the camera (even / odd lamps), fading as
     // they hand over so nothing pops — light sweeps over the train as it passes each lamp
     for (let i=0;i<2;i++){ const tl=new THREE.PointLight(0xf4f1ea, 0, 9, 2); scene.add(tl); tunnelLights.push(tl); }
