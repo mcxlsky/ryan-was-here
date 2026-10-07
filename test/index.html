@@ -938,50 +938,109 @@ THREE.ColorManagement.enabled = false;
             add(new THREE.CylinderGeometry(0.014,0.014,0.86,8),poleMat,x,0.43,z(1.37)); } } }
       // framed subway maps on the panels beside the doors, above the seat ends
       { const mapT=tex(768,960,(c,w,h)=>{
-          const HD=70, U=w/100, Y=y=>HD+y*(h-HD)/125, X=x=>x*U;          // map grid: 100 × 125 units under the header
-          c.fillStyle='#cfdfea'; c.fillRect(0,0,w,h);                                               // water
-          const poly=(pts,fill)=>{ c.fillStyle=fill; c.beginPath(); pts.forEach(([x,y],i)=>i?c.lineTo(X(x),Y(y)):c.moveTo(X(x),Y(y))); c.closePath(); c.fill(); };
-          for (const p of [[[18,2],[72,2],[76,22],[58,30],[34,30],[26,22]], [[14,22],[27,23],[31,34],[31,62],[24,82],[16,85],[11,72],[11,40]],
-                           [[35,34],[57,32],[77,23],[100,23],[100,80],[70,79],[52,72],[41,62],[35,50]], [[27,85],[41,65],[52,75],[70,81],[88,86],[78,112],[50,121],[29,110]],
-                           [[0,99],[19,97],[23,125],[0,125]]]) poly(p,'#ffffff');
-          poly([[20,40],[24,40],[24,50],[20,50]],'#e3eedc'); poly([[60,6],[66,6],[66,12],[60,12]],'#e3eedc');   // parks
-          // bundled routes: each trunk drawn as parallel strokes (one per route) with 45° geometry
-          const offsetLine=(pts,o)=>pts.map((p,i)=>{ const a=pts[Math.max(0,i-1)], b=pts[Math.min(pts.length-1,i+1)];
-            let dx=X(b[0])-X(a[0]), dy=Y(b[1])-Y(a[1]); const L=Math.hypot(dx,dy)||1; return [X(p[0])-dy/L*o, Y(p[1])+dx/L*o]; });
-          let PASS=0; const trunk=(col,n,pts,routes)=>{ c.lineJoin='round'; c.lineCap='round';
-            if (PASS===1) for (let k=0;k<n;k++){ const q=offsetLine(pts,(k-(n-1)/2)*7.5); c.strokeStyle=col; c.lineWidth=6; c.beginPath(); q.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke(); }
-            // stations: white ticks across the bundle every few units
-            for (let i=1;i<pts.length;i++){ const [x0,y0]=pts[i-1],[x1,y1]=pts[i], seg=Math.hypot(X(x1)-X(x0),Y(y1)-Y(y0)), m=Math.floor(seg/26);
-              for (let j=1;j<=m;j++){ const t=j/(m+1), x=X(x0)+(X(x1)-X(x0))*t, y=Y(y0)+(Y(y1)-Y(y0))*t, nx=-(Y(y1)-Y(y0))/seg, ny=(X(x1)-X(x0))/seg, half=(n*7.5)/2+1;
-                if (PASS===1){ c.strokeStyle='#fff'; c.lineWidth=2.4; c.beginPath(); c.moveTo(x-nx*half,y-ny*half); c.lineTo(x+nx*half,y+ny*half); c.stroke(); continue; }
-                c.fillStyle='#a3a6aa'; c.fillRect(x+nx*(half+5), y+ny*(half+5)-2, 18+((i*7+j*13)%22), 3); } }       // tiny station names
-            // route bullets at the far end
-            if (PASS===0) return; const [ex,ey]=pts[0]; routes.forEach((r,k)=>{ const bx=X(ex)+(k-(routes.length-1)/2)*20, by=Y(ey)-4;
-              c.fillStyle=col; c.beginPath(); c.arc(bx,by,9,0,Math.PI*2); c.fill(); c.fillStyle=col==='#fccc0a'?'#111':'#fff'; c.font='bold 12px Helvetica, Arial, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(r,bx,by+1); });
-            c.textAlign='left'; c.textBaseline='alphabetic'; };
-          for (PASS=0; PASS<2; PASS++){
-          trunk('#a7a9ac',1,[[12,58],[30,64],[46,76],[62,90]],['L']);
-          trunk('#996633',2,[[78,58],[56,64],[34,72],[20,74]],['J','Z']);
-          trunk('#6cbe45',1,[[46,40],[48,60],[44,72],[34,88]],['G']);
-          trunk('#b933ad',1,[[90,40],[60,42],[40,46],[22,48]],['7']);
-          trunk('#0039a6',3,[[16,7],[14,26],[13,64],[18,80],[34,96],[60,96],[82,94]],['A','C','E']);
-          trunk('#ee352e',3,[[23,6],[20,24],[16,30],[16,62],[18,76],[30,92],[40,108]],['1','2','3']);
-          trunk('#ff6319',4,[[35,6],[31,20],[20,31],[19,64],[22,80],[30,100],[36,122]],['B','D','F','M']);
-          trunk('#fccc0a',4,[[46,34],[34,40],[22,46],[21,64],[26,78],[34,104],[40,123]],['N','Q','R','W']);
-          trunk('#00933c',3,[[50,6],[40,13],[27,26],[25,40],[25,60],[23,70],[31,84],[45,98],[62,104]],['4','5','6']); }
-          // you are here: 3 Av–149 St
-          { const x=X(38), y=Y(14.5); c.fillStyle='#111'; c.beginPath(); c.arc(x,y,7,0,Math.PI*2); c.fill(); c.fillStyle='#fff'; c.beginPath(); c.arc(x,y,3,0,Math.PI*2); c.fill();
-            c.fillStyle='#111'; c.font='bold 13px Helvetica, Arial, sans-serif'; c.fillText('3 Av–149 St',x+11,y+4); }
-          c.fillStyle='#111'; c.font='bold 26px Helvetica, Arial, sans-serif';
-          for (const [t,x,y] of [['The Bronx',52,20],['Manhattan',1.5,36],['Queens',62,56],['Brooklyn',58,112],['Staten Island',1,108]]) c.fillText(t,X(x),Y(y));
+          // geographic projection of the real network (approximate station coordinates), drawn in the diagram's palette
+          const HD=70, LAT1=40.905, LAT0=40.565, ky=(h-HD)/(LAT1-LAT0), kx=ky*Math.cos(40.73*Math.PI/180), LON0=-74.07;
+          const pr=([la,lo])=>[(lo-LON0)*kx, HD+(LAT1-la)*ky];
+          const lands=[]; const poly=(pts,fill)=>{ c.fillStyle=fill; c.beginPath(); pts.forEach((p,i)=>{ const [x,y]=pr(p); i?c.lineTo(x,y):c.moveTo(x,y); }); c.closePath(); c.fill(); if (fill==='#ffffff') lands.push(pts); };   // only real city shorelines get pulled back
+          c.fillStyle='#cfdfea'; c.fillRect(0,0,w,h);
+          const LAND='#ffffff', PARK='#e2eedb';
+          poly([[40.95,-74.2],[40.95,-73.935],[40.89,-73.93],[40.85,-73.955],[40.80,-73.985],[40.75,-74.02],[40.70,-74.035],[40.66,-74.07],[40.5,-74.2]],'#eceae5');   // New Jersey
+          poly([[40.95,-73.80],[40.95,-73.6],[40.862,-73.6],[40.868,-73.79]],'#eceae5');   // Westchester
+          poly([[40.80,-73.705],[40.80,-73.6],[40.56,-73.6],[40.58,-73.735]],'#eceae5');    // Nassau
+          poly([[40.65,-74.2],[40.645,-74.08],[40.64,-74.065],[40.61,-74.057],[40.585,-74.07],[40.5,-74.12]],LAND);                                    // Staten Island
+          poly([[40.7006,-74.0153],[40.7085,-74.0185],[40.730,-74.0110],[40.760,-74.0045],[40.780,-73.9900],[40.800,-73.9730],[40.835,-73.9500],[40.856,-73.9350],[40.875,-73.9230],[40.879,-73.9150],
+                [40.873,-73.9110],[40.850,-73.9250],[40.835,-73.9330],[40.810,-73.9330],[40.795,-73.9285],[40.780,-73.9420],[40.758,-73.9590],[40.743,-73.9710],[40.730,-73.9730],[40.712,-73.9770],[40.709,-73.9990]],LAND);   // Manhattan
+          poly([[40.95,-73.93],[40.879,-73.925],[40.873,-73.913],[40.850,-73.925],[40.835,-73.932],[40.810,-73.932],[40.801,-73.927],[40.806,-73.905],[40.800,-73.880],[40.811,-73.860],
+                [40.805,-73.820],[40.810,-73.790],[40.840,-73.784],[40.870,-73.790],[40.95,-73.78]],LAND);   // the Bronx
+          poly([[40.785,-73.913],[40.770,-73.937],[40.755,-73.948],[40.742,-73.961],[40.737,-73.959],[40.720,-73.962],[40.705,-73.975],[40.703,-73.997],[40.690,-74.002],[40.675,-74.020],
+                [40.660,-74.006],[40.640,-74.033],[40.610,-74.040],[40.590,-74.012],[40.574,-74.012],[40.572,-73.970],[40.576,-73.940],[40.583,-73.900],[40.570,-73.880],[40.560,-73.940],
+                [40.55,-73.8],[40.58,-73.75],[40.59,-73.6],[40.80,-73.6],[40.790,-73.750],[40.792,-73.800],[40.786,-73.840],[40.765,-73.860],[40.776,-73.890],[40.787,-73.905]],LAND);   // Brooklyn + Queens
+          poly([[40.648,-73.905],[40.650,-73.850],[40.640,-73.780],[40.612,-73.770],[40.598,-73.820],[40.588,-73.880],[40.603,-73.905]],'#cfdfea');   // Jamaica Bay
+          // widen the rivers (as the diagram does): pull every shore back with a water-coloured stroke
+          c.strokeStyle='#cfdfea'; c.lineWidth=9; c.lineJoin='round'; for (const pts of lands){ c.beginPath(); pts.forEach((p,i)=>{ const [x,y]=pr(p); i?c.lineTo(x,y):c.moveTo(x,y); }); c.closePath(); c.stroke(); }
+          poly([[40.7681,-73.9819],[40.7644,-73.9730],[40.7969,-73.9493],[40.8005,-73.9580]],PARK);               // Central Park
+          poly([[40.6720,-73.9700],[40.6610,-73.9800],[40.6500,-73.9720],[40.6600,-73.9600]],PARK);               // Prospect Park
+          poly([[40.8970,-73.8960],[40.8970,-73.8770],[40.8800,-73.8800],[40.8820,-73.8960]],PARK);               // Van Cortlandt
+          poly([[40.8640,-73.8800],[40.8640,-73.8700],[40.8480,-73.8700],[40.8480,-73.8800]],PARK);               // Bronx Park
+          poly([[40.6930,-74.0230],[40.6930,-74.0120],[40.6860,-74.0140],[40.6860,-74.0230]],LAND);               // Governors Island
+          poly([[40.7720,-73.9420],[40.7710,-73.9400],[40.7510,-73.9560],[40.7520,-73.9585]],LAND);               // Roosevelt Island
+          // routes: station lists [lat, lon]; o = sideways offset (px) so routes sharing a trunk run side by side
+          const S={ SF:[40.7020,-74.0130], CH1:[40.7154,-74.0093], S14_7:[40.7377,-74.0008], TSQ:[40.7553,-73.9871], S72:[40.7785,-73.9820], S96:[40.7939,-73.9724],
+            S116:[40.8079,-73.9640], S168_1:[40.8406,-73.9401], DYK:[40.8606,-73.9255], S231:[40.8790,-73.9048], VC:[40.8893,-73.8986],
+            L125:[40.8079,-73.9454], L135:[40.8142,-73.9408], H148:[40.8239,-73.9364], GC149:[40.8184,-73.9273], A149:[40.8162,-73.9177], JACK:[40.8166,-73.9081], PROS:[40.8194,-73.9017],
+            E180:[40.8418,-73.8737], PPKY:[40.8586,-73.8555], DYRE:[40.8883,-73.8308], WAKE:[40.9033,-73.8507], WALL23:[40.7068,-74.0091], BHALL:[40.6930,-73.9898], ATL:[40.6843,-73.9776],
+            FRANK:[40.6707,-73.9580], FLAT:[40.6328,-73.9477], UTICA3:[40.6689,-73.9325], NLOTS:[40.6664,-73.8841],
+            BG:[40.7049,-74.0140], WALL45:[40.7074,-74.0113], FUL:[40.7101,-74.0080], BBCH:[40.7131,-74.0040], CAN6:[40.7189,-74.0001], AST:[40.7300,-73.9910], U14:[40.7347,-73.9907],
+            S23_6:[40.7398,-73.9866], GCT:[40.7518,-73.9768], L59:[40.7626,-73.9676], L86:[40.7795,-73.9555], L125X:[40.8040,-73.9375], GC138:[40.8133,-73.9298], Y161:[40.8278,-73.9258],
+            S170:[40.8401,-73.9177], BURN:[40.8531,-73.9076], KB:[40.8677,-73.8973], WOOD:[40.8863,-73.8784], A3_138:[40.8103,-73.9262], HUNT:[40.8209,-73.8907], PKC:[40.8333,-73.8607], PBP:[40.8524,-73.8281],
+            WTC:[40.7126,-74.0099], CAN8:[40.7209,-74.0050], A14:[40.7398,-74.0026], PA42:[40.7573,-73.9898], S53_7:[40.7626,-73.9813], LEX53:[40.7576,-73.9691], QP:[40.7489,-73.9373],
+            ROOS:[40.7466,-73.8913], FH:[40.7216,-73.8446], JC:[40.7022,-73.8010], COL59:[40.7682,-73.9819], A125:[40.8111,-73.9524], A145:[40.8247,-73.9444], A168:[40.8407,-73.9396], A207:[40.8681,-73.9199],
+            BWN:[40.7102,-74.0076], HIGH:[40.6994,-73.9906], JAY:[40.6924,-73.9870], HOYT:[40.6884,-73.9851], NOST:[40.6802,-73.9505], UTICAA:[40.6793,-73.9308], BJ:[40.6789,-73.9049],
+            EUC:[40.6754,-73.8722], RBLVD:[40.6801,-73.8435], HB:[40.6603,-73.8303], BCH:[40.6087,-73.8159],
+            CI:[40.5774,-73.9813], CHF:[40.6441,-73.9796], S7PS:[40.6663,-73.9802], EBWY:[40.7138,-73.9900], DEL:[40.7186,-73.9880], AV2:[40.7232,-73.9897], BL:[40.7253,-73.9962], W4:[40.7323,-74.0005],
+            S14_6:[40.7381,-73.9962], HER:[40.7497,-73.9877], BRY:[40.7542,-73.9845], ROCK:[40.7586,-73.9813], S57F:[40.7640,-73.9774], LEX63:[40.7647,-73.9663], RISL:[40.7591,-73.9532], S21:[40.7543,-73.9420],
+            J179:[40.7126,-73.7835], MARCY:[40.7083,-73.9578], MYRT:[40.6972,-73.9353], MV:[40.7113,-73.8894], TREM:[40.8501,-73.9052], NOR:[40.8749,-73.8789], BPK:[40.8730,-73.8871],
+            GRAND:[40.7183,-73.9937], DEK:[40.6906,-73.9817], PPK:[40.6616,-73.9622], BRIB:[40.5776,-73.9614], SHB:[40.5866,-73.9541], S36:[40.6551,-74.0036], BAYP:[40.6201,-73.9988],
+            Q96:[40.7842,-73.9472], Q72:[40.7689,-73.9584], S57Q:[40.7643,-73.9807], CANQ:[40.7193,-74.0001], DIT:[40.7751,-73.9120], QBP:[40.7509,-73.9402], L59N:[40.7626,-73.9676], AV5_59:[40.7648,-73.9731],
+            S59BK:[40.6413,-74.0178], WH:[40.7031,-74.0130], COURT:[40.6941,-73.9918], BR95:[40.6166,-74.0310], S86N:[40.5927,-73.9782],
+            HY:[40.7559,-74.0020], VJ:[40.7426,-73.9536], CSQ:[40.7471,-73.9457], S74:[40.7469,-73.8912], S111:[40.7517,-73.8552], FLU:[40.7596,-73.8300],
+            GPT:[40.7314,-73.9544], MET:[40.7123,-73.9514], MW:[40.6946,-73.9493], BN:[40.6896,-73.9535], CARR:[40.6803,-73.9951],
+            L8:[40.7398,-74.0026], L1AV:[40.7310,-73.9817], BED:[40.7173,-73.9568], LOR:[40.7140,-73.9504], MWY:[40.6995,-73.9122], CAN:[40.6464,-73.9019],
+            BROAD:[40.7065,-74.0110], CHJ:[40.7133,-74.0039], BOW:[40.7203,-73.9939], CYP:[40.6896,-73.8728] };
+          const R=(col,label,stops,o)=>({ col, label, pts:stops.map(k=>S[k]), o:o||0 });
+          const routes=[
+            R('#a7a9ac','L',['L8','U14','L1AV','BED','LOR','MWY','BJ','CAN']),
+            R('#996633','J',['BROAD','FUL','CHJ','BOW','DEL','MARCY','MYRT','BJ','CYP','JC'],0),
+            R('#6cbe45','G',['CSQ','GPT','MET','MW','BN','HOYT','CARR','S7PS','CHF']),
+            R('#b933ad','7',['HY','TSQ','GCT','VJ','CSQ','QBP','S74','S111','FLU']),
+            R('#0039a6','A',['A207','A168','A145','A125','COL59','PA42','A14','CAN8','BWN','HIGH','JAY','HOYT','NOST','UTICAA','BJ','EUC','RBLVD','HB','BCH'],-4),
+            R('#0039a6','C',['A168','A145','A125','COL59','PA42','A14','CAN8','BWN','HIGH','JAY','HOYT','NOST','UTICAA','BJ','EUC'],0),
+            R('#0039a6','E',['WTC','CAN8','A14','PA42','S53_7','LEX53','QP','ROOS','FH','JC'],4),
+            R('#ee352e','1',['SF','CH1','S14_7','TSQ','S72','S96','S116','S168_1','DYK','S231','VC'],-4),
+            R('#ee352e','2',['FLAT','FRANK','ATL','BHALL','WALL23','CH1','S14_7','TSQ','S72','S96','L125','L135','GC149','A149','JACK','PROS','E180','WAKE'],0),
+            R('#ee352e','3',['NLOTS','UTICA3','FRANK','ATL','BHALL','WALL23','CH1','S14_7','TSQ','S72','S96','L125','L135','H148'],4),
+            R('#ff6319','F',['CI','CHF','S7PS','JAY','EBWY','DEL','AV2','BL','W4','S14_6','HER','BRY','ROCK','S57F','LEX63','RISL','S21','QP','ROOS','FH','J179'],-6),
+            R('#ff6319','M',['MV','MYRT','MARCY','DEL','BL','W4','S14_6','HER','BRY','ROCK','S53_7','LEX53','QP','ROOS','FH'],-2),
+            R('#ff6319','B',['BRIB','PPK','ATL','DEK','GRAND','BL','W4','S14_6','HER','BRY','ROCK','S53_7','COL59','A125','A145','Y161','TREM','BPK'],2),
+            R('#ff6319','D',['CI','BAYP','S36','ATL','DEK','GRAND','BL','W4','S14_6','HER','BRY','ROCK','S53_7','COL59','A125','A145','Y161','TREM','NOR'],6),
+            R('#fccc0a','N',['DIT','QBP','L59N','AV5_59','S57Q','TSQ','HER','U14','CANQ','DEK','ATL','S36','S59BK','S86N','CI'],-6),
+            R('#fccc0a','Q',['Q96','Q72','LEX63','S57Q','TSQ','HER','U14','CANQ','DEK','ATL','PPK','SHB','CI'],-2),
+            R('#fccc0a','R',['FH','ROOS','QP','L59N','AV5_59','S57Q','TSQ','HER','U14','CANQ','WH','COURT','ATL','S36','S59BK','BR95'],2),
+            R('#fccc0a','W',['DIT','QBP','L59N','AV5_59','S57Q','TSQ','HER','U14','CANQ','WH'],6),
+            R('#00933c','4',['UTICA3','FRANK','ATL','BHALL','BG','WALL45','FUL','BBCH','U14','GCT','L59','L86','L125X','GC138','GC149','Y161','S170','BURN','KB','WOOD'],-4),
+            R('#00933c','5',['FLAT','FRANK','ATL','BHALL','BG','WALL45','FUL','BBCH','U14','GCT','L59','L86','L125X','GC138','GC149','A149','JACK','PROS','E180','PPKY','DYRE'],0),
+            R('#00933c','6',['BBCH','CAN6','AST','U14','S23_6','GCT','L59','L86','L125X','A3_138','HUNT','PKC','PBP'],4),
+          ];
+          const path=(r)=>{ const P=r.pts.map(pr); return P.map((p,i)=>{ const a=P[Math.max(0,i-1)], b=P[Math.min(P.length-1,i+1)]; let dx=b[0]-a[0], dy=b[1]-a[1]; const L=Math.hypot(dx,dy)||1; return [p[0]-dy/L*r.o, p[1]+dx/L*r.o]; }); };
+          c.lineJoin=c.lineCap='round';
+          for (const r of routes){ const q=path(r); c.strokeStyle=r.col; c.lineWidth=4; c.beginPath(); q.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke(); }
+          // stations
+          const seen=new Set();
+          for (const r of routes) r.pts.forEach(p=>{ const k=p.join(); if (seen.has(k)) return; seen.add(k); const [x,y]=pr(p);
+            c.fillStyle='#fff'; c.strokeStyle='#1a1a1a'; c.lineWidth=1.4; c.beginPath(); c.arc(x,y,3.1,0,Math.PI*2); c.fill(); c.stroke(); });
+          // route bullets at the outer terminals
+          const bul=(r,end)=>{ const p=end?r.pts[r.pts.length-1]:r.pts[0]; let [x,y]=pr(p); const [x2,y2]=pr(end?r.pts[r.pts.length-2]:r.pts[1]);
+            const dx=x-x2, dy=y-y2, L=Math.hypot(dx,dy)||1; x+=dx/L*14; y+=dy/L*14;
+            c.fillStyle=r.col; c.beginPath(); c.arc(x,y,8.5,0,Math.PI*2); c.fill(); c.fillStyle=r.col==='#fccc0a'?'#111':'#fff';
+            c.font='bold 11px Helvetica, Arial, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(r.label,x,y+0.5); c.textAlign='left'; c.textBaseline='alphabetic'; };
+          const placed=[]; for (const r of routes) for (const e of [false,true]){ const p=e?r.pts[r.pts.length-1]:r.pts[0]; const k=p.join()+r.col;
+            const [x,y]=pr(p); if (placed.some(([px,py,pk])=>pk===k)) continue; placed.push([x,y,k]); bul(r,e); }
+          // labels: boroughs, a few hubs, and here
+          c.fillStyle='#111'; c.font='bold 24px Helvetica, Arial, sans-serif';
+          for (const [t,la,lo] of [['The Bronx',40.885,-73.865],['Manhattan',40.79,-74.045],['Queens',40.735,-73.86],['Brooklyn',40.63,-73.93],['Staten Island',40.60,-74.068]]){ const [x,y]=pr([la,lo]); c.fillText(t,x,y); }
+          c.font='11px Helvetica, Arial, sans-serif'; c.fillStyle='#333';
+          for (const [t,k,dx,dy] of [['Times Sq','TSQ',-62,-8],['Grand Central','GCT',8,-4],['Atlantic Av','ATL',8,10],['Jamaica','JC',6,14],['Flushing','FLU',-10,-10],['Coney Island','CI',-28,16],['Yankee Stadium','Y161',-92,4],['Broadway Jct','BJ',8,4]]){
+            const [x,y]=pr(S[k.trim()]); c.fillText(t,x+dx,y+dy); }
+          { const [x,y]=pr(S.A149); c.strokeStyle='#111'; c.lineWidth=2.5; c.beginPath(); c.arc(x,y,8,0,Math.PI*2); c.stroke();
+            c.fillStyle='#111'; c.fillRect(x+10,y-23,118,20); c.fillStyle='#fff'; c.font='bold 12px Helvetica, Arial, sans-serif'; c.fillText('You are here',x+16,y-9); }
           // header + key
           c.fillStyle='#fff'; c.fillRect(0,0,w,HD); c.fillStyle='#111'; c.fillRect(0,HD-4,w,4);
           c.font='bold 44px Helvetica, Arial, sans-serif'; c.fillText('Subway Map',22,50);
-          c.fillStyle='#fff'; c.fillRect(w-196,HD+14,182,150); c.strokeStyle='#111'; c.lineWidth=2; c.strokeRect(w-196,HD+14,182,150);
-          c.fillStyle='#111'; c.font='bold 15px Helvetica, Arial, sans-serif'; c.fillText('Key',w-184,HD+36);
-          [['#00933c','Full-time service'],['#ffffff','Station'],['#8a8a8a','Transfer'],['#0039a6','Express stop']].forEach(([col,t],i)=>{ const y=HD+60+i*26;
-            c.fillStyle=col; c.strokeStyle='#111'; c.lineWidth=1.5; if (i===1){ c.beginPath(); c.arc(w-170,y-5,6,0,Math.PI*2); c.fill(); c.stroke(); } else c.fillRect(w-184,y-9,28,7);
-            c.fillStyle='#333'; c.font='13px Helvetica, Arial, sans-serif'; c.fillText(t,w-146,y); }); });
+          c.fillStyle='#fff'; c.fillRect(w-200,h-170,186,156); c.strokeStyle='#111'; c.lineWidth=2; c.strokeRect(w-200,h-170,186,156);
+          c.fillStyle='#111'; c.font='bold 15px Helvetica, Arial, sans-serif'; c.fillText('Key',w-188,h-146);
+          [['#00933c','Full-time service'],['#ffffff','Station'],['#a7a9ac','Shuttle / other'],['#fccc0a','Broadway line']].forEach(([col,t],i)=>{ const y=h-118+i*26;
+            c.fillStyle=col; c.strokeStyle='#111'; c.lineWidth=1.5; if (i===1){ c.beginPath(); c.arc(w-172,y-5,5,0,Math.PI*2); c.fill(); c.stroke(); } else c.fillRect(w-188,y-9,30,6);
+            c.fillStyle='#333'; c.font='13px Helvetica, Arial, sans-serif'; c.fillText(t,w-150,y); }); });
         const mapM=new THREE.MeshStandardMaterial({ map:mapT, emissive:0xffffff, emissiveMap:mapT, emissiveIntensity:0.16, roughness:0.18, metalness:0, envMapIntensity:0.6 });   // behind acrylic
         const MW=0.74, MH=0.92, MY=1.16;
         for (const mx of [-4.385,-1.455,1.455,4.385]){
