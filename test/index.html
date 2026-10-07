@@ -926,8 +926,9 @@ THREE.ColorManagement.enabled = false;
         for (const [x0,x1] of bays){ const L=x1-x0-0.04;
           both(new THREE.ExtrudeGeometry(sh,{ depth:L, bevelEnabled:true, bevelThickness:0.012, bevelSize:0.012, bevelSegments:2, curveSegments:4 }).rotateY(-Math.PI/2).translate(x1-0.02,0,0), seatM, 0,0,0);
           both(new THREE.BoxGeometry(L,0.24,0.16), heatM, (x0+x1)/2,FL+0.12,ZW-0.08);
-          // seat dividers: shallow ridges every ~0.46 m read as individual buckets
-          const nseat=Math.round(L/0.46); for (let j=1;j<nseat;j++) both(new THREE.BoxGeometry(0.03,0.018,0.32), seatM, x0+0.02+L*j/nseat,0.094,1.1);
+          // overhead grab rail along the bay only (the doorways stay clear), on stand-offs to the ceiling
+          both(new THREE.CylinderGeometry(0.019,0.019,x1-x0,12).rotateZ(Math.PI/2), poleMat, (x0+x1)/2,1.40,0.97);
+          for (const xs of [x0+0.35,x1-0.35]) both(new THREE.CylinderGeometry(0.012,0.012,CE-1.40,8), poleMat, xs,(CE+1.40)/2,0.97);
         }
         for (const xe of [-6.8,-4.88,-0.96,0.96,4.88,6.8]){ const d=Math.sign(xe)*(Math.abs(xe)===0.96||Math.abs(xe)===6.8?-1:1)*0.0;
           for (const s of [1,-1]){ const z=v=>s*v, x=xe;
@@ -1006,7 +1007,7 @@ THREE.ColorManagement.enabled = false;
 
     carProto = model;
     // the flat GLB roof and plain end walls are replaced by the arched roof / measured cab
-    carProto.traverse(o=>{ if (o.isMesh && /TRAIN_roof$|TRAIN_end[AB]_|TRAIN_skirt|TRAIN_bogie|TRAIN_[PT]wall_|TRAIN_door_|TRAIN_seat|TRAIN_pole_|TRAIN_ceiling|TRAIN_floor|TRAIN_lightstrip/.test(o.name)) o.visible=false; });
+    carProto.traverse(o=>{ if (o.isMesh && /TRAIN_roof$|TRAIN_end[AB]_|TRAIN_skirt|TRAIN_bogie|TRAIN_[PT]wall_|TRAIN_door_|TRAIN_seat|TRAIN_pole_|TRAIN_ceiling|TRAIN_floor|TRAIN_lightstrip|TRAIN_rail_/.test(o.name)) o.visible=false; });
     const interior = buildInterior();
     train = new THREE.Group();
     for (let i=0;i<NCARS;i++){
