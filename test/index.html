@@ -403,8 +403,8 @@ THREE.ColorManagement.enabled = false;
   const C=(h)=>new THREE.Color(h), mixC=(a,b,t)=>a.clone().lerp(b,Math.min(1,Math.max(0,t)));
   const lerpStops=(stops,x)=>{ if (x<=stops[0][0]) return C(stops[0][1]); for (let i=1;i<stops.length;i++) if (x<=stops[i][0]){
       const t=(x-stops[i-1][0])/(stops[i][0]-stops[i-1][0]); return mixC(C(stops[i-1][1]),C(stops[i][1]),t); } return C(stops[stops.length-1][1]); };
-  const ZEN=[[-18,'#030407'],[-9,'#0b1022'],[-3,'#1d2a4c'],[3,'#3a5684'],[12,'#4f78ae'],[40,'#3f6fb2']];
-  const HOR=[[-18,'#0d0e12'],[-9,'#1d2236'],[-3,'#6a5a6a'],[1,'#e09a68'],[6,'#f0c49a'],[14,'#b9cce0'],[40,'#a9c2dc']];
+  const ZEN=[[-18,'#030407'],[-9,'#0b1022'],[-3,'#1d2a4c'],[3,'#3a5684'],[12,'#2f62b0'],[40,'#1a4ea8']];
+  const HOR=[[-18,'#0d0e12'],[-9,'#1d2236'],[-3,'#6a5a6a'],[1,'#e09a68'],[6,'#f0c49a'],[14,'#b4cbe4'],[40,'#a3c0e2']];
   const GREYDAY='#8b9096', GREYNIGHT='#15171b';
   function applyAtmosphere(){
     const date=bronxDate(), sun=sunPos(date), el=sun.el;
@@ -420,11 +420,11 @@ THREE.ColorManagement.enabled = false;
     U.sunCol.value.copy(lerpStops([[0,'#ff8a3c'],[8,'#ffd2a0'],[25,'#fff4e6']],el));
     ATM.keyDir.copy(dir);
     key.color.copy(sunUp? lerpStops([[0,'#ff9a5a'],[6,'#ffcf9e'],[20,'#fff6ea']],el) : C('#9fb3d9'));
-    ATM.key = sunUp ? (0.5+3.0*Math.min(1,el/18))*(1-0.75*cloud) : 0.22*(1-0.6*cloud);
+    ATM.key = sunUp ? (0.5+3.6*Math.min(1,el/18))*(1-0.75*cloud) : 0.22*(1-0.6*cloud);
     key.shadow.radius = 3+10*cloud;
     hemi.color.copy(mixC(zen,hor,0.5)); hemi.groundColor.copy(C(WX.kind==='snow'?'#9aa0a8':'#1a1a1c'));
     ATM.hemi = 0.12 + (0.38+0.5*cloud)*dayF;                       // sky fill: soft on clear days (deep shade), strong when overcast
-    ATM.env  = 1.15 + 0.35*dayF;                                // the env is the real sky now, so it carries its own day/night brightness
+    ATM.env  = 1.15 - 0.15*dayF*(1-cloud);   // clear days: let the sun do the work (a bright sky env flattens everything)                                // the env is the real sky now, so it carries its own day/night brightness
     renderer.toneMappingExposure = 0.60 - 0.06*dayF;
     // fog: haze always, thick in fog, moderate in rain/snow
     scene.fog.color.copy(hor);
@@ -483,10 +483,10 @@ THREE.ColorManagement.enabled = false;
     let col, refl;
     if (ATM.snowGround){ col=mixC(C('#3a3f46'),C('#c9ced6'),0.35+0.65*dayF); refl=0.06; }
     else if (ATM.wet){ col=mixC(C('#07080a'),C('#2a2c30'),dayF); refl=0.62; }
-    else { col=mixC(C('#111113'),C('#2c2d30'),dayF); refl=0.46-0.42*dayF; }
+    else { col=mixC(C('#111113'),C('#3c3d40'),dayF); refl=0.46-0.42*dayF; }
     floorRef.material.uniforms.floorColor.value.copy(col); floorRef.material.uniforms.reflectivity.value=refl;
     if (shadowRef){ const sunF=Math.min(1,ATM.key/2.5); shadowRef.material.opacity = ATM.wet||ATM.snowGround ? 0.3+0.3*sunF : 0.3+0.45*sunF; }
-    if (groundRef) groundRef.color.copy(col.clone().multiplyScalar(ATM.snowGround?0.9:0.55));   // sunlit asphalt stays mid-dark
+    if (groundRef) groundRef.color.copy(col.clone().multiplyScalar(ATM.snowGround?0.9:0.75));   // sunlit asphalt stays mid-dark
   }
   async function fetchWeather(){
     if (QS.has('wx')) return;                                // preview: don't overwrite
@@ -507,7 +507,7 @@ THREE.ColorManagement.enabled = false;
   /* ---------- materials (R142: brushed stainless, maroon accents, glass) ---------- */
   const steel = new THREE.MeshStandardMaterial({ color:0xc6c8cc, metalness:1.0, roughness:0.30, envMapIntensity:1.2 });
   const steelDark = new THREE.MeshStandardMaterial({ color:0x45474b, metalness:0.9, roughness:0.5, envMapIntensity:0.85 });
-  const red     = new THREE.MeshStandardMaterial({ color:0x7a1f24, metalness:0.1, roughness:0.45, envMapIntensity:0.6 }); // MTA maroon front/belt
+  const red     = new THREE.MeshStandardMaterial({ color:0x3a070b, metalness:0.05, roughness:0.55, envMapIntensity:0.3 }); // MTA maroon front/belt
   const glass = new THREE.MeshStandardMaterial({ color:0x05070a, metalness:0.4, roughness:0.05, envMapIntensity:1.5, transparent:true, opacity:0.9 });
   const windMat = new THREE.MeshStandardMaterial({ color:0x0b0e13, metalness:0.95, roughness:0.07, envMapIntensity:2.8 }); // reflective cab windshield
   const roofDark= new THREE.MeshStandardMaterial({ color:0x2a303b, metalness:0.15, roughness:0.42, envMapIntensity:0.8 });    // dark roof band
@@ -577,7 +577,7 @@ THREE.ColorManagement.enabled = false;
     const xF = xEnd + 0.873*Math.tan(THETA);                      // door plane: side columns angle back to meet the walls
 
     // extra materials for the cab
-    const cabRed    = new THREE.MeshStandardMaterial({ color:0x8c262d, metalness:0.15, roughness:0.4, envMapIntensity:0.7 });
+    const cabRed    = new THREE.MeshStandardMaterial({ color:0x42080d, metalness:0.05, roughness:0.5, envMapIntensity:0.3 });
     const doorPanel = new THREE.MeshStandardMaterial({ color:0xcfd3d9, metalness:0.95, roughness:0.32, envMapIntensity:1.3 });
     const gasketW   = new THREE.MeshStandardMaterial({ color:0xf4f5f6, emissive:0x3a3b3c, metalness:0.0, roughness:0.4 });
     const gasketD   = new THREE.MeshStandardMaterial({ color:0x3e4248, metalness:0.2, roughness:0.6 });
@@ -1163,7 +1163,7 @@ THREE.ColorManagement.enabled = false;
       box(T.x0-1.5,T.x1, H2-0.05, H2, -80, 80, groundM, false);
 
       /* ---------- elevated structure: bents of paired columns + cap girders, two plate girders under the rails ---------- */
-      { const steelM=new THREE.MeshStandardMaterial({ color:0x2e3833, metalness:0.55, roughness:0.62, envMapIntensity:0.6 });   // painted steel, dark green
+      { const steelM=new THREE.MeshStandardMaterial({ color:0x0c1410, metalness:0.08, roughness:0.72, envMapIntensity:0.45 });   // painted steel, dark green (linear value: shows as ~#3a463f; paint is dielectric, no chrome sheen)
         const deckTop = x => b.min.y - 0.296 + gradeY(x);                 // underside of the ties
         // plate girders follow the grade (bent like the track)
         for (const z of [-0.95,0.95]){ const L=STEEL_END+2-run0, gird=new THREE.Mesh(new THREE.BoxGeometry(L,1.05,0.32,Math.ceil(L)), steelM);
