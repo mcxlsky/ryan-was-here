@@ -1329,12 +1329,17 @@ THREE.ColorManagement.enabled = false;
           facadeMats.push(mt); return mt; });
         const roofM=new THREE.MeshStandardMaterial({ color:0x2a2a2d, roughness:0.95, metalness:0 });
         const woodM=new THREE.MeshStandardMaterial({ color:0x4f3d2e, roughness:0.9, metalness:0 });
+        // plain masonry for the parapet band above the top floor, one per palette colour (linear, to match the sRGB maps)
+        const parM=new Map(PALETTE.map(([b],i)=>[mats[i], new THREE.MeshStandardMaterial({ color:new THREE.Color(b).convertSRGBToLinear(), roughness:0.92, metalness:0, envMapIntensity:0.5 })]));
         const building=(x0,x1,z0,z1,h,mat,shadow)=>{
-          const w=x1-x0, d=z1-z0, g=new THREE.BoxGeometry(w,h,d), uv=g.attributes.uv, off=Math.floor(rr()*CELLS)/CELLS;
+          // windows cover whole storeys only; whatever height is left over becomes a solid parapet, so no window is cut off at the top
+          const w=x1-x0, d=z1-z0, hf=Math.max(STORY,Math.floor(h/STORY)*STORY), g=new THREE.BoxGeometry(w,hf,d), uv=g.attributes.uv, off=Math.floor(rr()*CELLS)/CELLS;
           // faces: +x,-x,+y,-y,+z,-z (4 verts each) — scale UVs so one cell = one bay × one storey
-          for (let f=0;f<6;f++){ const fw=(f<2)?d:w; for (let k=0;k<4;k++){ const i=f*4+k; uv.setXY(i, uv.getX(i)*fw/(BAY*CELLS)+off, uv.getY(i)*h/(STORY*CELLS)); } }
-          const m=new THREE.Mesh(g,[mat,mat,roofM,roofM,mat,mat]); m.position.set((x0+x1)/2, G+h/2, (z0+z1)/2);
+          for (let f=0;f<6;f++){ const fw=(f<2)?d:w; for (let k=0;k<4;k++){ const i=f*4+k; uv.setXY(i, uv.getX(i)*fw/(BAY*CELLS)+off, uv.getY(i)*hf/(STORY*CELLS)); } }
+          const m=new THREE.Mesh(g,[mat,mat,roofM,roofM,mat,mat]); m.position.set((x0+x1)/2, G+hf/2, (z0+z1)/2);
           m.castShadow=shadow; m.receiveShadow=true; scene.add(m);
+          if (h-hf>0.05){ const pp=new THREE.Mesh(new THREE.BoxGeometry(w,h-hf,d),[parM.get(mat),parM.get(mat),roofM,roofM,parM.get(mat),parM.get(mat)]);
+            pp.position.set((x0+x1)/2, G+(hf+h)/2, (z0+z1)/2); pp.castShadow=shadow; pp.receiveShadow=true; scene.add(pp); }
           // cornice + roof parapet
           const cor=new THREE.Mesh(new THREE.BoxGeometry(w+0.5,0.45,d+0.5),roofM); cor.position.set((x0+x1)/2,G+h+0.1,(z0+z1)/2); cor.castShadow=shadow; scene.add(cor);
           return m; };
