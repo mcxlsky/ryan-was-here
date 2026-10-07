@@ -283,7 +283,7 @@ THREE.ColorManagement.enabled = false;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(BG);   // replaced by the sky dome below
 
-  const camera = new THREE.PerspectiveCamera(42, vw()/vh(), 0.4, 600);
+  const camera = new THREE.PerspectiveCamera(42, vw()/vh(), 0.4, 1100);
   // no orbiting in a scroll hero — the camera is driven by scroll; this stub keeps the framing code readable
   const controls = { target: new THREE.Vector3(), update(){ camera.lookAt(this.target); } };
 
@@ -1173,7 +1173,7 @@ THREE.ColorManagement.enabled = false;
           gl_FragColor = vec4(outc, 1.0);
         }`
     };
-    const reflector = new Reflector(new THREE.PlaneGeometry(CUT0+1200, 200), {
+    const reflector = new Reflector(new THREE.PlaneGeometry(CUT0+1200, 260), {
       textureWidth: 1024, textureHeight: 1024, clipBias: 0.003, shader: reflShader
     });
     reflector.rotation.x = -Math.PI/2; reflector.position.set((CUT0-1200)/2, floorY+STREET, 0); scene.add(reflector); floorRef=reflector;
@@ -1186,7 +1186,7 @@ THREE.ColorManagement.enabled = false;
     // track: two running rails + sleepers
     /* ---------- track: weathered timber sleepers on a ballast bed, rail-profile running rails (rusty sides,
        polished running band), tie plates, and a covered third rail on the side away from the platform ---------- */
-    const gauge = 0.72, run0 = -130, run1 = TUNNEL.x1, LEN = run1-run0, railY = b.min.y - 0.06;
+    const gauge = 0.72, run0 = -620, run1 = TUNNEL.x1, LEN = run1-run0, railY = b.min.y - 0.06;
     const railTop = b.min.y;                                   // wheel contact
     const RH = 0.12, footY = railTop-RH, plateY = footY-0.016, tieTop = plateY, TIE_H = 0.16;
     const rnd = (()=>{ let a=1234567; return ()=>((a=(Math.imul(a,1103515245)+12345)>>>0)/4294967296); })();   // seeded: same track every load
@@ -1355,7 +1355,7 @@ THREE.ColorManagement.enabled = false;
           g.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; } }); scene.add(g); };
         // two rows facing the line: +z side (platform side) and −z side, from far up the line to past the portal
         for (const side of [1,-1]){
-          let x=-330; const zFront = side>0 ? 16 : -20;
+          let x=-640; const zFront = side>0 ? 16 : -20;
           while (x < T.x0+150){
             const w=11+rr()*16, h=STORY*(5+Math.floor(rr()*4))+1.0, d=14+rr()*8, gap=rr()<0.3?2+rr()*5:0.15;
             const z0=side>0?zFront+rr()*2:zFront-d-rr()*2, z1=z0+d;
@@ -1395,7 +1395,7 @@ THREE.ColorManagement.enabled = false;
             const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; })();
           const curbM=new THREE.MeshStandardMaterial({ color:0x2a2926, roughness:0.85, metalness:0, envMapIntensity:0.4 });
           const pitM =new THREE.MeshStandardMaterial({ color:0x0d0a07, roughness:1, metalness:0 });
-          const xa=-330, xb=CUT0-24, L=xb-xa;                                     // along the at-grade avenue, up to the ramp's neighbours
+          const xa=-640, xb=CUT0-24, L=xb-xa;                                     // along the at-grade avenue, up to the ramp's neighbours
           const walks=[[11.4,16],[-20,-15.4]];                                       // z extents (outer edge = building line)
           for (const [z0,z1] of walks){
             const t=swT.clone(); t.needsUpdate=true; t.repeat.set(L/3, (z1-z0)/3);
