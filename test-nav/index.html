@@ -240,6 +240,13 @@
        slower and shrinks a touch (driven by --cover, 0..1, set on scroll) */
     .sec { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--sec-bg); color: var(--sec-ink); }
     .sec-body { height: 100%; padding: 170px 28px 120px; transform-origin: 50% 0; will-change: transform; }
+    /* snapping: sticky boxes make poor snap targets (their position moves), so invisible markers sit at each
+       screen's resting scroll position instead */
+    html { scroll-snap-type: y mandatory; }
+    body { position: relative; }
+    .snaps { position: absolute; top: 0; left: 0; width: 1px; pointer-events: none; visibility: hidden; }
+    .snaps > div { height: 100vh; scroll-snap-align: start; scroll-snap-stop: always; }
+    @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: y proximity; } }
     #about   { --sec-bg: #e5ab00; --sec-ink: #141414; z-index: 2; }
     #work    { --sec-bg: #1f3f8f; --sec-ink: #ffffff; z-index: 3; }
     #process { --sec-bg: #c9302c; --sec-ink: #ffffff; z-index: 4; }
@@ -267,6 +274,7 @@
           <li><button class="rnav-stop" data-go="contact">Contact</button></li>
         </ul>
       </nav>
+  <div class="snaps" aria-hidden="true"><div></div><div></div><div></div><div></div><div></div></div>
   <main class="scene" id="scene">
     <div class="sticky">
       <div class="stage" id="stage">
