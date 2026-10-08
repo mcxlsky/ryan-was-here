@@ -241,6 +241,56 @@
              font: 500 clamp(34px, 4.4vw, 68px)/1.04 var(--font-ui); letter-spacing: -0.035em; color: #fff;
              text-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 4px 30px rgba(0,0,0,0.30); text-wrap: balance; transition: opacity .2s linear; }
     @media (max-width: 600px){ .intro { left: 22px; right: 22px; top: calc(50% - 40px); max-width: none; font-size: 31px; line-height: 1.06; } }
+
+    /* ---------- Hero widgets: a column of glass cards down the left (they link out) ---------- */
+    .widgets { position: absolute; z-index: 5; top: 92px; left: 18px; width: 300px; display: flex; flex-direction: column; gap: 12px;
+               transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); }
+    .widgets.away { opacity: 0; transform: translateX(-12px); pointer-events: none; }
+    .wcard { display: block; position: relative; color: #fff; text-decoration: none; border-radius: 14px; padding: 14px 16px 16px;
+             background: rgba(18,18,20,0.42); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+             border: 1px solid rgba(255,255,255,0.22); transition: background .2s, border-color .2s; }
+    a.wcard:hover { background: rgba(18,18,20,0.55); border-color: rgba(255,255,255,0.4); }
+    .wcard:focus-visible, .wsign a:focus-visible { outline: 1px solid rgba(255,255,255,0.8); outline-offset: 2px; }
+    .w-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+              font: 500 11px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.68; }
+    .w-arrow { font-size: 14px; letter-spacing: 0; opacity: 0.9; }
+    /* R train sign: the bullet, then stops rising off the service line at the strip map's angle */
+    .wsign { display: flex; align-items: flex-end; gap: 14px; height: 104px; padding: 14px 16px 16px; }
+    .wsign-r { flex: none; align-self: center; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.92);
+               display: grid; place-items: center; color: #fff; font: 600 22px/1 var(--font-ui); text-decoration: none; }
+    .wsign ul { position: relative; flex: 1; height: 100%; display: flex; align-items: flex-end; list-style: none; }
+    .wsign ul::after { content: ''; position: absolute; left: -6px; right: 0; bottom: 0; height: 1px; background: rgba(255,255,255,0.6); }
+    .wsign li { position: relative; width: 44px; height: 100%; }
+    .wsign li a { position: absolute; left: 0; bottom: 0; transform-origin: 0 100%; transform: rotate(-58deg); white-space: nowrap;
+                  padding-left: 16px; color: #fff; text-decoration: none; font: 500 12px/1 var(--font-ui); opacity: 0.6; transition: opacity .2s; }
+    .wsign li a::before { content: ''; position: absolute; left: 0; bottom: 0.22em; width: 11px; height: 1.25px; background: currentColor; border-radius: 1px; }
+    .wsign li a:hover { opacity: 1; }
+    /* placeholders */
+    .w-title { font: 500 17px/1.25 var(--font-ui); letter-spacing: -0.01em; margin-bottom: 4px; }
+    .w-sub { font: 400 13px/1.4 var(--font-ui); opacity: 0.6; margin-bottom: 12px; }
+    .w-rows { display: grid; gap: 8px; }
+    .w-row { display: flex; align-items: center; gap: 10px; }
+    .w-thumb { flex: none; width: 34px; height: 34px; border-radius: 8px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.12); display: grid; place-items: center; }
+    .w-lines { flex: 1; display: grid; gap: 6px; }
+    .w-line { height: 7px; border-radius: 4px; background: rgba(255,255,255,0.16); }
+    .w-line.s { width: 55%; background: rgba(255,255,255,0.10); }
+    .w-tag { font: 500 10px/1 var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.55; margin-bottom: 5px; }
+    .w-item b { display: block; font: 500 14px/1.3 var(--font-ui); }
+    .w-item span { display: block; font: 400 12px/1.3 var(--font-ui); opacity: 0.55; }
+    .w-thumb svg { width: 16px; height: 16px; fill: rgba(255,255,255,0.75); }
+    .eq { display: flex; align-items: flex-end; gap: 2px; height: 14px; }
+    .eq i { width: 3px; background: rgba(255,255,255,0.8); border-radius: 1px; animation: eq 1.1s ease-in-out infinite; }
+    .eq i:nth-child(1){ height: 40%; animation-delay: -.2s } .eq i:nth-child(2){ height: 90%; animation-delay: -.6s } .eq i:nth-child(3){ height: 60%; animation-delay: -.4s }
+    @keyframes eq { 0%,100% { transform: scaleY(.45); } 50% { transform: scaleY(1); } }
+    .eq i { transform-origin: bottom; }
+    @media (prefers-reduced-motion: reduce) { .eq i { animation: none; } }
+    /* phones: the column becomes a swipeable row along the bottom */
+    @media (max-width: 600px){
+      .widgets { top: auto; bottom: 18px; left: 0; width: 100%; flex-direction: row; gap: 10px; padding: 0 18px; overflow-x: auto;
+                 scroll-snap-type: x mandatory; scroll-padding-inline: 18px; scrollbar-width: none; }
+      .widgets::-webkit-scrollbar { display: none; }
+      .wcard { flex: none; width: 82%; scroll-snap-align: start; }
+    }
     @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
   </style>
 </head>
@@ -267,6 +317,35 @@
 
 
 
+      <div class="widgets" id="widgets">
+        <div class="wcard wsign" role="navigation" aria-label="Sections">
+          <a class="wsign-r" href="#about" aria-label="About Ryan">R</a>
+          <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#work">Work</a></li>
+            <li><a href="#process">Process</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+        <a class="wcard" href="#work">
+          <div class="w-head"><span>Projects</span><span class="w-arrow" aria-hidden="true">↗</span></div>
+          <div class="w-title">Placeholder for projects</div>
+          <div class="w-sub">What goes here is still open.</div>
+          <div class="w-rows" aria-hidden="true">
+            <div class="w-row"><div class="w-thumb"></div><div class="w-lines"><div class="w-line"></div><div class="w-line s"></div></div></div>
+            <div class="w-row"><div class="w-thumb"></div><div class="w-lines"><div class="w-line"></div><div class="w-line s"></div></div></div>
+          </div>
+        </a>
+        <a class="wcard" href="#">
+          <div class="w-head"><span>Recent favorites</span><span class="w-arrow" aria-hidden="true">↗</span></div>
+          <div class="w-rows">
+            <div class="w-row"><div class="w-thumb" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M2 3h5a2 2 0 0 1 2 2v8a1.5 1.5 0 0 0-1.5-1.5H2zM14 3H9.5A1.5 1.5 0 0 0 8 4.5V13a1.5 1.5 0 0 1 1.5-1.5H14z"/></svg></div>
+              <div class="w-item"><div class="w-tag">Read</div><b>Placeholder article title</b><span>Publication · placeholder</span></div></div>
+            <div class="w-row"><div class="w-thumb" aria-hidden="true"><span class="eq"><i></i><i></i><i></i></span></div>
+              <div class="w-item"><div class="w-tag">Sound</div><b>Placeholder track</b><span>Artist · placeholder</span></div></div>
+          </div>
+        </a>
+      </div>
       <div class="ride" id="ride">
         <button class="ride-next" id="rideNext" type="button" aria-label="Next stop"><span class="ride-ico" id="rideIco" aria-hidden="true"></span></button>
       </div>
@@ -323,7 +402,9 @@
         if (at===STOPS.length-1){ at=0; r.go(0,true); } else { at++; r.go(STOPS[at][0]); } show(); });
       show();
       var lastS=-1;
-      window.__rideUI=function(s){ if (s===lastS || !intro) return; lastS=s; intro.style.opacity=Math.max(0,1-s/0.06).toFixed(3); };   // the intro (when present) steps aside once the ride starts
+      var widgets=document.getElementById('widgets');
+      window.__rideUI=function(s){ if (s===lastS) return; lastS=s; widgets.classList.toggle('away', s>0.004);   // the widgets step aside while you ride
+        if (intro) intro.style.opacity=Math.max(0,1-s/0.06).toFixed(3); };   // the intro (when present) steps aside once the ride starts
     })();
   </script>
 
