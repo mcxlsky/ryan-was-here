@@ -35,8 +35,8 @@
     }
 
     /* ---------- Scroll scene ---------- */
-    .scene  { position: relative; height: 100vh; }   /* the hero: one screen; the page scrolls on to the sections */
-    .sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; background: #000; }
+    .scene  { position: sticky; top: 0; height: 100vh; z-index: 1; }   /* the hero: one screen; each section then slides up over the last */
+    .sticky { position: relative; height: 100vh; overflow: hidden; background: #000; transform-origin: 50% 0; will-change: transform; }
 
     /* video stage we scale slightly on scroll */
     .stage { position: absolute; inset: 0; will-change: transform, opacity; }
@@ -173,7 +173,7 @@
     }
 
     /* ---------- Sleek wayfinding nav: an outlined R bullet, stops rising off it at the old sign's angle ---------- */
-    .rnav { position: fixed; top: 14px; left: 28px; right: 28px; z-index: 6; height: 74px; display: flex; align-items: center; justify-content: space-between;   /* R top-left, stops top-right */
+    .rnav { position: fixed; top: 14px; left: 28px; right: 28px; z-index: 50; height: 74px; display: flex; align-items: center; justify-content: space-between;   /* R top-left, stops top-right */
             pointer-events: none; }
     .rnav * { pointer-events: auto; }
     .rnav-r { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.92);
@@ -236,10 +236,19 @@
     }
 
     /* ---------- Placeholder sections below the hero ---------- */
-    .sec { min-height: 90vh; padding: 160px 28px 120px; background: #0b0b0c; border-top: 1px solid rgba(255,255,255,0.06); }
+    /* stacked sections: each is a full screen that sticks, and the next one slides up over it; the covered one drifts up
+       slower, shrinks a touch and dims (driven by --cover, 0..1, set on scroll) */
+    .sec { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--sec-bg); color: var(--sec-ink);
+           box-shadow: 0 -24px 60px rgba(0,0,0,0.35); }
+    .sec-body { height: 100%; padding: 170px 28px 120px; transform-origin: 50% 0; will-change: transform; }
+    .sec::after, .scene::after { content: ''; position: absolute; inset: 0; background: #000; opacity: calc(var(--cover, 0) * 0.55); pointer-events: none; z-index: 20; }
+    #about   { --sec-bg: #e5ab00; --sec-ink: #141414; z-index: 2; }
+    #work    { --sec-bg: #1f3f8f; --sec-ink: #ffffff; z-index: 3; }
+    #process { --sec-bg: #c9302c; --sec-ink: #ffffff; z-index: 4; }
+    #contact { --sec-bg: #00843a; --sec-ink: #ffffff; z-index: 5; }
     .sec-in { max-width: 760px; margin: 0 auto; }
     .sec-k { font: 500 12px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; margin-bottom: 18px; }
-    .sec h2 { font: 600 clamp(28px, 4vw, 44px)/1.12 var(--font-ui); letter-spacing: -0.02em; margin-bottom: 18px; }
+    .sec h2 { font: 500 clamp(40px, 6vw, 84px)/1.02 var(--font-ui); letter-spacing: -0.035em; letter-spacing: -0.02em; margin-bottom: 18px; }
     .sec p.lede { font: 400 17px/1.6 var(--font-ui); opacity: 0.7; max-width: 560px; }
 
     /* ---------- Hero intro (placeholder copy), upper left under the R ---------- */
@@ -251,15 +260,7 @@
   </style>
 </head>
 <body>
-  <main class="scene" id="scene">
-    <div class="sticky">
-      <div class="stage" id="stage">
-        <canvas class="hero-canvas" id="trainCanvas" aria-label="A New York City R142 subway train pulling into the station"></canvas>
-      </div>
-
-
-
-      <nav class="rnav" aria-label="Primary">
+  <nav class="rnav" aria-label="Primary">
         <a class="rnav-r" href="#" aria-label="Ryan — home">R</a>
         <ul class="rnav-stops">
           <li><button class="rnav-stop" data-go="about">About</button></li>
@@ -268,6 +269,14 @@
           <li><button class="rnav-stop" data-go="contact">Contact</button></li>
         </ul>
       </nav>
+  <main class="scene" id="scene">
+    <div class="sticky">
+      <div class="stage" id="stage">
+        <canvas class="hero-canvas" id="trainCanvas" aria-label="A New York City R142 subway train pulling into the station"></canvas>
+      </div>
+
+
+
       <p class="intro" id="intro">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
       <div class="ride" id="ride">
         <button class="ride-play" id="ridePlay" aria-label="Ride to 3 Av–149 St"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"/></svg></button>
@@ -281,21 +290,33 @@
     </div>
   </main>
 
-  <section class="sec" id="about"><div class="sec-in"><p class="sec-k">About</p><h2>Placeholder heading for About</h2><p class="lede">Placeholder copy. This section stands in for the real About content while we test how the hero and the nav feel together.</p></div></section>
-  <section class="sec" id="work"><div class="sec-in"><p class="sec-k">Work</p><h2>Placeholder heading for Work</h2><p class="lede">Placeholder copy for selected projects.</p></div></section>
-  <section class="sec" id="process"><div class="sec-in"><p class="sec-k">Process</p><h2>Placeholder heading for Process</h2><p class="lede">Placeholder copy for how the work gets made.</p></div></section>
-  <section class="sec" id="contact"><div class="sec-in"><p class="sec-k">Contact</p><h2>Placeholder heading for Contact</h2><p class="lede">Placeholder copy for ways to get in touch.</p></div></section>
+  <section class="sec" id="about"><div class="sec-body"><div class="sec-in"><p class="sec-k">About</p><h2>Placeholder heading for About</h2><p class="lede">Placeholder copy. This section stands in for the real About content while we test how the hero and the nav feel together.</p></div></div></section>
+  <section class="sec" id="work"><div class="sec-body"><div class="sec-in"><p class="sec-k">Work</p><h2>Placeholder heading for Work</h2><p class="lede">Placeholder copy for selected projects.</p></div></div></section>
+  <section class="sec" id="process"><div class="sec-body"><div class="sec-in"><p class="sec-k">Process</p><h2>Placeholder heading for Process</h2><p class="lede">Placeholder copy for how the work gets made.</p></div></div></section>
+  <section class="sec" id="contact"><div class="sec-body"><div class="sec-in"><p class="sec-k">Contact</p><h2>Placeholder heading for Contact</h2><p class="lede">Placeholder copy for ways to get in touch.</p></div></div></section>
 
   <script>
-    /* nav: stops scroll to their sections, and the current stop follows the section in view (none while on the hero) */
+    /* stacking + nav: sections are full screens in flow order; from the scroll position work out how far each layer is covered
+       by the next (drives the parallax), which section is current, and when the hero is fully covered (stop rendering it) */
     (function(){
+      var ids=['scene','about','work','process','contact'], layers=ids.map(function(id){ return document.getElementById(id); });
+      var inner=layers.map(function(el,i){ return i ? el.querySelector('.sec-body') : el.querySelector('.sticky'); });
       var stops=[].slice.call(document.querySelectorAll('.rnav-stop'));
+      var tops=[]; function measure(){ var y=0; tops=layers.map(function(el){ var t=y; y+=el.offsetHeight; return t; }); }
+      measure(); addEventListener('resize', function(){ measure(); update(); });
+      var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function update(){ var y=scrollY, cur=-1;
+        layers.forEach(function(el,i){ var h=el.offsetHeight, p=Math.min(1,Math.max(0,(y-tops[i])/h));
+          if (i===layers.length-1) p=0;
+          el.style.setProperty('--cover', p.toFixed(3));
+          inner[i].style.transform = (p>0 && !reduce) ? 'translate3d(0,'+(-p*22).toFixed(2)+'vh,0) scale('+(1-p*0.06).toFixed(4)+')' : '';
+          if (y >= tops[i]-h*0.5) cur=i; });
+        window.__heroCovered = y >= tops[1];
+        stops.forEach(function(b){ if (cur>0 && b.dataset.go===ids[cur]) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
+      var ticking=false; addEventListener('scroll', function(){ if (!ticking){ ticking=true; requestAnimationFrame(function(){ ticking=false; update(); }); } }, { passive:true });
+      update();
       document.querySelector('.rnav-r').addEventListener('click', function(e){ e.preventDefault(); scrollTo({ top:0, behavior:'smooth' }); });
-      stops.forEach(function(b){ b.addEventListener('click', function(){ document.getElementById(b.dataset.go).scrollIntoView({ behavior:'smooth' }); }); });
-      var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting) return;
-        stops.forEach(function(b){ if (b.dataset.go===e.target.id) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }); },
-        { rootMargin:'-45% 0px -50% 0px' });
-      ['scene','about','work','process','contact'].forEach(function(id){ io.observe(document.getElementById(id)); });
+      stops.forEach(function(b){ b.addEventListener('click', function(){ measure(); scrollTo({ top:tops[ids.indexOf(b.dataset.go)], behavior:'smooth' }); }); });
     })();
 
     /* ride scrubber: drag, click a stop, keys, or play; the scene eases to wherever it's set */
@@ -2053,7 +2074,7 @@ THREE.ColorManagement.enabled = false;
           else if (perf.step===2 && gtao) gtao.enabled=false;
           else if (perf.step===4 && bokeh) bokeh.enabled=false;
           window.__perfStep=perf.step; } } }
-    if (heroOn) composer.render();                            // the hero is off screen: skip the expensive frame
+    if (heroOn && !window.__heroCovered) composer.render();   // the hero is covered by the sections: skip the expensive frame
     requestAnimationFrame(tick);
   }
   tick();
