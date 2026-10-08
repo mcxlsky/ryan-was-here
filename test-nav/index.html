@@ -388,6 +388,9 @@
       document.addEventListener('keydown', function(e){ if (e.key==='Escape' && nav.classList.contains('open')){ setOpen(false); tog.focus(); } });
       document.addEventListener('pointerdown', function(e){ if (nav.classList.contains('open') && !nav.contains(e.target)) setOpen(false); });
       stops.forEach(function(b){ b.addEventListener('click', function(){ measure(); setOpen(false); scrollTo({ top:tops[ids.indexOf(b.dataset.go)], behavior:'smooth' }); }); });
+      // in-page links (the hero widgets) scroll the same way: the browser's own jump doesn't know about the stacking
+      document.addEventListener('click', function(e){ var a=e.target.closest && e.target.closest('a[href^="#"]'); if (!a) return;
+        var i=ids.indexOf(a.getAttribute('href').slice(1)); if (i<0) return; e.preventDefault(); measure(); scrollTo({ top:tops[i], behavior:'smooth' }); });
     })();
 
     /* the ride: one button; each tap glides to the next stop along the line, and from the last stop it returns to the street */
