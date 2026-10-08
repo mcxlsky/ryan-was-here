@@ -203,16 +203,16 @@
     .rnav-item[aria-current="page"]::before { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.6); }
 
     /* ---------- The ride: one button that takes the next step along the line ---------- */
-    .ride { position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%); z-index: 6; }
+    .ride { position: absolute; top: 19px; right: 18px; z-index: 6; }   /* top right, centred on the nav card's height */
     .ride-next { -webkit-appearance: none; appearance: none; cursor: pointer; padding: 0; border: 0; background: none; color: #fff; border-radius: 50%; }
     .ride-ico { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.92); display: grid; place-items: center;
                 background: rgba(18,18,20,0.38); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
                 box-shadow: 0 6px 24px rgba(0,0,0,0.18); transition: background .2s, transform .2s cubic-bezier(.2,.8,.2,1); }
     .ride-next:hover .ride-ico { background: rgba(18,18,20,0.55); }
     .ride-next:active .ride-ico { transform: scale(0.94); }
-    .ride-next:focus-visible { outline: 1px solid rgba(255,255,255,0.8); outline-offset: 4px; }
+    .ride-next:focus { outline: none; }
+    .ride-next:focus-visible .ride-ico { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.35), 0 6px 24px rgba(0,0,0,0.18); }   /* keyboard focus: a glow, not a second ring after taps */
     .ride-ico svg { width: 16px; height: 16px; fill: currentColor; }
-    @media (max-width: 600px){ .ride { bottom: 62px; } }
 
     /* ---------- Placeholder sections below the hero ---------- */
     /* stacked sections: each is a full screen that sticks, and the next one slides up over it; the covered one drifts up
