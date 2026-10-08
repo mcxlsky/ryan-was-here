@@ -319,6 +319,11 @@
     .wlogo img.wm { width: 58px; height: auto; }
     .wfav { width: 74px; height: 74px; display: grid; place-items: center; }
     .wfav svg { width: 34px; height: 34px; fill: #111; }
+    /* inverted: black squares with gold marks (the R and the menu stay gold) */
+    .wtile.wfav { background: #111; }
+    .wtile.wfav:hover { background: #222; }
+    .wtile.wfav svg { fill: #e5ab00; }
+    .wtile.wfav:focus-visible { outline-color: #e5ab00; }
     /* time & temperature */
     .w-clock { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
     .w-time { font: 500 34px/1 var(--font-ui); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
