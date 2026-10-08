@@ -1795,6 +1795,37 @@ THREE.ColorManagement.enabled = false;
     scene.traverse(o=>{ const ms=o.material?(Array.isArray(o.material)?o.material:[o.material]):[];
       for (const m of ms) if (m && m.envMapIntensity!==undefined && !envMats.has(m)) envMats.set(m,m.envMapIntensity); });
 
+    /* merge the static scenery: every plain mesh outside the trains is baked into one mesh per material (and shadow
+       flags) per 80 m stretch of the line — thousands of draw calls become a few hundred, and far stretches still cull */
+    { scene.updateMatrixWorld(true);
+      const skip=new Set([train, ambient.sb, ambient.nb, sky, floorRef, shadowRef]);
+      const by=new Map(), kill=[];
+      const walk=o=>{ if (skip.has(o) || !o.visible) return;
+        if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && !o.onBeforeRender.length && o.geometry.attributes.position){
+          const mats=Array.isArray(o.material)?o.material:[o.material];
+          if (mats.every(m=>m && !m.transparent && !m.isShaderMaterial && !m.vertexColors)){
+            o.geometry.computeBoundingSphere(); const c=o.geometry.boundingSphere.center.clone().applyMatrix4(o.matrixWorld);
+            const chunk=Math.floor(c.x/80), M=o.matrixWorld, flip=M.determinant()<0;
+            const g0=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();
+            const groups=Array.isArray(o.material)&&g0.groups.length? g0.groups : [{start:0,count:g0.attributes.position.count,materialIndex:0}];
+            for (const gr of groups){ const m=mats[gr.materialIndex]; if (!m) continue;
+              const g=new THREE.BufferGeometry();
+              for (const k of ['position','normal','uv']){ const a=g0.attributes[k]; if (!a) continue;
+                g.setAttribute(k, new THREE.BufferAttribute(a.array.slice(gr.start*a.itemSize,(gr.start+gr.count)*a.itemSize), a.itemSize)); }
+              if (!g.attributes.normal) g.computeVertexNormals();
+              if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
+              g.applyMatrix4(M);
+              if (flip) for (const k of ['position','normal','uv']){ const a=g.attributes[k], n=a.itemSize;
+                for (let t=0;t<a.count;t+=3) for (let q=0;q<n;q++){ const v1=a.array[(t+1)*n+q]; a.array[(t+1)*n+q]=a.array[(t+2)*n+q]; a.array[(t+2)*n+q]=v1; } }
+              const key=m.uuid+'|'+(o.castShadow?1:0)+(o.receiveShadow?1:0)+'|'+chunk;
+              if (!by.has(key)) by.set(key,{ m, cast:o.castShadow, recv:o.receiveShadow, gs:[] }); by.get(key).gs.push(g); }
+            kill.push(o); } }
+        for (const ch of o.children.slice()) walk(ch); };
+      walk(scene);
+      for (const o of kill){ o.visible=false; if (o.parent) o.parent.remove(o); }
+      for (const { m, cast, recv, gs } of by.values()){ const mm=new THREE.Mesh(mergeGeometries(gs,false), m); mm.castShadow=cast; mm.receiveShadow=recv; mm.matrixAutoUpdate=false; scene.add(mm); }
+      window.__merged=[kill.length, by.size]; }
+
     setGround(); applyAtmosphere();
     window.__ready=true;
   }, (err)=>{ window.__err=String(err); });
@@ -1902,8 +1933,9 @@ THREE.ColorManagement.enabled = false;
   const composer = new EffectComposer(renderer, rt);
   composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(vw(), vh());
   composer.addPass(new RenderPass(scene, camera));
+  let gtao=null;
   if (!lowPower){
-    const gtao = new GTAOPass(scene, camera, vw(), vh());
+    gtao = new GTAOPass(scene, camera, vw(), vh());
     gtao.updateGtaoMaterial({ radius:0.55, distanceExponent:1.4, thickness:1.2, scale:1.15, samples:16 });
     gtao.updatePdMaterial({ lumaPhi:10, depthPhi:2, normalPhi:3, radius:6, rings:2, samples:16 });
     gtao.blendIntensity = 0.9; composer.addPass(gtao);
@@ -1925,9 +1957,12 @@ THREE.ColorManagement.enabled = false;
       void main(){ gl_FragColor=vec4((vC.xy/vC.w-vP.xy/vP.w)*0.5*scale, 0., 1.); }` });
   const velBefore=function(){ velMat.uniforms.prevModel.value.copy(this.userData.prev); velMat.uniformsNeedUpdate=true; };
   let velReady=false;
-  const buildVel=()=>{ for (const g of [ambient.sb, ambient.nb]) g.traverse(m=>{ if (!m.isMesh) return;
-      const vm=new THREE.Mesh(m.geometry, velMat); vm.matrixAutoUpdate=false; vm.frustumCulled=false;
-      vm.userData={ src:m, owner:g, prev:new THREE.Matrix4(), fresh:true }; vm.onBeforeRender=velBefore; velScene.add(vm); velMeshes.push(vm); });
+  // one velocity mesh per car (positions only — the pass needs no materials)
+  const buildVel=()=>{ for (const g of [ambient.sb, ambient.nb]) for (const car of g.children){
+      const gs=[]; car.children.forEach(m=>{ if (!m.isMesh) return; const q=new THREE.BufferGeometry(); q.setAttribute('position', m.geometry.attributes.position.clone()); q.applyMatrix4(m.matrix); gs.push(q); });
+      if (!gs.length) continue;
+      const vm=new THREE.Mesh(mergeGeometries(gs,false), velMat); vm.matrixAutoUpdate=false; vm.frustumCulled=false;
+      vm.userData={ src:car, owner:g, prev:new THREE.Matrix4(), fresh:true }; vm.onBeforeRender=velBefore; velScene.add(vm); velMeshes.push(vm); }
     velReady=true; };
   const SHUTTER=1/40;                                         // a slow shutter: exaggerated on purpose, for the sense of weight
   const blurPass = (reduce) ? null : new ShaderPass({
@@ -1973,7 +2008,7 @@ THREE.ColorManagement.enabled = false;
   const sizeVel=()=>{ velRT.setSize(Math.ceil(vw()/2), Math.ceil(vh()/2)); if (blurPass) blurPass.uniforms.res.value.set(vw(),vh()); }; sizeVel();
   addEventListener('resize', ()=>{ composer.setSize(vw(),vh()); finish.uniforms.res.value.set(vw(),vh()); sizeVel(); });
 
-  const clock = new THREE.Clock();
+  const clock = new THREE.Clock(), perf={ t:0, n:0, step:0 };
   let heroOn=true; new IntersectionObserver(e=>{ heroOn=e[0].isIntersecting; }).observe(sceneEl);
   function tick(){
     FRAME.n++; window.__frames=FRAME.n;
@@ -1997,8 +2032,9 @@ THREE.ColorManagement.enabled = false;
       if (!velReady) buildVel();
       camera.updateMatrixWorld(); curVP.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       let any=false;
+      for (const g of [ambient.sb, ambient.nb]) if (g.visible) g.updateMatrixWorld(true);
       for (const vm of velMeshes){ const g=vm.userData.owner; vm.visible=g.visible; if (!g.visible){ vm.userData.fresh=true; continue; }
-        g.updateMatrixWorld(true); vm.matrix.copy(vm.userData.src.matrixWorld); vm.matrixWorld.copy(vm.matrix);
+        vm.matrix.copy(vm.userData.src.matrixWorld); vm.matrixWorld.copy(vm.matrix);
         if (vm.userData.fresh){ vm.userData.prev.copy(vm.matrix); vm.userData.fresh=false; } any=true; }
       blurPass.uniforms.on.value = any?1:0;
       if (any){ if (!window.__vpInit){ prevVP.copy(curVP); window.__vpInit=1; }
@@ -2009,6 +2045,14 @@ THREE.ColorManagement.enabled = false;
       for (const vm of velMeshes) vm.userData.prev.copy(vm.matrix);
       prevVP.copy(curVP);
     }
+    // quality governor: if frames run slow for ~2 s, step down one notch (resolution, then AO, then depth of field)
+    if (heroOn && FRAME.n>90){ perf.t+=dt; perf.n++;
+      if (perf.t>2){ const avg=perf.t/perf.n; perf.t=perf.n=0;
+        if (avg>1/42 && perf.step<4){ perf.step++;
+          if (perf.step===1||perf.step===3){ const pr=Math.max(1, renderer.getPixelRatio()*0.8); renderer.setPixelRatio(pr); composer.setPixelRatio(pr); composer.setSize(vw(),vh()); }
+          else if (perf.step===2 && gtao) gtao.enabled=false;
+          else if (perf.step===4 && bokeh) bokeh.enabled=false;
+          window.__perfStep=perf.step; } } }
     if (heroOn) composer.render();                            // the hero is off screen: skip the expensive frame
     requestAnimationFrame(tick);
   }
