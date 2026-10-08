@@ -241,6 +241,12 @@
     .sec-k { font: 500 12px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; margin-bottom: 18px; }
     .sec h2 { font: 600 clamp(28px, 4vw, 44px)/1.12 var(--font-ui); letter-spacing: -0.02em; margin-bottom: 18px; }
     .sec p.lede { font: 400 17px/1.6 var(--font-ui); opacity: 0.7; max-width: 560px; }
+
+    /* ---------- Hero intro (placeholder copy), upper left under the R ---------- */
+    .intro { position: absolute; z-index: 5; left: 28px; top: 120px; max-width: 440px; pointer-events: none;
+             font: 500 clamp(19px, 1.7vw, 24px)/1.38 var(--font-ui); letter-spacing: -0.012em; color: #fff;
+             text-shadow: 0 1px 2px rgba(0,0,0,0.28), 0 2px 18px rgba(0,0,0,0.32); text-wrap: pretty; transition: opacity .2s linear; }
+    @media (max-width: 600px){ .intro { left: 18px; right: 18px; top: 92px; max-width: none; font-size: 19px; } }
     @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
   </style>
 </head>
@@ -262,6 +268,7 @@
           <li><button class="rnav-stop" data-go="contact">Contact</button></li>
         </ul>
       </nav>
+      <p class="intro" id="intro">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human-computer interaction, design systems, and software design for consumer and SaaS products.</p>
       <div class="ride" id="ride">
         <button class="ride-play" id="ridePlay" aria-label="Ride to 3 Av–149 St"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"/></svg></button>
         <div class="ride-track" id="rideTrack" role="slider" tabindex="0" aria-label="Ride along the line" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Elevated">
@@ -312,7 +319,9 @@
         else if (k==='Home') v=0; else if (k==='End') v=1; else return; e.preventDefault(); set(v); });
       play.addEventListener('click', function(){ if (!R()) return; var r=R(); if (r.playing){ r.playing=false; return; } if (r.target>=1) r.target=0; r.playing=true; });
       var lastPlaying=null;
-      window.__rideUI=function(s){ var pct=(s*100).toFixed(2)+'%'; fill.style.width=pct; thumb.style.left=pct;
+      var intro=document.getElementById('intro');
+      window.__rideUI=function(s){ intro.style.opacity=Math.max(0,1-s/0.06).toFixed(3);   // the intro steps aside once the ride starts
+        var pct=(s*100).toFixed(2)+'%'; fill.style.width=pct; thumb.style.left=pct;
         track.setAttribute('aria-valuenow', Math.round(s*100));
         var cur=STOPS[0][1]; STOPS.forEach(function(st,i){ var on=s>=st[0]-0.005; els[i].classList.toggle('passed', on); if (on) cur=st[1]; });
         track.setAttribute('aria-valuetext', cur);
