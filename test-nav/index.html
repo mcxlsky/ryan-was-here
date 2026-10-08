@@ -177,6 +177,19 @@
     /* the R stands on its own, top left; the menu card sits top right and opens down and to the left */
     .rhome { position: fixed; top: 0; left: 0; z-index: 50; width: 74px; height: 74px; display: grid; place-items: center;
              border-radius: 0; background: #e5ab00; text-decoration: none; }   /* a gold square flush in the corner */
+    /* hover the R: a countdown board slides out of it, like the platform signs */
+    .rsign { position: absolute; left: 100%; top: 0; height: 74px; width: 270px; display: flex; align-items: center; gap: 12px; padding: 0 18px 0 16px;
+             background: #141c2e; color: #fff; clip-path: inset(0 100% 0 0); transition: clip-path .32s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
+    .rhome:hover .rsign, .rhome:focus-visible .rsign { clip-path: inset(0 0 0 0); }
+    .rsign-b { flex: none; width: 32px; height: 32px; border-radius: 50%; background: #00933c; display: grid; place-items: center; font: 700 19px/1 var(--font-ui); }
+    .rsign-t { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .rsign-t b { font: 700 18px/1 var(--font-ui); letter-spacing: -0.01em; white-space: nowrap; }
+    .rsign-t span { font: 500 12px/1 var(--font-ui); opacity: 0.7; white-space: nowrap; }
+    .rsign-m { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; color: #7ec8ff; }
+    .rsign-m b { font: 700 26px/1 var(--font-ui); font-variant-numeric: tabular-nums; }
+    .rsign-m span { font: 600 10px/1 var(--font-ui); letter-spacing: 0.06em; text-transform: uppercase; }
+    .rsign.now .rsign-m { color: #ffd23a; }
+    @media (hover: none) { .rsign { display: none; } }
     .rhome .rnav-r { border: 0; width: auto; height: auto; color: #111; font-size: 46px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; padding-top: 2px; }   /* just a big black R on the gold square */
     .rhome:focus-visible { outline: 1px solid rgba(255,255,255,0.8); outline-offset: 2px; }
     .rnav { position: fixed; top: 16px; right: 18px; z-index: 50; width: 58px; color: #fff;
@@ -225,16 +238,6 @@
     .rnav .rnav-item::before { border-color: #111; background: #e5ab00; }
     .rnav .rnav-item:hover, .rnav .rnav-item[aria-current="page"] { opacity: 1; }
     .rnav .rnav-item[aria-current="page"]::before { background: #111; box-shadow: none; }
-    .ride { position: absolute; top: 11px; right: 86px; z-index: 6; }   /* top right, just left of the menu square, centred on it */
-    .ride-next { -webkit-appearance: none; appearance: none; cursor: pointer; padding: 0; border: 0; background: none; color: #fff; border-radius: 50%; }
-    .ride-ico { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.92); display: grid; place-items: center;
-                background: rgba(18,18,20,0.38); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
-                box-shadow: 0 6px 24px rgba(0,0,0,0.18); transition: background .2s, transform .2s cubic-bezier(.2,.8,.2,1); }
-    .ride-next:hover .ride-ico { background: rgba(18,18,20,0.55); }
-    .ride-next:active .ride-ico { transform: scale(0.94); }
-    .ride-next:focus { outline: none; }
-    .ride-next:focus-visible .ride-ico { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.35), 0 6px 24px rgba(0,0,0,0.18); }   /* keyboard focus: a glow, not a second ring after taps */
-    .ride-ico svg { width: 16px; height: 16px; fill: currentColor; }
 
     /* ---------- Footer: scrolls up over the (sticky) hero ---------- */
     .foot { position: relative; z-index: 2; background: #0f0f10; color: #f2f2f0; padding: 64px 40px 26px; }
@@ -346,7 +349,9 @@
   </style>
 </head>
 <body>
-  <a class="rhome" href="#" aria-label="Ryan — home"><span class="rnav-r">R</span></a>
+  <a class="rhome" href="#" id="rhome" aria-label="Ride the 5 to 3 Av–149 St"><span class="rnav-r">R</span>
+    <span class="rsign" aria-hidden="true"><span class="rsign-b">5</span><span class="rsign-t"><b id="rsignT">Next train</b><span id="rsignD">Flatbush Av</span></span><span class="rsign-m"><b id="rsignM">–</b><span id="rsignU">min</span></span></span>
+  </a>
   <nav class="rnav" id="rnav" aria-label="Primary">
     <div class="rnav-bar">
       <button class="rnav-toggle" id="rnavToggle" aria-expanded="false" aria-controls="rnavMenu" aria-label="Menu"><i></i></button>
@@ -376,9 +381,6 @@
           <div class="w-meta"><span>3 Av–149 St</span><span id="wCond">&nbsp;</span></div>
         </div>
       </div>
-      <div class="ride" id="ride">
-        <button class="ride-next" id="rideNext" type="button" aria-label="Next stop"><span class="ride-ico" id="rideIco" aria-hidden="true"></span></button>
-      </div>
       <div class="wx" id="wx" hidden></div>   <!-- time / weather readout, hidden for now -->
       <div class="veil" id="veil"><div class="spinner"></div></div>
     </div>
@@ -398,8 +400,7 @@
     /* nav: the R and Home go to the top; Work and About are pages still to come; the footer's Copy email is a placeholder */
     (function(){
       var stops=[].slice.call(document.querySelectorAll('.rnav-stop'));
-      var top=function(e){ if (e) e.preventDefault(); scrollTo({ top:0, behavior:'smooth' }); };
-      document.querySelector('.rhome').addEventListener('click', top);
+      var top=function(e){ if (e) e.preventDefault(); if (window.__goHome) window.__goHome(); scrollTo({ top:0, behavior:'smooth' }); };
       document.querySelectorAll('[data-top]').forEach(function(a){ a.addEventListener('click', top); });
       var nav=document.getElementById('rnav'), tog=document.getElementById('rnavToggle');
       function setOpen(o){ nav.classList.toggle('open',o); tog.setAttribute('aria-expanded',o); tog.setAttribute('aria-label',o?'Close menu':'Menu');
@@ -433,21 +434,25 @@
       addEventListener('wxinfo', render); setInterval(render, 15000); render();
     })();
 
-    /* the ride: one button; each tap glides to the next stop along the line, and from the last stop it returns to the street */
+    /* the R: hover shows when the next train is due (1 board minute ≈ 8 s here — the line runs far more often than the real one);
+       click it and you ride the whole way to 3 Av–149 St; click again at the platform to go back up to the street */
     (function(){
-      var STOPS=[[0,'Elevated'],[0.32,'Down the ramp'],[0.5,'Portal'],[0.64,'Aboard'],[1,'3 Av–149 St']];
-      var btn=document.getElementById('rideNext'), ico=document.getElementById('rideIco'), intro=document.getElementById('intro');
-      var R=function(){ return window.__ride; }, at=0;          // index of the stop we're at (or heading to)
-      var PLAY='<svg viewBox="0 0 16 16"><path d="M5 2.5v11l9-5.5z"/></svg>',
-          BACK='<svg viewBox="0 0 16 16"><path d="M8 2.2a5.8 5.8 0 1 1-5.6 7.3l1.6-.4A4.2 4.2 0 1 0 8 3.8c-1.2 0-2.3.5-3 1.3L7 7H2V2l1.9 1.9A5.8 5.8 0 0 1 8 2.2z"/></svg>';
-      function show(){ var last=at===STOPS.length-1; ico.innerHTML=last?BACK:PLAY; btn.setAttribute('aria-label', last?'Back to the start':'Next stop'); }
-      btn.addEventListener('click', function(){ var r=R(); if (!r) return;
-        if (at===STOPS.length-1){ at=0; r.go(0,true); } else { at++; r.go(STOPS[at][0]); } show(); });
-      show();
-      var lastS=-1;
-      var widgets=document.getElementById('widgets');
-      window.__rideUI=function(s){ if (s===lastS) return; lastS=s; widgets.classList.toggle('away', s>0.004); document.getElementById('wBottom').classList.toggle('away', s>0.004);   // the widgets step aside while you ride
-        if (intro) intro.style.opacity=Math.max(0,1-s/0.06).toFixed(3); };   // the intro (when present) steps aside once the ride starts
+      var r=function(){ return window.__ride; }, el=document.getElementById('rhome'), sign=el.querySelector('.rsign'),
+          T=document.getElementById('rsignT'), D=document.getElementById('rsignD'), M=document.getElementById('rsignM'), U=document.getElementById('rsignU');
+      function board(){ var R=r(); if (!R || !window.__nextTrain) return;
+        if (R.target>0.999){ T.textContent='3 Av–149 St'; D.textContent='Doors open · tap to go back'; M.textContent=''; U.textContent=''; sign.classList.remove('now'); return; }
+        if (R.target>0.0005){ T.textContent='Now riding'; D.textContent='Next stop 3 Av–149 St'; M.textContent=''; U.textContent=''; sign.classList.add('now'); return; }
+        var sec=window.__nextTrain(), m=sec==null?null:(sec<=8?0:Math.ceil((sec-8)/8));
+        T.textContent='Next train'; D.textContent='Flatbush Av'; M.textContent=m==null?'–':m; U.textContent='min'; sign.classList.toggle('now', m===0); }
+      setInterval(board, 400); board();
+      el.addEventListener('click', function(e){ e.preventDefault(); var R=r(); if (!R) return;
+        if (scrollY>2) scrollTo({ top:0, behavior:'smooth' });
+        if (R.target>0.999) R.go(0,true);               // at the platform: back up to the street
+        else if (!R.anim) R.go(1);                       // ride all the way
+        board(); });
+      window.__goHome=function(){ var R=r(); if (R && R.target>0.0005){ R.anim=null; R.go(0,true); } };
+      var lastS=-1, widgets=document.getElementById('widgets'), bottom=document.getElementById('wBottom');
+      window.__rideUI=function(s){ if (s===lastS) return; lastS=s; widgets.classList.toggle('away', s>0.004); bottom.classList.toggle('away', s>0.004); };   // the widgets step aside while you ride
     })();
   </script>
 
@@ -1967,7 +1972,7 @@ THREE.ColorManagement.enabled = false;
   const RIDE = { target:0, anim:null };                    // the ride button calls go(); target glides there (ease in-out)
   RIDE.go=(to,cut)=>{ if (cut){ RIDE.anim=null; RIDE.target=to; RIDE.cut=true; return; }
     const from=RIDE.target; if (from<0.001 && to>0) AMB.clear=true;          // setting off: clear the line
-    RIDE.anim={ from, to, t:0, dur:Math.max(2.2, Math.abs(to-from)*16) }; };
+    RIDE.anim={ from, to, t:0, dur:Math.max(2.2, Math.abs(to-from)*18) }; };
   window.__ride = RIDE;
   // train speed vs scroll: pull away from rest, cruise, brake into the station (integrated into a position table)
   const BRAKE0=0.66, BRAKE1=0.84;
@@ -1985,6 +1990,11 @@ THREE.ColorManagement.enabled = false;
   const AV=33;                                                              // m/s, about 74 mph
   const AMB={ sb:{ x:-420, wait:0 }, nb:{ x:150, wait:0 } };          // first northbound passes ~4 s in, southbound ~13 s
   window.__AMB=AMB;
+  // seconds until the next southbound cab passes the hero camera (for the R's countdown board)
+  window.__nextTrain=()=>{ if (!homePos) return null; const sb=AMB.sb, camX=homePos.x, SB0=-600, run=(camX-SB0)/AV;
+    if (sb.wait>0) return sb.wait+run;
+    if (sb.x<camX) return (camX-sb.x)/AV;
+    const TLEN=NCARS*(carLen+gap); return Math.max(0,(TUNNEL.x0+TLEN+15-sb.x)/AV)+10+run; };   // just passed: the next one is a while off
   window.__info=()=>{ let n=0; for (const g of [train,ambient.sb,ambient.nb]) g.traverse(o=>{ if (o.isMesh||o.isSprite) n++; }); return n; };
   function runAmbient(dt, X){
     const TLEN=NCARS*(carLen+gap), sb=AMB.sb, nb=AMB.nb, SB0=-600, SB1=TUNNEL.x0+TLEN+15, NB0=TUNNEL.x0+20, NB1=-800, riding=s>0.0005;
