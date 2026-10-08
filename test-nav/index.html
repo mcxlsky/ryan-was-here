@@ -181,12 +181,12 @@
               font: 600 20px/1 var(--font-ui); letter-spacing: -0.02em; text-decoration: none; user-select: none;
               text-shadow: 0 1px 6px rgba(0,0,0,0.25); box-shadow: 0 0 10px rgba(0,0,0,0.12), inset 0 0 10px rgba(0,0,0,0.08); }
     .rnav-stops { display: flex; align-items: flex-end; height: 100%; list-style: none; }
-    .rnav-stops li { position: relative; width: 26px; height: 100%; }
+    .rnav-stops li { position: relative; width: 33px; height: 100%; }
     .rnav-stop {
       -webkit-appearance: none; appearance: none; background: none; border: 0; cursor: pointer;
       position: absolute; left: 0; bottom: 2px; width: auto; text-align: left; white-space: nowrap;   /* rule runs just past the word */
       transform-origin: 0 100%; transform: rotate(-58deg);
-      padding: 0 10px 6px 2px; border-bottom: 1px solid rgba(255,255,255,0.32);
+      padding: 0 22px 6px 2px; border-bottom: 1px solid rgba(255,255,255,0.32);
       color: #fff; font: 500 12.5px/1 var(--font-ui); letter-spacing: 0.01em;
       opacity: 0.55; text-shadow: 0 1px 6px rgba(0,0,0,0.35); transition: opacity .25s ease, border-color .25s ease;
     }
@@ -195,8 +195,8 @@
     @media (max-width: 600px){
       .rnav { top: 16px; left: 18px; height: 96px; gap: 14px; }
       .rnav-r { width: 34px; height: 34px; font-size: 17px; }
-      .rnav-stops li { width: 22px; }
-      .rnav-stop { font-size: 11.5px; padding-right: 8px; }
+      .rnav-stops li { width: 28px; }
+      .rnav-stop { font-size: 11.5px; padding-right: 18px; }
     }
     @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
   </style>
