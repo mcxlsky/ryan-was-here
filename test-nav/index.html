@@ -36,7 +36,7 @@
 
     /* ---------- Scroll scene ---------- */
     .scene  { position: sticky; top: 0; height: 100vh; z-index: 1; }   /* the hero: one screen; each section then slides up over the last */
-    .sticky { position: relative; height: 100vh; overflow: hidden; background: #000; transform-origin: 50% 0; will-change: transform; }
+    .sticky { position: relative; height: 100vh; overflow: hidden; background: #000; }
 
     /* video stage we scale slightly on scroll */
     .stage { position: absolute; inset: 0; will-change: transform, opacity; }
@@ -237,7 +237,7 @@
 
     /* ---------- Placeholder sections below the hero ---------- */
     /* stacked sections: each is a full screen that sticks, and the next one slides up over it; the covered one drifts up
-       slower and shrinks a touch (driven by --cover, 0..1, set on scroll) */
+       slower (driven by --cover, 0..1, set on scroll); the hero stays put */
     .sec { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--sec-bg); color: var(--sec-ink); }
     .sec-body { height: 100%; padding: 170px 28px 120px; transform-origin: 50% 0; will-change: transform; }
     /* snapping: sticky boxes make poor snap targets (their position moves), so invisible markers sit at each
@@ -315,7 +315,8 @@
         layers.forEach(function(el,i){ var h=el.offsetHeight, p=Math.min(1,Math.max(0,(y-tops[i])/h));
           if (i===layers.length-1) p=0;
           el.style.setProperty('--cover', p.toFixed(3));
-          inner[i].style.transform = (p>0 && !reduce) ? 'translate3d(0,'+(-p*22).toFixed(2)+'vh,0) scale('+(1-p*0.06).toFixed(4)+')' : '';
+          // the hero just sits still under the sections; the sections' own content drifts up at a slower rate as the next covers it
+          if (i>0) inner[i].style.transform = (p>0 && !reduce) ? 'translate3d(0,'+(-p*22).toFixed(2)+'vh,0)' : '';
           if (y >= tops[i]-h*0.5) cur=i; });
         window.__heroCovered = y >= tops[1];
         stops.forEach(function(b){ if (cur>0 && b.dataset.go===ids[cur]) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
