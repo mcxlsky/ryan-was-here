@@ -241,7 +241,8 @@
 
     /* ---------- About: scrolls up over the (sticky) hero ---------- */
     .about { position: relative; z-index: 2; color: #f2f2f0; padding: 120px 40px 28px;
-             background: linear-gradient(to bottom, rgba(15,15,16,0) 0%, rgba(15,15,16,0.55) 22%, rgba(15,15,16,0.86) 52%, #0f0f10 100%); }
+             background: linear-gradient(to bottom, rgba(15,15,16,0), rgba(15,15,16, calc(0.86 * var(--a, 0))) 200px); }   /* --a: 0 → 1 as it scrolls into view; a soft top edge */
+    .about-grid, .about .foot-base { opacity: var(--t, 0); transform: translateY(calc((1 - var(--t, 0)) * 28px)); }
     .about-body p, .about-k { text-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 2px 18px rgba(0,0,0,0.45); }
     /* the copyright + social line, as on the other pages' footers */
     .about .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 1180px; margin: 120px auto 0; padding-top: 18px;
@@ -406,6 +407,13 @@
 
   <script>
     document.getElementById('yr').textContent=new Date().getFullYear();
+    /* About fades in with the scroll: its dark veil first, then the words */
+    (function(){ var el=document.getElementById('about'), ease=function(x){ return x*x*(3-2*x); };
+      function upd(){ var r=el.getBoundingClientRect().top, p=Math.min(1,Math.max(0,1-r/innerHeight));
+        el.style.setProperty('--a', ease(Math.min(1,p/0.7)).toFixed(3));
+        el.style.setProperty('--t', ease(Math.min(1,Math.max(0,(p-0.12)/0.55))).toFixed(3)); }
+      var tk=false; addEventListener('scroll', function(){ if (!tk){ tk=true; requestAnimationFrame(function(){ tk=false; upd(); }); } }, { passive:true });
+      addEventListener('resize', upd); upd(); })();
     /* nav: the R and Home go to the top; Work and About are pages still to come; the footer's Copy email is a placeholder */
     (function(){
       var stops=[].slice.call(document.querySelectorAll('.rnav-stop'));
@@ -2052,8 +2060,12 @@ THREE.ColorManagement.enabled = false;
         tl.position.set(lx,2.3,0.8); tl.intensity=inT*2.2*Math.max(0,1-Math.abs(pos.x-lx)/(2*SPC)); }); }
     // depth of field: hold focus on the cab outside, rack to the doors inside the car
     if (bokeh){ const cab=V(X+9,0.4+PY,0), inside=smooth(0.50,0.64,t);
-      const fd=THREE.MathUtils.lerp(pos.distanceTo(cab), pos.distanceTo(rel(DOOR_T)), inside);
-      bokeh.uniforms.focus.value=fd; bokeh.uniforms.aperture.value=THREE.MathUtils.lerp(0.00035,0.0022,inside); }
+      // watching the traffic, our train is still out in the haze, so focus on the street in front of the camera;
+      // pull focus onto our cab as it runs in, then onto the doors once aboard
+      const onCab=smooth(0.04,0.20,t), fCab=THREE.MathUtils.lerp(pos.distanceTo(hT), pos.distanceTo(cab), onCab);
+      const fd=THREE.MathUtils.lerp(fCab, pos.distanceTo(rel(DOOR_T)), inside);
+      const ap=THREE.MathUtils.lerp(0.00035*onCab,0.0022,inside); bokeh.uniforms.focus.value=fd; bokeh.uniforms.aperture.value=ap;
+      bokeh.enabled = ap>1e-5 && !FRAME.lite && !(perf.step>=4); }   // a pinhole while watching the street: skip the pass
     { const fwd=tgt.clone().sub(pos).setY(0); if (fwd.lengthSq()>1e-6) fwd.normalize();    // shadow box centred ~26 m into the shot
       key.target.position.set(pos.x+fwd.x*26, PY-1, pos.z*0.3+fwd.z*26); key.position.copy(key.target.position).add(keyOff); }
   }
@@ -2165,7 +2177,7 @@ THREE.ColorManagement.enabled = false;
     // ~0 → full quality; partly covered → lite (trains keep running, the costly extras pause); fully covered → no render
     const cover=Math.min(1,Math.max(0,scrollY/Math.max(1,sceneEl.offsetHeight))), lite=cover>0.03;   // the About is see-through: the scene keeps running, lighter, behind it
     if (lite!==FRAME.lite){ FRAME.lite=lite;
-      if (gtao) gtao.enabled=!lite && !(perf.step>=2); if (bokeh) bokeh.enabled=!lite && !(perf.step>=4); if (blurPass) blurPass.enabled=!lite; }
+      if (gtao) gtao.enabled=!lite && !(perf.step>=2); if (blurPass) blurPass.enabled=!lite; }
     if (heroOn && !lite && blurPass && ambient.sb){
       if (!velReady) buildVel();
       camera.updateMatrixWorld(); curVP.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
