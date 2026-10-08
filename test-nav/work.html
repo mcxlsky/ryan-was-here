@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Work — ryan was here</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --gold: #e5ab00; --ink: #f2f2f0; --bg: #0f0f10; --card: #18181a; --line: rgba(255,255,255,0.08);
+            --font: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+    /* the gold R tile, same as the home page: back to the street */
+    .rhome { position: fixed; top: 0; left: 0; z-index: 10; width: 74px; height: 74px; display: grid; place-items: center;
+             background: var(--gold); color: #111; font: 700 46px/1 var(--font); letter-spacing: -0.03em; padding-top: 2px; }
+
+    main { max-width: 1180px; margin: 0 auto; padding: 150px 40px 80px; }
+    .k { font: 500 12px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; margin-bottom: 18px; }
+    h1 { font: 500 clamp(44px, 7vw, 96px)/1 var(--font); letter-spacing: -0.04em; margin-bottom: 22px; }
+    .lede { font: 400 18px/1.6 var(--font); opacity: 0.7; max-width: 600px; }
+
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; margin-top: 72px; }
+    .proj { display: block; background: var(--card); border: 1px solid var(--line); transition: border-color .2s, transform .25s cubic-bezier(.2,.8,.2,1); }
+    .proj:hover { border-color: rgba(255,255,255,0.22); transform: translateY(-2px); }
+    .proj-art { aspect-ratio: 16 / 10; background: var(--gold); display: grid; place-items: center; }
+    .proj-art img { width: 46%; max-height: 40%; object-fit: contain; }
+    .proj-body { padding: 18px 20px 22px; display: grid; gap: 6px; }
+    .proj-body b { font: 600 18px/1.25 var(--font); letter-spacing: -0.01em; }
+    .proj-body span { font: 400 14px/1.5 var(--font); opacity: 0.6; }
+    .proj-tags { display: flex; gap: 8px; margin-top: 8px; }
+    .proj-tags i { font: 500 11px/1 var(--font); font-style: normal; letter-spacing: 0.04em; padding: 6px 9px; border: 1px solid var(--line); opacity: 0.75; }
+
+    footer { max-width: 1180px; margin: 0 auto; padding: 22px 40px 30px; border-top: 1px solid var(--line);
+             display: flex; justify-content: space-between; font: 400 12px/1.4 var(--font); opacity: 0.5; }
+    @media (max-width: 720px){
+      main { padding: 120px 22px 60px; }
+      .grid { grid-template-columns: 1fr; margin-top: 48px; }
+      footer { padding: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="rhome" href="index.html" aria-label="Back to the street">R</a>
+  <main>
+    <p class="k">Work</p>
+    <h1>Selected work</h1>
+    <p class="lede">Placeholder copy. A short line about the kind of work collected here: interfaces, design systems and the engineering that ships them.</p>
+    <div class="grid">
+      <a class="proj" href="#"><div class="proj-art"><img src="logos/hush.svg" alt="The Hush"></div>
+        <div class="proj-body"><b>Placeholder project title</b><span>One or two lines describing the project and Ryan's role in it.</span><div class="proj-tags"><i>Product design</i><i>2025</i></div></div></a>
+      <a class="proj" href="#"><div class="proj-art"><img src="logos/fleeting.svg" alt="fleeting"></div>
+        <div class="proj-body"><b>Placeholder project title</b><span>One or two lines describing the project and Ryan's role in it.</span><div class="proj-tags"><i>Design systems</i><i>2025</i></div></div></a>
+      <a class="proj" href="#"><div class="proj-art"><img src="logos/heatcheck.svg" alt="heatcheck"></div>
+        <div class="proj-body"><b>Placeholder project title</b><span>One or two lines describing the project and Ryan's role in it.</span><div class="proj-tags"><i>Brand</i><i>2024</i></div></div></a>
+      <a class="proj" href="#"><div class="proj-art"><img src="logos/khealth.svg" alt="K Health"></div>
+        <div class="proj-body"><b>Placeholder project title</b><span>One or two lines describing the project and Ryan's role in it.</span><div class="proj-tags"><i>Consumer health</i><i>2024</i></div></div></a>
+    </div>
+  </main>
+  <footer><span>© <span id="yr">2026</span> Ryan McCaulsky</span><a href="index.html">Back to the street ↑</a></footer>
+  <script>document.getElementById('yr').textContent=new Date().getFullYear();</script>
+</body>
+</html>
