@@ -173,14 +173,14 @@
     }
 
     /* ---------- Sleek wayfinding nav: an outlined R bullet, stops rising off it at the old sign's angle ---------- */
-    .rnav { position: absolute; top: 24px; left: 28px; z-index: 6; height: 112px; display: flex; align-items: flex-end; gap: 18px;
+    .rnav { position: absolute; top: 24px; left: 28px; right: 28px; z-index: 6; height: 112px; display: flex; align-items: flex-end; justify-content: space-between;   /* R top-left, stops top-right */
             pointer-events: none; }
     .rnav * { pointer-events: auto; }
     .rnav-r { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.92);
               display: flex; align-items: center; justify-content: center; color: #fff;
               font: 600 20px/1 var(--font-ui); letter-spacing: -0.02em; text-decoration: none; user-select: none;
               text-shadow: 0 1px 6px rgba(0,0,0,0.25); box-shadow: 0 0 10px rgba(0,0,0,0.12), inset 0 0 10px rgba(0,0,0,0.08); }
-    .rnav-stops { display: flex; align-items: flex-end; height: 100%; list-style: none; }
+    .rnav-stops { display: flex; align-items: flex-end; height: 100%; list-style: none; padding-right: 44px; }   /* room for the last stop's lean */
     .rnav-stops li { position: relative; width: 33px; height: 100%; }
     .rnav-stop {
       -webkit-appearance: none; appearance: none; background: none; border: 0; cursor: pointer;
@@ -193,7 +193,8 @@
     .rnav-stop:hover, .rnav-stop:focus-visible { opacity: 1; border-bottom-color: rgba(255,255,255,0.7); outline: none; }
     .rnav-stop[aria-current="page"] { opacity: 1; border-bottom-color: rgba(255,255,255,0.85); }
     @media (max-width: 600px){
-      .rnav { top: 16px; left: 18px; height: 96px; gap: 14px; }
+      .rnav { top: 16px; left: 18px; right: 18px; height: 96px; }
+      .rnav-stops { padding-right: 38px; }
       .rnav-r { width: 34px; height: 34px; font-size: 17px; }
       .rnav-stops li { width: 28px; }
       .rnav-stop { font-size: 11.5px; padding-right: 18px; }
