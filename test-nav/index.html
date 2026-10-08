@@ -236,26 +236,24 @@
     .ride-next:focus-visible .ride-ico { border-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,0.35), 0 6px 24px rgba(0,0,0,0.18); }   /* keyboard focus: a glow, not a second ring after taps */
     .ride-ico svg { width: 16px; height: 16px; fill: currentColor; }
 
-    /* ---------- Placeholder sections below the hero ---------- */
-    /* stacked sections: each is a full screen that sticks, and the next one slides up over it; the covered one drifts up
-       slower (driven by --cover, 0..1, set on scroll); the hero stays put */
-    .sec { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--sec-bg); color: var(--sec-ink); }
-    .sec-body { height: 100%; padding: 170px 28px 120px; transform-origin: 50% 0; will-change: transform; }
-    /* snapping: sticky boxes make poor snap targets (their position moves), so invisible markers sit at each
-       screen's resting scroll position instead */
-    html { scroll-snap-type: y mandatory; }
-    body { position: relative; }
-    .snaps { position: absolute; top: 0; left: 0; width: 1px; pointer-events: none; visibility: hidden; }
-    .snaps > div { height: 100vh; scroll-snap-align: start; scroll-snap-stop: always; }
-    @media (prefers-reduced-motion: reduce) { html { scroll-snap-type: y proximity; } }
-    #about   { --sec-bg: #e5ab00; --sec-ink: #141414; z-index: 2; }
-    #work    { --sec-bg: #1f3f8f; --sec-ink: #ffffff; z-index: 3; }
-    #process { --sec-bg: #c9302c; --sec-ink: #ffffff; z-index: 4; }
-    #contact { --sec-bg: #00843a; --sec-ink: #ffffff; z-index: 5; }
-    .sec-in { max-width: 760px; margin: 0 auto; }
-    .sec-k { font: 500 12px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; margin-bottom: 18px; }
-    .sec h2 { font: 500 clamp(40px, 6vw, 84px)/1.02 var(--font-ui); letter-spacing: -0.035em; letter-spacing: -0.02em; margin-bottom: 18px; }
-    .sec p.lede { font: 400 17px/1.6 var(--font-ui); opacity: 0.7; max-width: 560px; }
+    /* ---------- Footer: scrolls up over the (sticky) hero ---------- */
+    .foot { position: relative; z-index: 2; background: #0f0f10; color: #f2f2f0; padding: 64px 40px 26px; }
+    .foot-grid { display: grid; grid-template-columns: 1.6fr repeat(3, 1fr); gap: 32px; max-width: 1180px; margin: 0 auto; }
+    .foot-name { font: 600 17px/1.3 var(--font-ui); letter-spacing: -0.01em; }
+    .foot-role { font: 400 14px/1.4 var(--font-ui); opacity: 0.62; margin-top: 4px; }
+    .foot h4 { font: 500 11px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.45; margin-bottom: 18px; }
+    .foot ul { list-style: none; display: grid; gap: 14px; }
+    .foot a, .foot button { color: #f2f2f0; text-decoration: none; font: 400 14px/1.2 var(--font-ui); opacity: 0.78; background: none; border: 0; padding: 0; cursor: pointer; transition: opacity .2s; }
+    .foot a:hover, .foot button:hover { opacity: 1; }
+    .foot a:focus-visible, .foot button:focus-visible { outline: 1px solid rgba(255,255,255,0.7); outline-offset: 3px; }
+    .foot-base { display: flex; justify-content: space-between; gap: 16px; max-width: 1180px; margin: 72px auto 0; padding-top: 18px;
+                 border-top: 1px solid rgba(255,255,255,0.08); font: 400 12px/1.4 var(--font-ui); opacity: 0.45; }
+    @media (max-width: 720px){
+      .foot { padding: 48px 22px 24px; }
+      .foot-grid { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
+      .foot-id { grid-column: 1 / -1; }
+      .foot-base { flex-direction: column; margin-top: 48px; }
+    }
 
     /* ---------- Hero intro (placeholder copy), upper left under the R ---------- */
     .intro { position: absolute; z-index: 5; left: max(28px, 7vw); top: calc(50% - 30px); transform: translateY(-50%); max-width: min(15.5em, 62vw); pointer-events: none;
@@ -354,14 +352,11 @@
       <button class="rnav-toggle" id="rnavToggle" aria-expanded="false" aria-controls="rnavMenu" aria-label="Menu"><i></i></button>
     </div>
     <div class="rnav-menu" id="rnavMenu"><div><ul>
-      <li><button class="rnav-item rnav-stop" data-go="scene" tabindex="-1">Home</button></li>
-      <li><button class="rnav-item rnav-stop" data-go="about" tabindex="-1">About</button></li>
+      <li><button class="rnav-item rnav-stop" data-go="home" tabindex="-1" aria-current="page">Home</button></li>
       <li><button class="rnav-item rnav-stop" data-go="work" tabindex="-1">Work</button></li>
-      <li><button class="rnav-item rnav-stop" data-go="process" tabindex="-1">Process</button></li>
-      <li><button class="rnav-item rnav-stop" data-go="contact" tabindex="-1">Contact</button></li>
+      <li><button class="rnav-item rnav-stop" data-go="about" tabindex="-1">About</button></li>
     </ul></div></div>
   </nav>
-  <div class="snaps" aria-hidden="true"><div></div><div></div><div></div><div></div><div></div></div>
   <main class="scene" id="scene">
     <div class="sticky">
       <div class="stage" id="stage">
@@ -371,7 +366,7 @@
 
 
       <div class="widgets" id="widgets">
-        <a class="wtile wfav" href="#work" aria-label="Projects"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.6" height="7.6"/><rect x="13.4" y="3" width="7.6" height="7.6"/><rect x="3" y="13.4" width="7.6" height="7.6"/><rect x="13.4" y="13.4" width="7.6" height="7.6"/></svg></a>
+        <a class="wtile wfav" href="#" aria-label="Projects"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.6" height="7.6"/><rect x="13.4" y="3" width="7.6" height="7.6"/><rect x="3" y="13.4" width="7.6" height="7.6"/><rect x="13.4" y="13.4" width="7.6" height="7.6"/></svg></a>
         <a class="wtile wfav" href="#" aria-label="Recent favorites"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.5l-5.9 3.2 1.3-6.6-4.9-4.6 6.6-.8z"/></svg></a>
       </div>
       <div class="wbottom" id="wBottom">
@@ -389,43 +384,33 @@
     </div>
   </main>
 
-  <section class="sec" id="about"><div class="sec-body"><div class="sec-in"><p class="sec-k">About</p><h2>Placeholder heading for About</h2><p class="lede">Placeholder copy. This section stands in for the real About content while we test how the hero and the nav feel together.</p></div></div></section>
-  <section class="sec" id="work"><div class="sec-body"><div class="sec-in"><p class="sec-k">Work</p><h2>Placeholder heading for Work</h2><p class="lede">Placeholder copy for selected projects.</p></div></div></section>
-  <section class="sec" id="process"><div class="sec-body"><div class="sec-in"><p class="sec-k">Process</p><h2>Placeholder heading for Process</h2><p class="lede">Placeholder copy for how the work gets made.</p></div></div></section>
-  <section class="sec" id="contact"><div class="sec-body"><div class="sec-in"><p class="sec-k">Contact</p><h2>Placeholder heading for Contact</h2><p class="lede">Placeholder copy for ways to get in touch.</p></div></div></section>
+  <footer class="foot" id="footer">
+    <div class="foot-grid">
+      <div class="foot-id"><div class="foot-name">Ryan McCaulsky</div><div class="foot-role">Design Engineer</div></div>
+      <nav aria-label="Pages"><h4>Pages</h4><ul><li><a href="#" data-top>Home</a></li><li><a href="#">Work</a></li><li><a href="#">About</a></li></ul></nav>
+      <div><h4>Social</h4><ul><li><a href="#">GitHub</a></li><li><a href="#">LinkedIn</a></li><li><a href="#">X</a></li><li><a href="#">Instagram</a></li></ul></div>
+      <div><h4>Resources</h4><ul><li><a href="#">Download résumé</a></li><li><button type="button" id="copyEmail">Copy email</button></li></ul></div>
+    </div>
+    <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span><span>Designed &amp; built by hand in the Bronx</span></div>
+  </footer>
 
   <script>
-    /* stacking + nav: sections are full screens in flow order; from the scroll position work out how far each layer is covered
-       by the next (drives the parallax), which section is current, and when the hero is fully covered (stop rendering it) */
+    /* nav: the R and Home go to the top; Work and About are pages still to come; the footer's Copy email is a placeholder */
     (function(){
-      var ids=['scene','about','work','process','contact'], layers=ids.map(function(id){ return document.getElementById(id); });
-      var inner=layers.map(function(el,i){ return i ? el.querySelector('.sec-body') : el.querySelector('.sticky'); });
       var stops=[].slice.call(document.querySelectorAll('.rnav-stop'));
-      var tops=[]; function measure(){ var y=0; tops=layers.map(function(el){ var t=y; y+=el.offsetHeight; return t; }); }
-      measure(); addEventListener('resize', function(){ measure(); update(); });
-      var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-      function update(){ var y=scrollY, cur=-1;
-        layers.forEach(function(el,i){ var h=el.offsetHeight, p=Math.min(1,Math.max(0,(y-tops[i])/h));
-          if (i===layers.length-1) p=0;
-          el.style.setProperty('--cover', p.toFixed(3));
-          // the hero just sits still under the sections; the sections' own content drifts up at a slower rate as the next covers it
-          if (i>0) inner[i].style.transform = (p>0 && !reduce) ? 'translate3d(0,'+(-p*22).toFixed(2)+'vh,0)' : '';
-          if (y >= tops[i]-h*0.5) cur=i; });
-        window.__heroCovered = y >= tops[1];
-        stops.forEach(function(b){ if (cur>=0 && b.dataset.go===ids[cur]) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
-      var ticking=false; addEventListener('scroll', function(){ if (!ticking){ ticking=true; requestAnimationFrame(function(){ ticking=false; update(); }); } }, { passive:true });
-      update();
-      document.querySelector('.rhome').addEventListener('click', function(e){ e.preventDefault(); scrollTo({ top:0, behavior:'smooth' }); });
+      var top=function(e){ if (e) e.preventDefault(); scrollTo({ top:0, behavior:'smooth' }); };
+      document.querySelector('.rhome').addEventListener('click', top);
+      document.querySelectorAll('[data-top]').forEach(function(a){ a.addEventListener('click', top); });
       var nav=document.getElementById('rnav'), tog=document.getElementById('rnavToggle');
       function setOpen(o){ nav.classList.toggle('open',o); tog.setAttribute('aria-expanded',o); tog.setAttribute('aria-label',o?'Close menu':'Menu');
         stops.forEach(function(b){ b.tabIndex=o?0:-1; }); }
       tog.addEventListener('click', function(){ setOpen(!nav.classList.contains('open')); });
       document.addEventListener('keydown', function(e){ if (e.key==='Escape' && nav.classList.contains('open')){ setOpen(false); tog.focus(); } });
       document.addEventListener('pointerdown', function(e){ if (nav.classList.contains('open') && !nav.contains(e.target)) setOpen(false); });
-      stops.forEach(function(b){ b.addEventListener('click', function(){ measure(); setOpen(false); scrollTo({ top:tops[ids.indexOf(b.dataset.go)], behavior:'smooth' }); }); });
-      // in-page links (the hero widgets) scroll the same way: the browser's own jump doesn't know about the stacking
-      document.addEventListener('click', function(e){ var a=e.target.closest && e.target.closest('a[href^="#"]'); if (!a) return;
-        var i=ids.indexOf(a.getAttribute('href').slice(1)); if (i<0) return; e.preventDefault(); measure(); scrollTo({ top:tops[i], behavior:'smooth' }); });
+      stops.forEach(function(b){ b.addEventListener('click', function(){ setOpen(false); if (b.dataset.go==='home') top(); }); });
+      document.getElementById('yr').textContent=new Date().getFullYear();
+      var ce=document.getElementById('copyEmail');
+      ce.addEventListener('click', function(){ var t=ce.textContent; ce.textContent='Email coming soon'; setTimeout(function(){ ce.textContent=t; }, 1600); });
     })();
 
     /* time & temperature widget: Bronx time ticks every 15 s; temperature and sky come from the scene's live weather */
