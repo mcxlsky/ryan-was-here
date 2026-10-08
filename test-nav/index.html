@@ -307,7 +307,7 @@
     .eq i { transform-origin: bottom; }
     @media (prefers-reduced-motion: reduce) { .eq i { animation: none; } }
     /* gold tiles anchored to the left edge, like the R square */
-    .widgets { left: 0; top: 86px; }
+    .widgets { left: 0; top: 80px; gap: 6px; }   /* half the old 12px gaps between the R and the tiles */
     /* the time card sits on its own at the bottom left */
     .wbottom { position: absolute; z-index: 5; left: 18px; bottom: 18px; width: 300px; transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); }
     .wbottom.away { opacity: 0; transform: translateY(10px); pointer-events: none; }
