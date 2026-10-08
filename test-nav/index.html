@@ -35,7 +35,7 @@
     }
 
     /* ---------- Scroll scene ---------- */
-    .scene  { position: relative; height: 560vh; }
+    .scene  { position: relative; height: 100vh; }   /* the hero: one screen; the page scrolls on to the sections */
     .sticky { position: sticky; top: 0; height: 100vh; overflow: hidden; background: #000; }
 
     /* video stage we scale slightly on scroll */
@@ -143,7 +143,7 @@
 
 
     /* loading veil until the clip can play/seek */
-    .wx { position: absolute; left: 16px; bottom: 16px; z-index: 6; pointer-events: none;
+    .wx { position: absolute; right: 16px; bottom: 16px; z-index: 6; pointer-events: none;
       font: 500 12px/1.3 var(--font-ui); letter-spacing: 0.02em; color: rgba(255,255,255,0.82);
       background: rgba(0,0,0,0.32); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px;
       padding: 6px 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -173,7 +173,7 @@
     }
 
     /* ---------- Sleek wayfinding nav: an outlined R bullet, stops rising off it at the old sign's angle ---------- */
-    .rnav { position: absolute; top: 14px; left: 28px; right: 28px; z-index: 6; height: 74px; display: flex; align-items: center; justify-content: space-between;   /* R top-left, stops top-right */
+    .rnav { position: fixed; top: 14px; left: 28px; right: 28px; z-index: 6; height: 74px; display: flex; align-items: center; justify-content: space-between;   /* R top-left, stops top-right */
             pointer-events: none; }
     .rnav * { pointer-events: auto; }
     .rnav-r { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.92);
@@ -205,6 +205,42 @@
       .rnav-stop { font-size: 11.5px; padding-left: 16px; }
       .rnav-stop::before { width: 11px; }
     }
+
+    /* ---------- The ride scrubber: a strip map along the bottom of the hero ---------- */
+    .ride { position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%); z-index: 6;
+            display: flex; align-items: flex-end; gap: 16px; width: min(560px, calc(100% - 48px)); }
+    .ride-play { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.9);
+                 background: rgba(0,0,0,0.12); color: #fff; display: grid; place-items: center; cursor: pointer; margin-bottom: -16px;
+                 box-shadow: 0 0 10px rgba(0,0,0,0.15); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+    .ride-play svg { width: 12px; height: 12px; fill: currentColor; }
+    .ride-play:focus-visible, .ride-track:focus-visible { outline: 1px solid rgba(255,255,255,0.8); outline-offset: 4px; }
+    .ride-track { position: relative; flex: 1; height: 74px; margin-right: 50px; cursor: pointer; touch-action: none; }   /* room for the last stop's lean */
+    .ride-line, .ride-fill { position: absolute; left: 0; bottom: 0; height: 1px; border-radius: 1px; }
+    .ride-line { right: 0; background: rgba(255,255,255,0.35); }
+    .ride-fill { width: 0; background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.45); }
+    .ride-stop { position: absolute; bottom: 0; width: 0; height: 100%; }
+    .ride-stop button { -webkit-appearance: none; appearance: none; background: none; border: 0; cursor: pointer;
+                        position: absolute; left: 0; bottom: 0; transform-origin: 0 100%; transform: rotate(-58deg);
+                        padding: 0 0 0 16px; white-space: nowrap; color: #fff; font: 500 11px/1 var(--font-ui); letter-spacing: 0.01em;
+                        opacity: 0.5; text-shadow: 0 1px 6px rgba(0,0,0,0.35); transition: opacity .25s ease; }
+    .ride-stop button::before { content: ''; position: absolute; left: 0; bottom: 0.22em; width: 11px; height: 1.25px; background: currentColor; border-radius: 1px; }
+    .ride-stop button:hover, .ride-stop.passed button { opacity: 1; }
+    .ride-thumb { position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; margin: 0 0 -6px -6px; border-radius: 50%;
+                  background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.65); pointer-events: none; }
+    @media (max-width: 600px){
+      .ride { bottom: 62px; gap: 12px; }
+      .ride-track { margin-right: 44px; }
+      .ride-track { height: 64px; }
+      .ride-stop button { font-size: 10px; padding-left: 13px; }
+      .ride-stop button::before { width: 9px; }
+    }
+
+    /* ---------- Placeholder sections below the hero ---------- */
+    .sec { min-height: 90vh; padding: 160px 28px 120px; background: #0b0b0c; border-top: 1px solid rgba(255,255,255,0.06); }
+    .sec-in { max-width: 760px; margin: 0 auto; }
+    .sec-k { font: 500 12px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; margin-bottom: 18px; }
+    .sec h2 { font: 600 clamp(28px, 4vw, 44px)/1.12 var(--font-ui); letter-spacing: -0.02em; margin-bottom: 18px; }
+    .sec p.lede { font: 400 17px/1.6 var(--font-ui); opacity: 0.7; max-width: 560px; }
     @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
   </style>
 </head>
@@ -220,53 +256,75 @@
       <nav class="rnav" aria-label="Primary">
         <a class="rnav-r" href="#" aria-label="Ryan — home">R</a>
         <ul class="rnav-stops">
-          <li><button class="rnav-stop" aria-current="page">About</button></li>
-          <li><button class="rnav-stop">Work</button></li>
-          <li><button class="rnav-stop">Process</button></li>
-          <li><button class="rnav-stop">Contact</button></li>
+          <li><button class="rnav-stop" data-go="about">About</button></li>
+          <li><button class="rnav-stop" data-go="work">Work</button></li>
+          <li><button class="rnav-stop" data-go="process">Process</button></li>
+          <li><button class="rnav-stop" data-go="contact">Contact</button></li>
         </ul>
       </nav>
+      <div class="ride" id="ride">
+        <button class="ride-play" id="ridePlay" aria-label="Ride to 3 Av–149 St"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"/></svg></button>
+        <div class="ride-track" id="rideTrack" role="slider" tabindex="0" aria-label="Ride along the line" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Elevated">
+          <div class="ride-line"></div><div class="ride-fill" id="rideFill"></div>
+          <div class="ride-thumb" id="rideThumb"></div>
+        </div>
+      </div>
       <div class="wx" id="wx" aria-live="polite"></div>
       <div class="veil" id="veil"><div class="spinner"></div></div>
     </div>
   </main>
 
+  <section class="sec" id="about"><div class="sec-in"><p class="sec-k">About</p><h2>Placeholder heading for About</h2><p class="lede">Placeholder copy. This section stands in for the real About content while we test how the hero and the nav feel together.</p></div></section>
+  <section class="sec" id="work"><div class="sec-in"><p class="sec-k">Work</p><h2>Placeholder heading for Work</h2><p class="lede">Placeholder copy for selected projects.</p></div></section>
+  <section class="sec" id="process"><div class="sec-in"><p class="sec-k">Process</p><h2>Placeholder heading for Process</h2><p class="lede">Placeholder copy for how the work gets made.</p></div></section>
+  <section class="sec" id="contact"><div class="sec-in"><p class="sec-k">Contact</p><h2>Placeholder heading for Contact</h2><p class="lede">Placeholder copy for ways to get in touch.</p></div></section>
+
+  <script>
+    /* nav: stops scroll to their sections, and the current stop follows the section in view (none while on the hero) */
+    (function(){
+      var stops=[].slice.call(document.querySelectorAll('.rnav-stop'));
+      document.querySelector('.rnav-r').addEventListener('click', function(e){ e.preventDefault(); scrollTo({ top:0, behavior:'smooth' }); });
+      stops.forEach(function(b){ b.addEventListener('click', function(){ document.getElementById(b.dataset.go).scrollIntoView({ behavior:'smooth' }); }); });
+      var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if (!e.isIntersecting) return;
+        stops.forEach(function(b){ if (b.dataset.go===e.target.id) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }); },
+        { rootMargin:'-45% 0px -50% 0px' });
+      ['scene','about','work','process','contact'].forEach(function(id){ io.observe(document.getElementById(id)); });
+    })();
+
+    /* ride scrubber: drag, click a stop, keys, or play; the scene eases to wherever it's set */
+    (function(){
+      var STOPS=[[0,'Elevated'],[0.32,'Down the ramp'],[0.5,'Portal'],[0.64,'Aboard'],[1,'3 Av–149 St']];
+      var track=document.getElementById('rideTrack'), fill=document.getElementById('rideFill'), thumb=document.getElementById('rideThumb'), play=document.getElementById('ridePlay');
+      var R=function(){ return window.__ride; };
+      var els=STOPS.map(function(st){ var d=document.createElement('div'); d.className='ride-stop'; d.style.left=(st[0]*100)+'%';
+        var b=document.createElement('button'); b.type='button'; b.textContent=st[1]; b.tabIndex=-1;
+        b.addEventListener('click', function(e){ e.stopPropagation(); if (R()){ R().playing=false; R().target=st[0]; } });
+        d.appendChild(b); track.insertBefore(d, thumb); return d; });
+      var ICON_PLAY='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"/></svg>', ICON_PAUSE='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z"/></svg>';
+      var set=function(v){ if (!R()) return; R().playing=false; R().target=Math.min(1,Math.max(0,v)); };
+      var at=function(e){ var r=track.getBoundingClientRect(); return (e.clientX-r.left)/r.width; };
+      var drag=false;
+      track.addEventListener('pointerdown', function(e){ drag=true; track.setPointerCapture(e.pointerId); set(at(e)); });
+      track.addEventListener('pointermove', function(e){ if (drag) set(at(e)); });
+      track.addEventListener('pointerup', function(){ drag=false; });
+      track.addEventListener('keydown', function(e){ if (!R()) return; var v=R().target, k=e.key;
+        if (k==='ArrowRight'||k==='ArrowUp') v+=0.02; else if (k==='ArrowLeft'||k==='ArrowDown') v-=0.02; else if (k==='PageUp') v+=0.1; else if (k==='PageDown') v-=0.1;
+        else if (k==='Home') v=0; else if (k==='End') v=1; else return; e.preventDefault(); set(v); });
+      play.addEventListener('click', function(){ if (!R()) return; var r=R(); if (r.playing){ r.playing=false; return; } if (r.target>=1) r.target=0; r.playing=true; });
+      var lastPlaying=null;
+      window.__rideUI=function(s){ var pct=(s*100).toFixed(2)+'%'; fill.style.width=pct; thumb.style.left=pct;
+        track.setAttribute('aria-valuenow', Math.round(s*100));
+        var cur=STOPS[0][1]; STOPS.forEach(function(st,i){ var on=s>=st[0]-0.005; els[i].classList.toggle('passed', on); if (on) cur=st[1]; });
+        track.setAttribute('aria-valuetext', cur);
+        var p=!!(R()&&R().playing); if (p!==lastPlaying){ lastPlaying=p; play.innerHTML=p?ICON_PAUSE:ICON_PLAY; play.setAttribute('aria-label', p?'Pause':'Ride to 3 Av–149 St'); } };
+    })();
+  </script>
+
 
   <script>
     (function () {
-      /* scroll zones (fraction of the pinned scene) — the train script uses the same ones */
-      var SCRUB_TO = 0.82;
-
-      var reduce  = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var scene   = document.getElementById('scene');
-      var stage   = document.getElementById('stage');
-      var veil    = document.getElementById('veil');
-
-      var clamp  = function (v,a,b){ return v<a?a:(v>b?b:v); };
-      var smooth = function (a,b,x){ var t=clamp((x-a)/(b-a),0,1); return t*t*(3-2*t); };
-
-      function progress(){
-        var total = scene.offsetHeight - window.innerHeight;
-        if (total <= 0) return 0;
-        return clamp(-scene.getBoundingClientRect().top / total, 0, 1);
-      }
-
-      var ready = false;
-      function frame(){
-        if (!ready && window.__ready){
-          ready = true;
-          veil.classList.add('hide');        // loading veil fades out once the train is built
-        }
-        var p = progress();
-
-        // gentle scale + fade of the scene near the end
-        var vfade = 1 - smooth(SCRUB_TO + 0.05, 1.0, p);
-        stage.style.opacity = vfade.toFixed(3);
-        stage.style.transform = 'scale(' + (1 + 0.06 * clamp(p/SCRUB_TO,0,1)).toFixed(4) + ')';
-
-        requestAnimationFrame(frame);
-      }
-      requestAnimationFrame(frame);
+      var veil = document.getElementById('veil');
+      (function wait(){ if (window.__ready) veil.classList.add('hide'); else requestAnimationFrame(wait); })();   // loading veil fades once the train is built
     })();
   </script>
   <script src="train-data.js"></script>
@@ -587,6 +645,7 @@ THREE.ColorManagement.enabled = false;
 
   let carProto=null, train=null, carLen=18, NCARS=10, gap=0.4;
   let pStart=0, homePos=null, homeTgt=null, keyOff=null;
+  const ambient={ sb:null, nb:null };
   const FRAME={n:0}, tunnelLights=[], envMats=new Map();
   const STOP_X=280;                                        // where car 1 comes to rest, inside the station
 
@@ -1181,6 +1240,9 @@ THREE.ColorManagement.enabled = false;
       train.add(car);
     }
     scene.add(train);
+    // ambient traffic for the hero view: one train each way, cycling (copies of ours, so they share geometry and materials)
+    ambient.sb=train.clone(); ambient.nb=train.clone(); ambient.nb.rotation.y=Math.PI; ambient.nb.position.z=TRACK2;
+    scene.add(ambient.sb, ambient.nb);
     window.__xF = xF; window.__pyToY = pyToY;
 
     // ground: planar reflector with a realistic falloff — dimmed, blended toward the floor
@@ -1710,16 +1772,36 @@ THREE.ColorManagement.enabled = false;
      approach (static loop camera) → follow the lead car into the tunnel → fly in through its side window
      → the train brakes into the station while the camera turns to the doors → the doors open. */
   const sceneEl = document.getElementById('scene');
-  const progress = ()=>{ const total=sceneEl.offsetHeight-innerHeight; return total<=0 ? 0 : Math.min(1,Math.max(0,-sceneEl.getBoundingClientRect().top/total)); };
   const smooth = (e0,e1,x)=>{ const t=Math.min(1,Math.max(0,(x-e0)/(e1-e0))); return t*t*(3-2*t); };
-  const SCRUB_TO=0.82;                                     // scroll zone, as the page overlay
-  let s=0;                                                  // eased scroll position, 0..1
+  let s=0;                                                  // eased ride position, 0..1 (0 = watching the traffic)
+  const RIDE = { target:0, playing:false, secs:18 };        // the scrubber writes target; play advances it
+  window.__ride = RIDE;
   // train speed vs scroll: pull away from rest, cruise, brake into the station (integrated into a position table)
   const BRAKE0=0.66, BRAKE1=0.84;
   const vel = t => t<0.08 ? t/0.08 : t<BRAKE0 ? 1 : t<BRAKE1 ? 1-(t-BRAKE0)/(BRAKE1-BRAKE0) : 0;
   const CUM=[0]; for (let i=1;i<=400;i++) CUM.push(CUM[i-1]+vel((i-0.5)/400)/400);
-  const trainX = t => { const f=Math.min(1,Math.max(0,t))*400, i=Math.floor(f), c=i>=400?CUM[400]:CUM[i]+(CUM[i+1]-CUM[i])*(f-i);
+  const trainX0 = t => { const f=Math.min(1,Math.max(0,t))*400, i=Math.floor(f), c=i>=400?CUM[400]:CUM[i]+(CUM[i+1]-CUM[i])*(f-i);
     return pStart + (STOP_X-pStart)*c/CUM[400]; };
+  // our train now starts out of sight in the haze and runs in (fast, easing to cruise) by t = 0.20, then follows the old profile
+  const XF=-600, T0=0.20;
+  const trainX = t => { if (t>=T0) return trainX0(t);
+    const D=trainX0(T0)-XF, m=T0*(STOP_X-pStart)/CUM[400], u=Math.max(0,t)/T0; return XF+(2*D-m)*u+(m-D)*u*u; };
+  const placeTrain=(g,X,dir)=>{ g.position.x=X; for (const car of g.children){ const cx=X+dir*car.position.x, ya=gradeY(cx-6.5), yf=gradeY(cx+6.5);
+    car.position.y=(ya+yf)/2; car.rotation.z=dir*Math.atan2(yf-ya,13); } };
+  // ambient schedule: positions of each train's lead car; when one finishes it waits a few seconds out of sight, then runs again
+  const AV=20;                                                              // m/s, about 45 mph
+  const AMB={ sb:{ x:-330, wait:0 }, nb:{ x:110, wait:0 } };
+  window.__AMB=AMB;
+  function runAmbient(dt, X){
+    const TLEN=NCARS*(carLen+gap), sb=AMB.sb, nb=AMB.nb, SB0=-600, SB1=TUNNEL.x0+TLEN+15, NB0=TUNNEL.x0+20, NB1=-800, riding=s>0.0005;
+    // northbound: out of the portal, past the camera, off into the haze
+    if (nb.wait>0){ nb.wait-=dt; if (nb.wait<=0) nb.x=NB0; } else { nb.x-=AV*dt; if (nb.x<NB1){ nb.wait=4+Math.random()*8; } }
+    ambient.nb.visible=nb.wait<=0; if (ambient.nb.visible) placeTrain(ambient.nb, nb.x, -1);
+    // southbound: in from the haze, past the camera, down the ramp and into the tunnel; while you ride it keeps clear ahead of you
+    if (sb.wait>0){ if (!riding){ sb.wait-=dt; if (sb.wait<=0) sb.x=SB0; } }
+    else { sb.x+=AV*dt; if (riding){ if (sb.x<X+60) { sb.wait=3; } else sb.x=Math.max(sb.x, X+TLEN+40); } if (sb.x>SB1) sb.wait=4+Math.random()*8; }
+    ambient.sb.visible=sb.wait<=0; if (ambient.sb.visible) placeTrain(ambient.sb, sb.x, 1);
+  }
   function setDoors(f){ for (const car of train.children) for (const leaf of (car.userData.leaves||[])) leaf.position.x=leaf.userData.dir*0.79*f; }
   const V=(x,y,z)=>new THREE.Vector3(x,y,z), lerpV=(a,b,t)=>a.clone().lerp(b,t);
   const bez=(p0,p1,p2,t)=>p0.clone().multiplyScalar((1-t)*(1-t)).add(p1.clone().multiplyScalar(2*(1-t)*t)).add(p2.clone().multiplyScalar(t*t));
@@ -1731,7 +1813,7 @@ THREE.ColorManagement.enabled = false;
   const FLY_C=WIN.clone().multiplyScalar(2).sub(CHASE_P.clone().add(SEAT_P).multiplyScalar(0.5));  // bezier passes through WIN
   const pos=new THREE.Vector3(), tgt=new THREE.Vector3();
   function choreo(t){
-    const X=trainX(t); train.position.x=X;
+    const X=trainX(t); train.position.x=X; train.visible=t>0.0005;
     for (const car of train.children){ const cx=X+car.position.x, ya=gradeY(cx-6.5), yf=gradeY(cx+6.5);
       car.position.y=(ya+yf)/2; car.rotation.z=Math.atan2(yf-ya,13); }
     const PY=train.children[0].position.y, rel=v=>v.clone().add(V(X,PY,0));
@@ -1817,12 +1899,17 @@ THREE.ColorManagement.enabled = false;
   addEventListener('resize', ()=>{ composer.setSize(vw(),vh()); finish.uniforms.res.value.set(vw(),vh()); });
 
   const clock = new THREE.Clock();
+  let heroOn=true; new IntersectionObserver(e=>{ heroOn=e[0].isIntersecting; }).observe(sceneEl);
   function tick(){
     FRAME.n++; window.__frames=FRAME.n;
     const dt=Math.min(clock.getDelta(),0.1);
     if (train){
-      if (reduce) choreo(0);                                    // reduced motion: the opening still, nothing moves
-      else { s += (smooth(0,SCRUB_TO,progress())-s)*Math.min(1,dt*9); choreo(s); }   // ease toward the scroll position
+      if (RIDE.playing){ RIDE.target=Math.min(1,RIDE.target+dt/RIDE.secs); if (RIDE.target>=1) RIDE.playing=false; }
+      if (reduce) s=RIDE.target; else s += (RIDE.target-s)*Math.min(1,dt*5);   // ease toward the scrubber
+      if (Math.abs(s-RIDE.target)<1e-4) s=RIDE.target;
+      choreo(s);
+      if (!reduce) runAmbient(dt, train.position.x); else { ambient.sb.visible=ambient.nb.visible=false; }
+      RIDE.shown=s; if (window.__rideUI) window.__rideUI(s);
     }
     finish.uniforms.time.value = clock.elapsedTime;
     rain.material.uniforms.time.value = snow.material.uniforms.time.value = clock.elapsedTime;
@@ -1831,7 +1918,7 @@ THREE.ColorManagement.enabled = false;
     if (WX.kind==='storm' && !reduce){ if (ATM.flashT<0 && Math.random()<dt/9) ATM.flashT=0;
       if (ATM.flashT>=0){ ATM.flashT+=dt; const f=ATM.flashT, a=(f<0.08?1:f<0.16?0.2:f<0.26?0.8:Math.max(0,1-(f-0.26)*4));
         sky.material.uniforms.flash.value=a; hemi.intensity+=a*2.2; if (f>0.6){ ATM.flashT=-1; sky.material.uniforms.flash.value=0; } } }
-    composer.render();
+    if (heroOn) composer.render();                            // the hero is off screen: skip the expensive frame
     requestAnimationFrame(tick);
   }
   tick();
