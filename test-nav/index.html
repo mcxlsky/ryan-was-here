@@ -237,10 +237,9 @@
 
     /* ---------- Placeholder sections below the hero ---------- */
     /* stacked sections: each is a full screen that sticks, and the next one slides up over it; the covered one drifts up
-       slower, shrinks a touch and dims (driven by --cover, 0..1, set on scroll) */
+       slower and shrinks a touch (driven by --cover, 0..1, set on scroll) */
     .sec { position: sticky; top: 0; height: 100vh; overflow: hidden; background: var(--sec-bg); color: var(--sec-ink); }
     .sec-body { height: 100%; padding: 170px 28px 120px; transform-origin: 50% 0; will-change: transform; }
-    .sec::after, .scene::after { content: ''; position: absolute; inset: 0; background: #000; opacity: calc(var(--cover, 0) * 0.55); pointer-events: none; z-index: 20; }
     #about   { --sec-bg: #e5ab00; --sec-ink: #141414; z-index: 2; }
     #work    { --sec-bg: #1f3f8f; --sec-ink: #ffffff; z-index: 3; }
     #process { --sec-bg: #c9302c; --sec-ink: #ffffff; z-index: 4; }
