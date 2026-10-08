@@ -196,7 +196,13 @@
     /* each stop's dash: a short stroke rising off the service line, the name picking up after a small gap */
     .rnav-stop::before { content: ''; position: absolute; left: 0; bottom: 0.22em; width: 13px; height: 1.25px; background: currentColor; border-radius: 1px; }
     .rnav-stop:hover, .rnav-stop:focus-visible { opacity: 1; outline: none; }
-    .rnav-stop[aria-current="page"] { opacity: 1; }
+    /* the current stop is boxed and captioned, like "This Stop / Jay St-MetroTech" on the strip map */
+    .rnav-stop[aria-current="page"] { opacity: 1; padding: 5px 9px 4px; border: 1px solid rgba(255,255,255,0.9); border-radius: 2px;
+                                      box-shadow: 0 1px 8px rgba(0,0,0,0.18); }
+    .rnav-stop[aria-current="page"]::before { display: none; }
+    .rnav-stop[aria-current="page"]::after { content: 'This stop'; position: absolute; left: 1px; bottom: 100%; margin-bottom: 5px;
+                                             font-size: 9.5px; font-weight: 500; letter-spacing: 0.04em; opacity: 0.72; }
+    .rnav-stops li:has(> [aria-current="page"]) { width: 44px; }   /* the box is thicker than a dash: give it room before the next stop */
     @media (max-width: 600px){
       .rnav { top: 10px; left: 18px; right: 18px; height: 64px; }
       .rnav-stops { padding-right: 38px; }
