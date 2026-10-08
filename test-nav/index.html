@@ -1920,13 +1920,14 @@ THREE.ColorManagement.enabled = false;
       const vm=new THREE.Mesh(m.geometry, velMat); vm.matrixAutoUpdate=false; vm.frustumCulled=false;
       vm.userData={ src:m, owner:g, prev:new THREE.Matrix4(), fresh:true }; vm.onBeforeRender=velBefore; velScene.add(vm); velMeshes.push(vm); });
     velReady=true; };
-  const SHUTTER=1/28;                                         // a slow shutter: exaggerated on purpose, for the sense of weight
+  const SHUTTER=1/40;                                         // a slow shutter: exaggerated on purpose, for the sense of weight
   const blurPass = (reduce) ? null : new ShaderPass({
     uniforms:{ tDiffuse:{ value:null }, tVel:{ value:velRT.texture }, res:{ value:new THREE.Vector2(vw(),vh()) }, on:{ value:0 } },
     vertexShader:`varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
     fragmentShader:`uniform sampler2D tDiffuse, tVel; uniform vec2 res; uniform float on; varying vec2 vUv;
-      const float MAXPX=64.;
-      vec2 clampV(vec2 v){ float l=length(v*res); return l>MAXPX ? v*MAXPX/l : v; }
+      const float MAXPX=56.;
+      // response: parts barely moving on screen stay sharp; the streak builds only as a car sweeps fast past the camera
+      vec2 clampV(vec2 v){ float l=length(v*res); if (l<1e-3) return v; float k=smoothstep(10.,46.,l)*min(1.,MAXPX/l); return v*k; }
       void main(){
         vec4 base=texture2D(tDiffuse,vUv);
         if (on<0.5){ gl_FragColor=base; return; }
