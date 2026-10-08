@@ -243,10 +243,10 @@
     .sec p.lede { font: 400 17px/1.6 var(--font-ui); opacity: 0.7; max-width: 560px; }
 
     /* ---------- Hero intro (placeholder copy), upper left under the R ---------- */
-    .intro { position: absolute; z-index: 5; left: 28px; top: 112px; max-width: min(15.5em, 62vw); pointer-events: none;
-             font: 600 clamp(34px, 4.4vw, 68px)/1.04 var(--font-ui); letter-spacing: -0.035em; color: #fff;
+    .intro { position: absolute; z-index: 5; left: max(28px, 7vw); top: calc(50% - 30px); transform: translateY(-50%); max-width: min(15.5em, 62vw); pointer-events: none;
+             font: 500 clamp(34px, 4.4vw, 68px)/1.04 var(--font-ui); letter-spacing: -0.035em; color: #fff;
              text-shadow: 0 1px 2px rgba(0,0,0,0.22), 0 4px 30px rgba(0,0,0,0.30); text-wrap: balance; transition: opacity .2s linear; }
-    @media (max-width: 600px){ .intro { left: 18px; right: 18px; top: 88px; max-width: none; font-size: 31px; line-height: 1.06; } }
+    @media (max-width: 600px){ .intro { left: 22px; right: 22px; top: calc(50% - 40px); max-width: none; font-size: 31px; line-height: 1.06; } }
     @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
   </style>
 </head>
@@ -268,7 +268,7 @@
           <li><button class="rnav-stop" data-go="contact">Contact</button></li>
         </ul>
       </nav>
-      <p class="intro" id="intro">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human-computer interaction, design systems, and software design for consumer and SaaS products.</p>
+      <p class="intro" id="intro">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
       <div class="ride" id="ride">
         <button class="ride-play" id="ridePlay" aria-label="Ride to 3 Av–149 St"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"/></svg></button>
         <div class="ride-track" id="rideTrack" role="slider" tabindex="0" aria-label="Ride along the line" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Elevated">
