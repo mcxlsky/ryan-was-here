@@ -172,68 +172,52 @@
       .bio { font-size: 15px; }
     }
 
-    /* ---------- Sleek wayfinding nav: an outlined R bullet, stops rising off it at the old sign's angle ---------- */
-    .rnav { position: fixed; top: 14px; left: 28px; right: 28px; z-index: 50; height: 74px; display: flex; align-items: center; justify-content: space-between;   /* R top-left, stops top-right */
-            pointer-events: none; }
-    .rnav * { pointer-events: auto; }
-    .rnav-r { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.92);
-              display: flex; align-items: center; justify-content: center; color: #fff;
-              font: 600 20px/1 var(--font-ui); letter-spacing: -0.02em; text-decoration: none; user-select: none;
-              text-shadow: 0 1px 6px rgba(0,0,0,0.25); box-shadow: 0 0 10px rgba(0,0,0,0.12), inset 0 0 10px rgba(0,0,0,0.08); }
-    .rnav-stops { position: relative; display: flex; align-items: flex-end; height: 100%; list-style: none; padding-right: 44px; }
-    /* the strip map's service line: one rule running under every stop */
-    .rnav-stops::after { content: ''; position: absolute; left: -10px; right: 22px; bottom: 0; height: 1px; background: rgba(255,255,255,0.6);
-                         box-shadow: 0 1px 6px rgba(0,0,0,0.25); pointer-events: none; }   /* stops rise ~64 px off the baseline, so the R sits at their middle */   /* room for the last stop's lean */
-    .rnav-stops li { position: relative; width: 33px; height: 100%; }
-    .rnav-stop {
-      -webkit-appearance: none; appearance: none; background: none; border: 0; cursor: pointer;
-      position: absolute; left: 0; bottom: 0; width: auto; text-align: left; white-space: nowrap;
-      transform-origin: 0 100%; transform: rotate(-58deg);
-      padding: 0 0 0 19px; line-height: 1;   /* room for the dash */
-      color: #fff; font: 500 12.5px/1 var(--font-ui); letter-spacing: 0.01em;
-      opacity: 0.55; text-shadow: 0 1px 6px rgba(0,0,0,0.35); transition: opacity .25s ease;
-    }
-    /* each stop's dash: a short stroke rising off the service line, the name picking up after a small gap */
-    .rnav-stop::before { content: ''; position: absolute; left: 0; bottom: 0.22em; width: 13px; height: 1.25px; background: currentColor; border-radius: 1px; }
-    .rnav-stop:hover, .rnav-stop:focus-visible { opacity: 1; outline: none; }
-    .rnav-stop[aria-current="page"] { opacity: 1; }
-    @media (max-width: 600px){
-      .rnav { top: 10px; left: 18px; right: 18px; height: 64px; }
-      .rnav-stops { padding-right: 38px; }
-      .rnav-r { width: 34px; height: 34px; font-size: 17px; }
-      .rnav-stops li { width: 28px; }
-      .rnav-stop { font-size: 11.5px; padding-left: 16px; }
-      .rnav-stop::before { width: 11px; }
-    }
+    /* ---------- Nav: a compact card (R + menu); it opens downward into a vertical strip map of the page ---------- */
+    .rnav { position: fixed; top: 16px; left: 18px; z-index: 50; width: 112px; color: #fff;
+            background: rgba(18,18,20,0.42); -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2);
+            border: 1px solid rgba(255,255,255,0.22); border-radius: 14px; overflow: hidden;
+            transition: width .35s cubic-bezier(.2,.8,.2,1); }
+    .rnav.open { width: 188px; }
+    .rnav-bar { display: flex; align-items: center; justify-content: space-between; height: 56px; padding: 0 10px 0 9px; }
+    .rnav-r { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.92); display: grid; place-items: center;
+              color: #fff; font: 600 19px/1 var(--font-ui); letter-spacing: -0.02em; text-decoration: none; user-select: none; }
+    .rnav-toggle { -webkit-appearance: none; appearance: none; background: none; border: 0; cursor: pointer; color: #fff;
+                   width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; }
+    .rnav-toggle:focus-visible, .rnav-r:focus-visible, .rnav-item:focus-visible { outline: 1px solid rgba(255,255,255,0.8); outline-offset: 2px; }
+    .rnav-toggle i { display: block; width: 20px; height: 1.5px; background: currentColor; border-radius: 1px; position: relative; transition: background .2s; }
+    .rnav-toggle i::before, .rnav-toggle i::after { content: ''; position: absolute; left: 0; width: 20px; height: 1.5px; background: currentColor; border-radius: 1px;
+                   transition: transform .3s cubic-bezier(.2,.8,.2,1), top .3s cubic-bezier(.2,.8,.2,1); }
+    .rnav-toggle i::before { top: -6px; } .rnav-toggle i::after { top: 6px; }
+    .rnav.open .rnav-toggle i { background: transparent; }
+    .rnav.open .rnav-toggle i::before { top: 0; transform: rotate(45deg); } .rnav.open .rnav-toggle i::after { top: 0; transform: rotate(-45deg); }
+    /* the menu: stops on a dashed vertical line, like a strip map turned on its side */
+    .rnav-menu { position: relative; max-height: 0; overflow: hidden; transition: max-height .35s cubic-bezier(.2,.8,.2,1); }
+    .rnav.open .rnav-menu { max-height: 280px; }
+    .rnav-menu ul { list-style: none; position: relative; padding: 4px 0 14px; border-top: 1px solid rgba(255,255,255,0.14); }
+    .rnav-menu ul::before { content: ''; position: absolute; left: 27px; top: 22px; bottom: 30px; border-left: 1.5px dashed rgba(255,255,255,0.45); }
+    .rnav-item { -webkit-appearance: none; appearance: none; background: none; border: 0; cursor: pointer; width: 100%; text-align: left;
+                 display: flex; align-items: center; gap: 14px; padding: 9px 12px 9px 22px; color: #fff; font: 500 15px/1 var(--font-ui);
+                 opacity: 0.62; transition: opacity .2s; }
+    .rnav-item::before { content: ''; flex: none; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid #fff; background: rgba(18,18,20,0.9); position: relative; z-index: 1; }
+    .rnav-item:hover, .rnav-item[aria-current="page"] { opacity: 1; }
+    .rnav-item[aria-current="page"]::before { background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.6); }
 
-    /* ---------- The ride scrubber: a strip map along the bottom of the hero ---------- */
-    .ride { position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%); z-index: 6;
-            display: flex; align-items: flex-end; gap: 16px; width: min(560px, calc(100% - 48px)); }
-    .ride-play { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.9);
-                 background: rgba(0,0,0,0.12); color: #fff; display: grid; place-items: center; cursor: pointer; margin-bottom: -16px;
-                 box-shadow: 0 0 10px rgba(0,0,0,0.15); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-    .ride-play svg { width: 12px; height: 12px; fill: currentColor; }
-    .ride-play:focus-visible, .ride-track:focus-visible { outline: 1px solid rgba(255,255,255,0.8); outline-offset: 4px; }
-    .ride-track { position: relative; flex: 1; height: 74px; margin-right: 50px; cursor: pointer; touch-action: none; }   /* room for the last stop's lean */
-    .ride-line, .ride-fill { position: absolute; left: 0; bottom: 0; height: 1px; border-radius: 1px; }
-    .ride-line { right: 0; background: rgba(255,255,255,0.35); }
-    .ride-fill { width: 0; background: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.45); }
-    .ride-stop { position: absolute; bottom: 0; width: 0; height: 100%; }
-    .ride-stop button { -webkit-appearance: none; appearance: none; background: none; border: 0; cursor: pointer;
-                        position: absolute; left: 0; bottom: 0; transform-origin: 0 100%; transform: rotate(-58deg);
-                        padding: 0 0 0 16px; white-space: nowrap; color: #fff; font: 500 11px/1 var(--font-ui); letter-spacing: 0.01em;
-                        opacity: 0.5; text-shadow: 0 1px 6px rgba(0,0,0,0.35); transition: opacity .25s ease; }
-    .ride-stop button::before { content: ''; position: absolute; left: 0; bottom: 0.22em; width: 11px; height: 1.25px; background: currentColor; border-radius: 1px; }
-    .ride-stop button:hover, .ride-stop.passed button { opacity: 1; }
-    .ride-thumb { position: absolute; bottom: 0; left: 0; width: 12px; height: 12px; margin: 0 0 -6px -6px; border-radius: 50%;
-                  background: #fff; box-shadow: 0 0 12px rgba(255,255,255,0.65); pointer-events: none; }
-    @media (max-width: 600px){
-      .ride { bottom: 62px; gap: 12px; }
-      .ride-track { margin-right: 44px; }
-      .ride-track { height: 64px; }
-      .ride-stop button { font-size: 10px; padding-left: 13px; }
-      .ride-stop button::before { width: 9px; }
-    }
+    /* ---------- The ride: one button that takes the next step along the line ---------- */
+    .ride { position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%); z-index: 6; }
+    .ride-next { -webkit-appearance: none; appearance: none; cursor: pointer; display: flex; align-items: center; gap: 12px;
+                 padding: 7px 18px 7px 7px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.28); color: #fff;
+                 background: rgba(18,18,20,0.42); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+                 font: 500 14px/1 var(--font-ui); white-space: nowrap; box-shadow: 0 6px 24px rgba(0,0,0,0.18); transition: border-color .2s, background .2s; }
+    .ride-next:hover { border-color: rgba(255,255,255,0.55); background: rgba(18,18,20,0.55); }
+    .ride-next:focus-visible { outline: 1px solid rgba(255,255,255,0.8); outline-offset: 3px; }
+    .ride-ico { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.9); display: grid; place-items: center; flex: none; }
+    .ride-ico svg { width: 12px; height: 12px; fill: currentColor; }
+    .ride-txt { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+    .ride-k { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.6; }
+    .ride-dots { display: flex; gap: 5px; margin-left: 6px; }
+    .ride-dots i { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.35); transition: background .3s; }
+    .ride-dots i.on { background: #fff; }
+    @media (max-width: 600px){ .ride { bottom: 62px; } }
 
     /* ---------- Placeholder sections below the hero ---------- */
     /* stacked sections: each is a full screen that sticks, and the next one slides up over it; the covered one drifts up
@@ -265,15 +249,19 @@
   </style>
 </head>
 <body>
-  <nav class="rnav" aria-label="Primary">
-        <a class="rnav-r" href="#" aria-label="Ryan — home">R</a>
-        <ul class="rnav-stops">
-          <li><button class="rnav-stop" data-go="about">About</button></li>
-          <li><button class="rnav-stop" data-go="work">Work</button></li>
-          <li><button class="rnav-stop" data-go="process">Process</button></li>
-          <li><button class="rnav-stop" data-go="contact">Contact</button></li>
-        </ul>
-      </nav>
+  <nav class="rnav" id="rnav" aria-label="Primary">
+    <div class="rnav-bar">
+      <a class="rnav-r" href="#" aria-label="Ryan — home">R</a>
+      <button class="rnav-toggle" id="rnavToggle" aria-expanded="false" aria-controls="rnavMenu" aria-label="Menu"><i></i></button>
+    </div>
+    <div class="rnav-menu" id="rnavMenu"><div><ul>
+      <li><button class="rnav-item rnav-stop" data-go="scene" tabindex="-1">Home</button></li>
+      <li><button class="rnav-item rnav-stop" data-go="about" tabindex="-1">About</button></li>
+      <li><button class="rnav-item rnav-stop" data-go="work" tabindex="-1">Work</button></li>
+      <li><button class="rnav-item rnav-stop" data-go="process" tabindex="-1">Process</button></li>
+      <li><button class="rnav-item rnav-stop" data-go="contact" tabindex="-1">Contact</button></li>
+    </ul></div></div>
+  </nav>
   <div class="snaps" aria-hidden="true"><div></div><div></div><div></div><div></div><div></div></div>
   <main class="scene" id="scene">
     <div class="sticky">
@@ -283,13 +271,12 @@
 
 
 
-      <p class="intro" id="intro">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
       <div class="ride" id="ride">
-        <button class="ride-play" id="ridePlay" aria-label="Ride to 3 Av–149 St"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"/></svg></button>
-        <div class="ride-track" id="rideTrack" role="slider" tabindex="0" aria-label="Ride along the line" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Elevated">
-          <div class="ride-line"></div><div class="ride-fill" id="rideFill"></div>
-          <div class="ride-thumb" id="rideThumb"></div>
-        </div>
+        <button class="ride-next" id="rideNext" type="button">
+          <span class="ride-ico" aria-hidden="true"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"/></svg></span>
+          <span class="ride-txt"><span class="ride-k" id="rideK">Next stop</span><span id="rideLabel">Down the ramp</span></span>
+          <span class="ride-dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i></i><i></i></span>
+        </button>
       </div>
       <div class="wx" id="wx" aria-live="polite"></div>
       <div class="veil" id="veil"><div class="spinner"></div></div>
@@ -319,41 +306,34 @@
           if (i>0) inner[i].style.transform = (p>0 && !reduce) ? 'translate3d(0,'+(-p*22).toFixed(2)+'vh,0)' : '';
           if (y >= tops[i]-h*0.5) cur=i; });
         window.__heroCovered = y >= tops[1];
-        stops.forEach(function(b){ if (cur>0 && b.dataset.go===ids[cur]) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
+        window.__heroScrolled = y > 2;            // once About starts sliding over, the hero holds its last frame (the GPU is the scroll's)
+        stops.forEach(function(b){ if (cur>=0 && b.dataset.go===ids[cur]) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
       var ticking=false; addEventListener('scroll', function(){ if (!ticking){ ticking=true; requestAnimationFrame(function(){ ticking=false; update(); }); } }, { passive:true });
       update();
       document.querySelector('.rnav-r').addEventListener('click', function(e){ e.preventDefault(); scrollTo({ top:0, behavior:'smooth' }); });
-      stops.forEach(function(b){ b.addEventListener('click', function(){ measure(); scrollTo({ top:tops[ids.indexOf(b.dataset.go)], behavior:'smooth' }); }); });
+      var nav=document.getElementById('rnav'), tog=document.getElementById('rnavToggle');
+      function setOpen(o){ nav.classList.toggle('open',o); tog.setAttribute('aria-expanded',o); tog.setAttribute('aria-label',o?'Close menu':'Menu');
+        stops.forEach(function(b){ b.tabIndex=o?0:-1; }); }
+      tog.addEventListener('click', function(){ setOpen(!nav.classList.contains('open')); });
+      document.addEventListener('keydown', function(e){ if (e.key==='Escape' && nav.classList.contains('open')){ setOpen(false); tog.focus(); } });
+      document.addEventListener('pointerdown', function(e){ if (nav.classList.contains('open') && !nav.contains(e.target)) setOpen(false); });
+      stops.forEach(function(b){ b.addEventListener('click', function(){ measure(); setOpen(false); scrollTo({ top:tops[ids.indexOf(b.dataset.go)], behavior:'smooth' }); }); });
     })();
 
-    /* ride scrubber: drag, click a stop, keys, or play; the scene eases to wherever it's set */
+    /* the ride: one button; each tap glides to the next stop along the line, and from the last stop it returns to the street */
     (function(){
       var STOPS=[[0,'Elevated'],[0.32,'Down the ramp'],[0.5,'Portal'],[0.64,'Aboard'],[1,'3 Av–149 St']];
-      var track=document.getElementById('rideTrack'), fill=document.getElementById('rideFill'), thumb=document.getElementById('rideThumb'), play=document.getElementById('ridePlay');
-      var R=function(){ return window.__ride; };
-      var els=STOPS.map(function(st){ var d=document.createElement('div'); d.className='ride-stop'; d.style.left=(st[0]*100)+'%';
-        var b=document.createElement('button'); b.type='button'; b.textContent=st[1]; b.tabIndex=-1;
-        b.addEventListener('click', function(e){ e.stopPropagation(); if (R()){ R().playing=false; R().target=st[0]; } });
-        d.appendChild(b); track.insertBefore(d, thumb); return d; });
-      var ICON_PLAY='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 1.5v9l7.5-4.5z"/></svg>', ICON_PAUSE='<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z"/></svg>';
-      var set=function(v){ if (!R()) return; R().playing=false; R().target=Math.min(1,Math.max(0,v)); };
-      var at=function(e){ var r=track.getBoundingClientRect(); return (e.clientX-r.left)/r.width; };
-      var drag=false;
-      track.addEventListener('pointerdown', function(e){ drag=true; track.setPointerCapture(e.pointerId); set(at(e)); });
-      track.addEventListener('pointermove', function(e){ if (drag) set(at(e)); });
-      track.addEventListener('pointerup', function(){ drag=false; });
-      track.addEventListener('keydown', function(e){ if (!R()) return; var v=R().target, k=e.key;
-        if (k==='ArrowRight'||k==='ArrowUp') v+=0.02; else if (k==='ArrowLeft'||k==='ArrowDown') v-=0.02; else if (k==='PageUp') v+=0.1; else if (k==='PageDown') v-=0.1;
-        else if (k==='Home') v=0; else if (k==='End') v=1; else return; e.preventDefault(); set(v); });
-      play.addEventListener('click', function(){ if (!R()) return; var r=R(); if (r.playing){ r.playing=false; return; } if (r.target>=1) r.target=0; r.playing=true; });
-      var lastPlaying=null;
-      var intro=document.getElementById('intro');
-      window.__rideUI=function(s){ intro.style.opacity=Math.max(0,1-s/0.06).toFixed(3);   // the intro steps aside once the ride starts
-        var pct=(s*100).toFixed(2)+'%'; fill.style.width=pct; thumb.style.left=pct;
-        track.setAttribute('aria-valuenow', Math.round(s*100));
-        var cur=STOPS[0][1]; STOPS.forEach(function(st,i){ var on=s>=st[0]-0.005; els[i].classList.toggle('passed', on); if (on) cur=st[1]; });
-        track.setAttribute('aria-valuetext', cur);
-        var p=!!(R()&&R().playing); if (p!==lastPlaying){ lastPlaying=p; play.innerHTML=p?ICON_PAUSE:ICON_PLAY; play.setAttribute('aria-label', p?'Pause':'Ride to 3 Av–149 St'); } };
+      var btn=document.getElementById('rideNext'), lab=document.getElementById('rideLabel'), k=document.getElementById('rideK'),
+          dots=[].slice.call(document.querySelectorAll('.ride-dots i')), intro=document.getElementById('intro');
+      var R=function(){ return window.__ride; }, at=0;          // index of the stop we're at (or heading to)
+      function show(){ var last=at===STOPS.length-1; k.textContent=last?'Last stop':'Next stop'; lab.textContent=last?'Back to the street':STOPS[at+1][1];
+        btn.setAttribute('aria-label', last?'Back to the street':'Next stop: '+STOPS[at+1][1]);
+        dots.forEach(function(d,i){ d.classList.toggle('on', i<=at); }); }
+      btn.addEventListener('click', function(){ var r=R(); if (!r) return;
+        if (at===STOPS.length-1){ at=0; r.go(0,true); } else { at++; r.go(STOPS[at][0]); } show(); });
+      show();
+      var lastS=-1;
+      window.__rideUI=function(s){ if (s===lastS || !intro) return; lastS=s; intro.style.opacity=Math.max(0,1-s/0.06).toFixed(3); };   // the intro (when present) steps aside once the ride starts
     })();
   </script>
 
@@ -1866,7 +1846,9 @@ THREE.ColorManagement.enabled = false;
   const sceneEl = document.getElementById('scene');
   const smooth = (e0,e1,x)=>{ const t=Math.min(1,Math.max(0,(x-e0)/(e1-e0))); return t*t*(3-2*t); };
   let s=0;                                                  // eased ride position, 0..1 (0 = watching the traffic)
-  const RIDE = { target:0, playing:false, secs:18 };        // the scrubber writes target; play advances it
+  const RIDE = { target:0, anim:null };                    // the ride button calls go(); target glides there (ease in-out)
+  RIDE.go=(to,cut)=>{ if (cut){ RIDE.anim=null; RIDE.target=to; RIDE.cut=true; return; }
+    const from=RIDE.target; RIDE.anim={ from, to, t:0, dur:Math.max(2.2, Math.abs(to-from)*16) }; };
   window.__ride = RIDE;
   // train speed vs scroll: pull away from rest, cruise, brake into the station (integrated into a position table)
   const BRAKE0=0.66, BRAKE1=0.84;
@@ -2042,7 +2024,9 @@ THREE.ColorManagement.enabled = false;
     FRAME.n++; window.__frames=FRAME.n;
     const dt=Math.min(clock.getDelta(),0.1);
     if (train){
-      if (RIDE.playing){ RIDE.target=Math.min(1,RIDE.target+dt/RIDE.secs); if (RIDE.target>=1) RIDE.playing=false; }
+      if (RIDE.anim){ const a=RIDE.anim; a.t=Math.min(1,a.t+dt/a.dur); const e=a.t<0.5?4*a.t*a.t*a.t:1-Math.pow(-2*a.t+2,3)/2;
+        RIDE.target=a.from+(a.to-a.from)*e; if (a.t>=1) RIDE.anim=null; }
+      if (RIDE.cut){ s=RIDE.target; RIDE.cut=false; }
       if (reduce) s=RIDE.target; else s += (RIDE.target-s)*Math.min(1,dt*5);   // ease toward the scrubber
       if (Math.abs(s-RIDE.target)<1e-4) s=RIDE.target;
       choreo(s);
@@ -2056,7 +2040,7 @@ THREE.ColorManagement.enabled = false;
     if (WX.kind==='storm' && !reduce){ if (ATM.flashT<0 && Math.random()<dt/9) ATM.flashT=0;
       if (ATM.flashT>=0){ ATM.flashT+=dt; const f=ATM.flashT, a=(f<0.08?1:f<0.16?0.2:f<0.26?0.8:Math.max(0,1-(f-0.26)*4));
         sky.material.uniforms.flash.value=a; hemi.intensity+=a*2.2; if (f>0.6){ ATM.flashT=-1; sky.material.uniforms.flash.value=0; } } }
-    if (heroOn && blurPass && ambient.sb){
+    if (heroOn && !window.__heroScrolled && blurPass && ambient.sb){
       if (!velReady) buildVel();
       camera.updateMatrixWorld(); curVP.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       let any=false;
@@ -2081,7 +2065,7 @@ THREE.ColorManagement.enabled = false;
           else if (perf.step===2 && gtao) gtao.enabled=false;
           else if (perf.step===4 && bokeh) bokeh.enabled=false;
           window.__perfStep=perf.step; } } }
-    if (heroOn && !window.__heroCovered) composer.render();   // the hero is covered by the sections: skip the expensive frame
+    if (heroOn && !window.__heroScrolled) composer.render();  // frozen while the sections slide over it; resumes back at the top
     requestAnimationFrame(tick);
   }
   tick();
