@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bronx Weather</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --gold: #e5ab00; --ink: #f2f2f0; --bg: #0f0f10; --card: #18181a; --line: rgba(255,255,255,0.08);
+            --font: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; color-scheme: dark; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+
+    /* the gold R tile, same as the home page: back to the street */
+    .rhome { position: fixed; top: 0; left: 0; z-index: 10; width: 74px; height: 74px; display: grid; place-items: center;
+             background: var(--gold); color: #111; font: 700 46px/1 var(--font); letter-spacing: -0.03em; padding-top: 2px; }
+
+    main { max-width: 1180px; margin: 0 auto; padding: 150px 40px 100px; }
+    .k { font: 500 12px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; margin-bottom: 18px; }
+    h1 { font: 500 clamp(44px, 7vw, 96px)/1 var(--font); letter-spacing: -0.04em; margin-bottom: 14px; }
+    .sub { font: 400 16px/1.5 var(--font); opacity: 0.6; }
+    .now { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; margin-top: 64px; }
+    .panel { background: #18181a; border: 1px solid var(--line); padding: 26px 28px; }
+    .panel.gold { background: var(--gold); color: #111; border-color: var(--gold); }
+    .lbl { font: 600 11px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.6; margin-bottom: 18px; }
+    .clock { font: 500 clamp(64px, 9vw, 120px)/0.95 var(--font); letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+    .clock small { font-size: 0.24em; letter-spacing: 0; margin-left: 8px; font-weight: 600; }
+    .date { font: 500 15px/1.4 var(--font); margin-top: 14px; opacity: 0.75; }
+    .temp { display: flex; align-items: center; gap: 18px; }
+    .temp b { font: 500 clamp(64px, 9vw, 120px)/0.95 var(--font); letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+    .temp svg { width: 64px; height: 64px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .cond { font: 500 17px/1.4 var(--font); margin-top: 14px; }
+    .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 18px; }
+    .fact { background: var(--bg); padding: 18px 20px; }
+    .fact span { display: block; font: 500 11px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; margin-bottom: 10px; }
+    .fact b { font: 500 22px/1 var(--font); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .hours { display: grid; grid-template-columns: repeat(12, minmax(56px, 1fr)); gap: 8px; margin-top: 18px; overflow-x: auto; }
+    .hr { border: 1px solid var(--line); padding: 14px 8px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+    .hr span { font: 500 12px/1 var(--font); opacity: 0.55; }
+    .hr svg { width: 22px; height: 22px; fill: none; stroke: var(--gold); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .hr b { font: 500 16px/1 var(--font); font-variant-numeric: tabular-nums; }
+    .note { font: 400 13px/1.5 var(--font); opacity: 0.45; margin-top: 22px; }
+    .off .need { opacity: 0.35; }
+    @media (max-width: 720px){
+      main { padding: 120px 22px 60px; }
+      .now { grid-template-columns: 1fr; margin-top: 40px; }
+      .facts { grid-template-columns: 1fr 1fr; }
+      .hours { grid-template-columns: repeat(12, 60px); }
+    }
+    /* ---------- Footer (shared with the other pages) ---------- */
+    .foot { position: relative; background: #0f0f10; border-top: 1px solid rgba(255,255,255,0.08); color: #f2f2f0; padding: 64px 40px 26px; }
+    .foot-grid { display: grid; grid-template-columns: 2.6fr repeat(2, 1fr); gap: 32px; max-width: 1180px; margin: 0 auto; }
+    .foot-name { font: 600 17px/1.3 var(--font); letter-spacing: -0.01em; }
+    .foot-role { font: 400 14px/1.4 var(--font); opacity: 0.62; margin-top: 4px; }
+    .foot h4 { font: 500 11px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.45; margin-bottom: 18px; }
+    .foot ul { list-style: none; display: grid; gap: 14px; }
+    .foot a, .foot button { color: #f2f2f0; text-decoration: none; font: 400 14px/1.2 var(--font); opacity: 0.78; background: none; border: 0; padding: 0; cursor: pointer; transition: opacity .2s; }
+    .foot a:hover, .foot button:hover { opacity: 1; }
+    .foot a:focus-visible, .foot button:focus-visible { outline: 1px solid rgba(255,255,255,0.7); outline-offset: 3px; }
+    .foot-base { display: flex; justify-content: space-between; gap: 16px; max-width: 1180px; margin: 72px auto 0; padding-top: 18px;
+                 border-top: 1px solid rgba(255,255,255,0.08); font: 400 12px/1.4 var(--font); opacity: 0.45; }
+    .foot-base { align-items: center; }
+    .foot-social { display: flex; gap: 18px; }
+    .foot-base .foot-social a { display: grid; place-items: center; opacity: 1; }
+    .foot-social svg { width: 18px; height: 18px; fill: #f2f2f0; opacity: 0.7; transition: opacity .2s; }
+    .foot-social a:hover svg { opacity: 1; }
+    @media (max-width: 720px){
+      .foot { padding: 48px 22px 24px; }
+      .foot-grid { grid-template-columns: 1fr 1fr; gap: 36px 24px; }
+      .foot-id { grid-column: 1 / -1; }
+      .foot-base { flex-direction: column-reverse; align-items: flex-start; gap: 18px; margin-top: 48px; }
+    }
+
+  </style>
+</head>
+<body>
+  <a class="rhome" href="index.html" aria-label="Back to the street">R</a>
+  <main id="main">
+    <p class="k">Weather</p>
+    <h1>The Bronx</h1>
+    <p class="sub">3 Av–149 St · live from Open-Meteo</p>
+    <div class="now">
+      <section class="panel gold" aria-label="Local time">
+        <p class="lbl">Local time</p>
+        <div class="clock" id="clock">--:--</div>
+        <p class="date" id="date">&nbsp;</p>
+      </section>
+      <section class="panel need" aria-label="Current weather">
+        <p class="lbl">Right now</p>
+        <div class="temp"><b id="temp">—°</b><span id="icon" aria-hidden="true"></span></div>
+        <p class="cond" id="cond">Loading the weather…</p>
+      </section>
+    </div>
+    <div class="facts need" aria-label="Details">
+      <div class="fact"><span>Feels like</span><b id="feels">—</b></div>
+      <div class="fact"><span>High / Low</span><b id="hilo">—</b></div>
+      <div class="fact"><span>Humidity</span><b id="hum">—</b></div>
+      <div class="fact"><span>Wind</span><b id="wind">—</b></div>
+    </div>
+    <div class="hours need" id="hours" aria-label="Next 12 hours"></div>
+    <p class="note" id="note">Updates every 10 minutes.</p>
+  </main>
+  <footer class="foot">
+    <div class="foot-grid">
+      <div class="foot-id"><div class="foot-name">Ryan McCaulsky</div><div class="foot-role">Design Engineer</div></div>
+      <nav aria-label="Pages"><h4>Pages</h4><ul><li><a href="index.html">Home</a></li><li><a href="work.html">Work</a></li><li><a href="index.html#about">About</a></li></ul></nav>
+      <div><h4>Resources</h4><ul><li><a href="#">Download résumé</a></li><li><button type="button" id="copyEmail">Copy email</button></li></ul></div>
+    </div>
+    <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span><span class="foot-social">
+        <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 1.6a10.4 10.4 0 0 0-3.3 20.3c.5.1.7-.2.7-.5v-1.8c-2.9.6-3.5-1.4-3.5-1.4-.5-1.2-1.2-1.5-1.2-1.5-.9-.6.1-.6.1-.6 1 .1 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.7-1.2-4.7-5.1 0-1.1.4-2 1.1-2.7-.1-.3-.5-1.3.1-2.8 0 0 .9-.3 2.9 1.1a9.8 9.8 0 0 1 5.2 0c2-1.4 2.9-1.1 2.9-1.1.6 1.5.2 2.5.1 2.8.7.7 1.1 1.6 1.1 2.7 0 3.9-2.4 4.8-4.7 5.1.4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A10.4 10.4 0 0 0 12 1.6z"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.4 2H3.6C2.7 2 2 2.7 2 3.6v16.8c0 .9.7 1.6 1.6 1.6h16.8c.9 0 1.6-.7 1.6-1.6V3.6c0-.9-.7-1.6-1.6-1.6zM8 19H5V9.5h3V19zM6.5 8.2a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5zM19 19h-3v-4.6c0-1.1 0-2.5-1.5-2.5S12.8 13 12.8 14.3V19h-3V9.5h2.9v1.3c.4-.8 1.4-1.5 2.8-1.5 3 0 3.6 2 3.6 4.6V19z"/></svg></a>
+        <a href="#" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.8 2.5h3.1l-6.8 7.8 8 10.6h-6.3l-4.9-6.4-5.6 6.4H2.2l7.3-8.3L1.8 2.5h6.4l4.4 5.9 5.2-5.9zm-1.1 16.5h1.7L7.3 4.3H5.5L16.7 19z"/></svg></a>
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 3.2c2.9 0 3.2 0 4.3.1 1 0 1.6.2 2 .4.5.2.8.4 1.2.8.4.4.6.7.8 1.2.1.4.3 1 .4 2 .1 1.1.1 1.4.1 4.3s0 3.2-.1 4.3c0 1-.2 1.6-.4 2-.2.5-.4.8-.8 1.2-.4.4-.7.6-1.2.8-.4.1-1 .3-2 .4-1.1.1-1.4.1-4.3.1s-3.2 0-4.3-.1c-1 0-1.6-.2-2-.4a3.3 3.3 0 0 1-1.2-.8c-.4-.4-.6-.7-.8-1.2-.1-.4-.3-1-.4-2-.1-1.1-.1-1.4-.1-4.3s0-3.2.1-4.3c0-1 .2-1.6.4-2 .2-.5.4-.8.8-1.2.4-.4.7-.6 1.2-.8.4-.1 1-.3 2-.4 1.1-.1 1.4-.1 4.3-.1M12 1.3c-2.9 0-3.3 0-4.4.1-1.1 0-1.9.2-2.6.5-.7.3-1.3.6-1.9 1.2S2.2 4.3 1.9 5C1.6 5.7 1.4 6.5 1.4 7.6 1.3 8.7 1.3 9.1 1.3 12s0 3.3.1 4.4c0 1.1.2 1.9.5 2.6.3.7.6 1.3 1.2 1.9.6.6 1.2.9 1.9 1.2.7.3 1.5.4 2.6.5 1.1.1 1.5.1 4.4.1s3.3 0 4.4-.1c1.1 0 1.9-.2 2.6-.5.7-.3 1.3-.6 1.9-1.2.6-.6.9-1.2 1.2-1.9.3-.7.4-1.5.5-2.6.1-1.1.1-1.5.1-4.4s0-3.3-.1-4.4c0-1.1-.2-1.9-.5-2.6-.3-.7-.6-1.3-1.2-1.9-.6-.6-1.2-.9-1.9-1.2-.7-.3-1.5-.4-2.6-.5-1.1-.1-1.5-.1-4.4-.1zm0 5.2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zm0 9.1a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2zm5.7-10.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg></a>
+      </span></div>
+  </footer>
+  <script>
+    document.getElementById('yr').textContent=new Date().getFullYear();
+    var ce=document.getElementById('copyEmail');
+    ce.addEventListener('click', function(){ var t=ce.textContent; ce.textContent='Email coming soon'; setTimeout(function(){ ce.textContent=t; }, 1600); });
+
+    var TZ='America/New_York', LAT=40.8164, LON=-73.9175;
+    var $=function(id){ return document.getElementById(id); };
+    // local time, every second
+    function tick(){ var d=new Date(), p=new Intl.DateTimeFormat('en-US',{ timeZone:TZ, hour:'numeric', minute:'2-digit' }).formatToParts(d);
+      var hm=p.filter(function(x){ return x.type==='hour'||x.type==='minute'||(x.type==='literal'&&x.value===':'); }).map(function(x){ return x.value; }).join('');
+      var ap=(p.find(function(x){ return x.type==='dayPeriod'; })||{}).value||'';
+      $('clock').innerHTML=hm+'<small>'+ap+'</small>';
+      $('date').textContent=new Intl.DateTimeFormat('en-US',{ timeZone:TZ, weekday:'long', month:'long', day:'numeric' }).format(d); }
+    tick(); setInterval(tick, 1000);
+
+    // weather
+    var LABEL=function(c){ return c===0?'Clear': c===1?'Mostly clear': c===2?'Partly cloudy': c===3?'Overcast': (c===45||c===48)?'Fog': (c>=51&&c<=57)?'Drizzle':
+      (c>=61&&c<=67)?'Rain': (c>=71&&c<=77)?'Snow': (c>=80&&c<=82)?'Showers': (c===85||c===86)?'Snow showers': c>=95?'Thunderstorm':'—'; };
+    var ICON=function(c,day){ var sun='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>',
+        moon='<svg viewBox="0 0 24 24"><path d="M19.5 14.6A7.8 7.8 0 0 1 9.4 4.5a7.8 7.8 0 1 0 10.1 10.1z"/></svg>',
+        cloud='<svg viewBox="0 0 24 24"><path d="M7 18.5h10a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.4A3.3 3.3 0 0 0 7 18.5z"/></svg>',
+        rain='<svg viewBox="0 0 24 24"><path d="M7 15h10a4 4 0 0 0 .4-8 5.5 5.5 0 0 0-10.6 1.4A3.3 3.3 0 0 0 7 15z"/><path d="M9 18l-1 2.5M13 18l-1 2.5M17 18l-1 2.5"/></svg>',
+        snow='<svg viewBox="0 0 24 24"><path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/></svg>';
+      return c<=1?(day?sun:moon): ((c>=51&&c<=67)||(c>=80&&c<=82)||c>=95)?rain: ((c>=71&&c<=77)||c===85||c===86)?snow: cloud; };
+    function load(){
+      var url='https://api.open-meteo.com/v1/forecast?latitude='+LAT+'&longitude='+LON+
+        '&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day'+
+        '&hourly=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&forecast_days=2'+
+        '&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=America%2FNew_York';
+      var ctl=new AbortController(), to=setTimeout(function(){ ctl.abort(); }, 8000);
+      fetch(url,{ signal:ctl.signal }).then(function(r){ clearTimeout(to); if (!r.ok) throw 0; return r.json(); }).then(function(j){
+        document.body.classList.remove('off'); var c=j.current;
+        $('temp').textContent=Math.round(c.temperature_2m)+'°'; $('icon').innerHTML=ICON(c.weather_code,c.is_day);
+        $('cond').textContent=LABEL(c.weather_code);
+        $('feels').textContent=Math.round(c.apparent_temperature)+'°';
+        $('hilo').textContent=Math.round(j.daily.temperature_2m_max[0])+'° / '+Math.round(j.daily.temperature_2m_min[0])+'°';
+        $('hum').textContent=Math.round(c.relative_humidity_2m)+'%'; $('wind').textContent=Math.round(c.wind_speed_10m)+' mph';
+        var now=c.time.slice(0,13), i=Math.max(0,j.hourly.time.findIndex(function(t){ return t.slice(0,13)===now; })), h='';
+        for (var k=i;k<i+12&&k<j.hourly.time.length;k++){ var hr=+j.hourly.time[k].slice(11,13), lab=k===i?'Now':((hr%12)||12)+(hr<12?'a':'p');
+          h+='<div class="hr"><span>'+lab+'</span>'+ICON(j.hourly.weather_code[k],j.hourly.is_day[k])+'<b>'+Math.round(j.hourly.temperature_2m[k])+'°</b></div>'; }
+        $('hours').innerHTML=h;
+        $('note').textContent='Updated '+new Intl.DateTimeFormat('en-US',{ timeZone:TZ, hour:'numeric', minute:'2-digit' }).format(new Date())+' · refreshes every 10 minutes.';
+      }).catch(function(){ document.body.classList.add('off');
+        $('cond').textContent="Couldn't reach the weather service from here."; $('note').textContent='The local time above is live; the weather will fill in when the service is reachable.'; });
+    }
+    load(); setInterval(load, 600000);
+  </script>
+</body>
+</html>
