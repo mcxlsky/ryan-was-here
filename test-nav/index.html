@@ -149,6 +149,7 @@
       padding: 6px 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       opacity: 0; transition: opacity .6s ease; }
     .wx.on { opacity: 1; }
+    .wx[hidden] { display: none; }
     .veil { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; background: #000; transition: opacity .6s ease; }
     .veil.hide { opacity: 0; pointer-events: none; }
     .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.18); border-top-color: var(--accent); animation: spin .9s linear infinite; }
@@ -269,7 +270,7 @@
       <div class="ride" id="ride">
         <button class="ride-next" id="rideNext" type="button" aria-label="Next stop"><span class="ride-ico" id="rideIco" aria-hidden="true"></span></button>
       </div>
-      <div class="wx" id="wx" aria-live="polite"></div>
+      <div class="wx" id="wx" hidden></div>   <!-- time / weather readout, hidden for now -->
       <div class="veil" id="veil"><div class="spinner"></div></div>
     </div>
   </main>
@@ -1837,7 +1838,8 @@ THREE.ColorManagement.enabled = false;
   let s=0;                                                  // eased ride position, 0..1 (0 = watching the traffic)
   const RIDE = { target:0, anim:null };                    // the ride button calls go(); target glides there (ease in-out)
   RIDE.go=(to,cut)=>{ if (cut){ RIDE.anim=null; RIDE.target=to; RIDE.cut=true; return; }
-    const from=RIDE.target; RIDE.anim={ from, to, t:0, dur:Math.max(2.2, Math.abs(to-from)*16) }; };
+    const from=RIDE.target; if (from<0.001 && to>0) AMB.clear=true;          // setting off: clear the line
+    RIDE.anim={ from, to, t:0, dur:Math.max(2.2, Math.abs(to-from)*16) }; };
   window.__ride = RIDE;
   // train speed vs scroll: pull away from rest, cruise, brake into the station (integrated into a position table)
   const BRAKE0=0.66, BRAKE1=0.84;
@@ -1861,13 +1863,19 @@ THREE.ColorManagement.enabled = false;
     const camX=homePos?homePos.x:16, GAP=7;
     const passIn=(t,dir,x0)=>t.wait>0 ? t.wait+dir*(camX-x0)/AV : (dir*(camX-t.x)>0 ? dir*(camX-t.x)/AV : -1);   // seconds until its cab passes the camera
     const stagger=(t,dir,x0,o,odir,ox0)=>{ const q=passIn(o,odir,ox0), p=passIn(t,dir,x0); if (q>0 && Math.abs(p-q)<GAP) t.wait+=q+GAP-p; };
+    // pressing play clears the line: a train still in view speeds up and runs out of the shot; one already lost in the
+    // haze just goes; nothing new comes through until our train is under the street
+    if (AMB.clear){ AMB.clear=false;
+      if (sb.wait<=0){ if (sb.x<-300) sb.wait=4; else sb.boost=true; }
+      if (nb.wait<=0){ if (nb.x+TLEN<-250) nb.wait=4; else nb.boost=true; } }
+    const hold=riding && s<0.5, spd=t=>{ t.mult=t.boost?Math.min(5,(t.mult||1)+dt*4):1; return AV*t.mult; };
     // northbound: out of the portal, past the camera, off into the haze
-    if (nb.wait>0){ nb.wait-=dt; if (nb.wait<=0) nb.x=NB0; }
-    else { nb.x-=AV*dt; if (nb.x<NB1){ nb.wait=3+Math.random()*9; stagger(nb,-1,NB0, sb,1,SB0); } }
+    if (nb.wait>0){ if (!hold){ nb.wait-=dt; if (nb.wait<=0) nb.x=NB0; } }
+    else { nb.x-=spd(nb)*dt; if (nb.x<NB1){ nb.boost=false; nb.wait=3+Math.random()*9; stagger(nb,-1,NB0, sb,1,SB0); } }
     ambient.nb.visible=nb.wait<=0; if (ambient.nb.visible) placeTrain(ambient.nb, nb.x, -1);
     // southbound: in from the haze, past the camera, down the ramp and into the tunnel; while you ride it keeps clear ahead of you
     if (sb.wait>0){ if (!riding){ sb.wait-=dt; if (sb.wait<=0) sb.x=SB0; } }
-    else { sb.x+=AV*dt; if (riding){ if (sb.x<X+60) { sb.wait=3; } else sb.x=Math.max(sb.x, X+TLEN+40); } if (sb.x>SB1){ sb.wait=5+Math.random()*10; stagger(sb,1,SB0, nb,-1,NB0); } }
+    else { sb.x+=spd(sb)*dt; if (riding){ if (sb.x<X+60) { sb.wait=3; } else sb.x=Math.max(sb.x, X+TLEN+40); } if (sb.x>SB1){ sb.boost=false; sb.wait=5+Math.random()*10; stagger(sb,1,SB0, nb,-1,NB0); } }
     ambient.sb.visible=sb.wait<=0; if (ambient.sb.visible) placeTrain(ambient.sb, sb.x, 1);
   }
   function setDoors(f){ for (const car of train.children) for (const leaf of (car.userData.leaves||[])) leaf.position.x=leaf.userData.dir*0.79*f; }
