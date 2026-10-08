@@ -306,7 +306,6 @@
           if (i>0) inner[i].style.transform = (p>0 && !reduce) ? 'translate3d(0,'+(-p*22).toFixed(2)+'vh,0)' : '';
           if (y >= tops[i]-h*0.5) cur=i; });
         window.__heroCovered = y >= tops[1];
-        window.__heroScrolled = y > 2;            // once About starts sliding over, the hero holds its last frame (the GPU is the scroll's)
         stops.forEach(function(b){ if (cur>=0 && b.dataset.go===ids[cur]) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); }); }
       var ticking=false; addEventListener('scroll', function(){ if (!ticking){ ticking=true; requestAnimationFrame(function(){ ticking=false; update(); }); } }, { passive:true });
       update();
@@ -1325,7 +1324,7 @@ THREE.ColorManagement.enabled = false;
     });
     reflector.rotation.x = -Math.PI/2; reflector.position.set((CUT0-1200)/2, floorY+STREET, 0); scene.add(reflector); floorRef=reflector;
     { const before=reflector.onBeforeRender; let last=-1;
-      reflector.onBeforeRender=function(r,sc,cam){ if (last===FRAME.n) return; last=FRAME.n; before.call(this,r,sc,cam); }; }
+      reflector.onBeforeRender=function(r,sc,cam){ if (last===FRAME.n || FRAME.lite) return; last=FRAME.n; before.call(this,r,sc,cam); }; }   // lite: keep last reflection
     const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(CUT0+1200, 200), new THREE.ShadowMaterial({ opacity:0.3 })); shadowRef=shadowPlane;
     shadowPlane.rotation.x = -Math.PI/2; shadowPlane.position.set((CUT0-1200)/2, floorY+STREET+0.002, 0); shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
@@ -2040,7 +2039,12 @@ THREE.ColorManagement.enabled = false;
     if (WX.kind==='storm' && !reduce){ if (ATM.flashT<0 && Math.random()<dt/9) ATM.flashT=0;
       if (ATM.flashT>=0){ ATM.flashT+=dt; const f=ATM.flashT, a=(f<0.08?1:f<0.16?0.2:f<0.26?0.8:Math.max(0,1-(f-0.26)*4));
         sky.material.uniforms.flash.value=a; hemi.intensity+=a*2.2; if (f>0.6){ ATM.flashT=-1; sky.material.uniforms.flash.value=0; } } }
-    if (heroOn && !window.__heroScrolled && blurPass && ambient.sb){
+    // how much of the hero the About section covers, read straight from the scroll position each frame:
+    // ~0 → full quality; partly covered → lite (trains keep running, the costly extras pause); fully covered → no render
+    const cover=Math.min(1,Math.max(0,scrollY/Math.max(1,sceneEl.offsetHeight))), lite=cover>0.03 && cover<0.999;
+    if (lite!==FRAME.lite){ FRAME.lite=lite;
+      if (gtao) gtao.enabled=!lite && !(perf.step>=2); if (bokeh) bokeh.enabled=!lite && !(perf.step>=4); if (blurPass) blurPass.enabled=!lite; }
+    if (heroOn && cover<0.999 && !lite && blurPass && ambient.sb){
       if (!velReady) buildVel();
       camera.updateMatrixWorld(); curVP.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
       let any=false;
@@ -2058,14 +2062,14 @@ THREE.ColorManagement.enabled = false;
       prevVP.copy(curVP);
     }
     // quality governor: if frames run slow for ~2 s, step down one notch (resolution, then AO, then depth of field)
-    if (heroOn && FRAME.n>90){ perf.t+=dt; perf.n++;
+    if (heroOn && !lite && cover<0.999 && FRAME.n>90){ perf.t+=dt; perf.n++;
       if (perf.t>2){ const avg=perf.t/perf.n; perf.t=perf.n=0;
         if (avg>1/42 && perf.step<4){ perf.step++;
           if (perf.step===1||perf.step===3){ const pr=Math.max(1, renderer.getPixelRatio()*0.8); renderer.setPixelRatio(pr); composer.setPixelRatio(pr); composer.setSize(vw(),vh()); }
           else if (perf.step===2 && gtao) gtao.enabled=false;
           else if (perf.step===4 && bokeh) bokeh.enabled=false;
           window.__perfStep=perf.step; } } }
-    if (heroOn && !window.__heroScrolled) composer.render();  // frozen while the sections slide over it; resumes back at the top
+    if (heroOn && cover<0.999) composer.render();             // fully covered by the sections: skip the frame
     requestAnimationFrame(tick);
   }
   tick();
