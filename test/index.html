@@ -327,7 +327,7 @@ THREE.ColorManagement.enabled = false;
   key.shadow.bias = -0.0003; key.shadow.normalBias = 0.02; key.shadow.radius = 3;
   { const d=36, c=key.shadow.camera; c.left=-d; c.right=d; c.top=d; c.bottom=-d; c.near=1; c.far=190; c.updateProjectionMatrix(); }
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xffffff, 0.5);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.5);   // soft sky fill from the far side: daytime only (set by the atmosphere), off underground
   rim.position.set(18, 10, -14); scene.add(rim);
   scene.add(new THREE.AmbientLight(0xffffff, 0.06));
   const hemi = new THREE.HemisphereLight(0x8899aa, 0x111111, 0.2); scene.add(hemi);
@@ -402,7 +402,7 @@ THREE.ColorManagement.enabled = false;
   rain.frustumCulled=snow.frustumCulled=false; rain.visible=snow.visible=false; scene.add(rain); scene.add(snow);
 
   // computed look, applied once per minute (and when the weather arrives); per-frame code blends it with tunnel darkness
-  const ATM = { env:1, fog:0, hemi:0.2, key:2, keyDir:new THREE.Vector3(), poleOn:true, wet:false, snowGround:false, flashT:-1, precipOpacity:0 };
+  const ATM = { rim:0.5, env:1, fog:0, hemi:0.2, key:2, keyDir:new THREE.Vector3(), poleOn:true, wet:false, snowGround:false, flashT:-1, precipOpacity:0 };
   const C=(h)=>new THREE.Color(h), mixC=(a,b,t)=>a.clone().lerp(b,Math.min(1,Math.max(0,t)));
   const lerpStops=(stops,x)=>{ if (x<=stops[0][0]) return C(stops[0][1]); for (let i=1;i<stops.length;i++) if (x<=stops[i][0]){
       const t=(x-stops[i-1][0])/(stops[i][0]-stops[i-1][0]); return mixC(C(stops[i-1][1]),C(stops[i][1]),t); } return C(stops[stops.length-1][1]); };
@@ -426,6 +426,7 @@ THREE.ColorManagement.enabled = false;
     ATM.key = sunUp ? (0.5+3.6*Math.min(1,el/18))*(1-0.75*cloud) : 0.22*(1-0.6*cloud);
     key.shadow.radius = 3+10*cloud;
     hemi.color.copy(mixC(zen,hor,0.5)); hemi.groundColor.copy(C(WX.kind==='snow'?'#9aa0a8':'#1a1a1c'));
+    ATM.rim  = 0.5*dayF*(1-0.4*cloud);                          // no phantom floodlight at night
     ATM.hemi = 0.12 + (0.38+0.5*cloud)*dayF;                       // sky fill: soft on clear days (deep shade), strong when overcast
     ATM.env  = 1.15 - 0.15*dayF*(1-cloud);   // clear days: let the sun do the work (a bright sky env flattens everything)                                // the env is the real sky now, so it carries its own day/night brightness
     renderer.toneMappingExposure = 0.60 - 0.06*dayF;
@@ -1713,7 +1714,7 @@ THREE.ColorManagement.enabled = false;
     const inT=smooth(TUNNEL.x0-4, TUNNEL.x0+14, pos.x);
     for (const [m,base] of envMats) m.envMapIntensity=base*THREE.MathUtils.lerp(ATM.env,0.3,inT);
     const out=1-inT;
-    hemi.intensity=ATM.hemi*(0.15+0.85*out); scene.fog.density=ATM.fog*out;
+    hemi.intensity=ATM.hemi*(0.15+0.85*out); rim.intensity=ATM.rim*out; scene.fog.density=ATM.fog*out;
     if (floorRef){ floorRef.material.uniforms.fogDen.value=scene.fog.density; floorRef.material.uniforms.fogCol.value.copy(scene.fog.color); }
     keyOff.copy(ATM.keyDir).multiplyScalar(90); key.intensity=ATM.key;
     const poles=ATM.poleOn?1:0; for (const pl of poleRefs) pl.intensity=1.6*poles; if (poleLampM) poleLampM.emissiveIntensity=2.4*poles;
