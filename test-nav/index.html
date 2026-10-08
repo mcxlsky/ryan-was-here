@@ -1233,7 +1233,9 @@ THREE.ColorManagement.enabled = false;
       car.add(m);
       car.add(roof());
       car.add(i===0 ? buildCab() : endPlate(xEnd));   // lead car gets the R142 cab
-      car.add(endPlate(-xEnd));
+      if (i===NCARS-1){ const rc=buildCab(); rc.rotation.y=Math.PI;
+        rc.traverse(o=>{ if (o.isSprite) o.visible=false; if (o.isMesh && o.material===headMat) o.material=markMat; });   // tail lights
+        car.add(rc); } else car.add(endPlate(-xEnd));
       sides(car); underframe(car); car.add(interior.clone());
       if (i>0) chains(car);
       car.position.x = -i*(carLen+gap);
@@ -1241,7 +1243,29 @@ THREE.ColorManagement.enabled = false;
     }
     scene.add(train);
     // ambient traffic for the hero view: one train each way, cycling (copies of ours, so they share geometry and materials)
-    ambient.sb=train.clone(); ambient.nb=train.clone(); ambient.nb.rotation.y=Math.PI; ambient.nb.position.z=TRACK2;
+    const bakeTrain=src=>{ const out=new THREE.Group(); src.updateMatrixWorld(true);
+      for (const car of src.children){ const cg=new THREE.Group(); cg.position.copy(car.position); cg.rotation.copy(car.rotation); out.add(cg);
+        const inv=car.matrixWorld.clone().invert(), by=new Map();
+        car.traverse(o=>{ if (!o.visible) return; let p=o.parent; while (p && p!==car){ if (!p.visible) return; p=p.parent; }
+          const M=inv.clone().multiply(o.matrixWorld);
+          if (o.isSprite){ const sp=o.clone(); sp.matrixAutoUpdate=false; sp.matrix.copy(M); cg.add(sp); return; }
+          if (!o.isMesh || o.isInstancedMesh) return;
+          const mats=Array.isArray(o.material)?o.material:[o.material], g0=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();
+          const groups=Array.isArray(o.material)&&g0.groups.length? g0.groups : [{start:0,count:g0.attributes.position.count,materialIndex:0}];
+          // indexed geometry's groups are in index units; after toNonIndexed they map 1:1 to vertices
+          for (const gr of groups){ const m=mats[gr.materialIndex]; if (!m) continue;
+            const g=new THREE.BufferGeometry();
+            for (const k of ['position','normal','uv']){ const a=g0.attributes[k]; if (!a) continue;
+              g.setAttribute(k, new THREE.BufferAttribute(a.array.slice(gr.start*a.itemSize,(gr.start+gr.count)*a.itemSize), a.itemSize)); }
+            if (!g.attributes.normal) g.computeVertexNormals();
+            if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
+            g.applyMatrix4(M);
+            if (M.determinant()<0){ for (const k of ['position','normal','uv']){ const a=g.attributes[k], n=a.itemSize;   // mirrored part: flip the winding back
+                for (let t=0;t<a.count;t+=3) for (let c=0;c<n;c++){ const v1=a.array[(t+1)*n+c]; a.array[(t+1)*n+c]=a.array[(t+2)*n+c]; a.array[(t+2)*n+c]=v1; } } }
+            if (!by.has(m)) by.set(m,[]); by.get(m).push(g); } });
+        for (const [m,gs] of by){ const mm=new THREE.Mesh(mergeGeometries(gs,false),m); mm.castShadow=mm.receiveShadow=true; cg.add(mm); } }
+      return out; };
+    ambient.sb=bakeTrain(train); ambient.nb=bakeTrain(train); ambient.nb.rotation.y=Math.PI; ambient.nb.position.z=TRACK2;
     scene.add(ambient.sb, ambient.nb);
     window.__xF = xF; window.__pyToY = pyToY;
 
@@ -1789,9 +1813,10 @@ THREE.ColorManagement.enabled = false;
   const placeTrain=(g,X,dir)=>{ g.position.x=X; for (const car of g.children){ const cx=X+dir*car.position.x, ya=gradeY(cx-6.5), yf=gradeY(cx+6.5);
     car.position.y=(ya+yf)/2; car.rotation.z=dir*Math.atan2(yf-ya,13); } };
   // ambient schedule: positions of each train's lead car; when one finishes it waits a few seconds out of sight, then runs again
-  const AV=20;                                                              // m/s, about 45 mph
+  const AV=26;                                                              // m/s, about 58 mph
   const AMB={ sb:{ x:-330, wait:0 }, nb:{ x:110, wait:0 } };
   window.__AMB=AMB;
+  window.__info=()=>{ let n=0; for (const g of [train,ambient.sb,ambient.nb]) g.traverse(o=>{ if (o.isMesh||o.isSprite) n++; }); return n; };
   function runAmbient(dt, X){
     const TLEN=NCARS*(carLen+gap), sb=AMB.sb, nb=AMB.nb, SB0=-600, SB1=TUNNEL.x0+TLEN+15, NB0=TUNNEL.x0+20, NB1=-800, riding=s>0.0005;
     // northbound: out of the portal, past the camera, off into the haze
