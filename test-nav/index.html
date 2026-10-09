@@ -261,6 +261,12 @@
     .about-k { font: 500 12px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; padding-top: 12px; }
     .about-body { display: grid; gap: 22px; max-width: 760px; }
     .about-body p { font: 400 19px/1.6 var(--font-ui); opacity: 0.72; text-wrap: pretty; }
+    .about-head { display: flex; align-items: flex-start; gap: 24px; margin-bottom: 14px; }
+    .avatar { flex: none; width: 76px; height: 76px; border-radius: 50%; overflow: hidden; background: #e5ab00; color: #111;
+              display: grid; place-items: center; font: 700 26px/1 var(--font-ui); letter-spacing: -0.02em; margin-top: 4px;
+              box-shadow: 0 0 0 4px rgba(15,15,16,0.6); }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .about-head .about-lead { margin-bottom: 0 !important; }
     .about-body p.about-lead { font: 500 clamp(26px, 3vw, 38px)/1.22 var(--font-ui); letter-spacing: -0.025em; opacity: 1; margin-bottom: 14px; text-wrap: balance; }
     @media (max-width: 720px){
       .about { padding: 80px 22px 24px; }
@@ -268,6 +274,8 @@
       .about-grid { grid-template-columns: 1fr; gap: 20px; }
       .about-k { padding-top: 0; }
       .about-body p { font-size: 17px; }
+      .about-head { flex-direction: column; gap: 18px; }
+      .avatar { width: 64px; height: 64px; font-size: 22px; }
     }
 
     /* ---------- Hero intro (placeholder copy), upper left under the R ---------- */
@@ -396,7 +404,10 @@
     <div class="about-grid">
       <p class="about-k" id="aboutK">About</p>
       <div class="about-body">
-        <p class="about-lead">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
+        <div class="about-head">
+          <div class="avatar" role="img" aria-label="Ryan McCaulsky"><span aria-hidden="true">RM</span></div>   <!-- placeholder: swap in a photo (img inside .avatar) -->
+          <p class="about-lead">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
+        </div>
         <p>I’ve spent considerable time in high-maturity design orgs and scrappy startups. That experience has turned into an obsession for simplifying the path at early stage companies and cutting through red tape keeping larger teams agile.</p>
         <p>A recent career pivot has given me the space to fully own my process, allowing me to bridge the gap from theoretical and static systems to live, interactive code tested by real users.</p>
         <p>This pivot has also given me the space to experiment with modern, tactile interfaces—specifically using WebGL and GSAP to bring skeuomorphic and 3D elements to life.</p>
@@ -418,7 +429,8 @@
       function upd(){ var p=Math.min(1,Math.max(0,scrollY/(innerHeight*0.8))), t=ease(Math.min(1,Math.max(0,(p-0.15)/0.6)));
         el.style.setProperty('--h', el.offsetHeight+'px'); el.style.setProperty('--stick', (innerHeight-el.offsetHeight)+'px');
         el.style.setProperty('--a', ease(Math.min(1,p/0.7)).toFixed(3));
-        el.style.setProperty('--t', t.toFixed(3)); el.classList.toggle('on', t>0.05); }
+        el.style.setProperty('--t', t.toFixed(3)); el.classList.toggle('on', t>0.05);
+        var w=document.getElementById('widgets'); if (w){ w.style.opacity=(1-t).toFixed(3); w.style.visibility=t>0.98?'hidden':''; } }   // the hero's tiles step back behind the About
       var tk=false; addEventListener('scroll', function(){ if (!tk){ tk=true; requestAnimationFrame(function(){ tk=false; upd(); }); } }, { passive:true });
       addEventListener('resize', upd); upd(); })();
     /* nav: the R and Home go to the top; Work and About are pages still to come; the footer's Copy email is a placeholder */
