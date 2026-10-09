@@ -248,7 +248,7 @@
     .about.on { pointer-events: auto; }
     .after-space { height: 100vh; }
     .about-grid, .about .foot-base { opacity: var(--t, 0); }
-    .about-body p, .about-k { text-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 2px 18px rgba(0,0,0,0.45); }
+    .about-body p, .about-lead, .about-by-t { text-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 2px 18px rgba(0,0,0,0.45); }
     /* the copyright + social line, as on the other pages' footers */
     .about .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 1180px; margin: 120px auto 0; padding-top: 18px;
                         border-top: 1px solid rgba(255,255,255,0.08); font: 400 12px/1.4 var(--font-ui); color: rgba(242,242,240,0.45); }
@@ -257,25 +257,25 @@
     .foot-social a:focus-visible { outline: 1px solid rgba(255,255,255,0.7); outline-offset: 3px; }
     .foot-social svg { width: 18px; height: 18px; fill: #f2f2f0; opacity: 0.7; transition: opacity .2s; }
     .foot-social a:hover svg { opacity: 1; }
-    .about-grid { display: grid; grid-template-columns: 1fr 2.6fr; gap: 40px; max-width: 1180px; margin: 0 auto; }
-    .about-k { font: 500 12px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; padding-top: 12px; }
-    .about-body { display: grid; gap: 22px; max-width: 760px; }
-    .about-body p { font: 400 19px/1.6 var(--font-ui); opacity: 0.72; text-wrap: pretty; }
-    .about-head { display: flex; align-items: flex-start; gap: 24px; margin-bottom: 14px; }
-    .avatar { flex: none; width: 76px; height: 76px; border-radius: 50%; overflow: hidden; background: #e5ab00; color: #111;
-              display: grid; place-items: center; font: 700 26px/1 var(--font-ui); letter-spacing: -0.02em; margin-top: 4px;
-              box-shadow: 0 0 0 4px rgba(15,15,16,0.6); }
+    /* one column on the footer line's left edge: byline, lead, then the body copy */
+    .about-grid { max-width: 1180px; margin: 0 auto; }
+    .about-by { display: flex; align-items: center; gap: 16px; margin-bottom: 30px; }
+    .avatar { flex: none; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #e5ab00; color: #111;
+              display: grid; place-items: center; font: 700 22px/1 var(--font-ui); letter-spacing: -0.02em; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .about-head .about-lead { margin-bottom: 0 !important; }
-    .about-body p.about-lead { font: 500 clamp(26px, 3vw, 38px)/1.22 var(--font-ui); letter-spacing: -0.025em; opacity: 1; margin-bottom: 14px; text-wrap: balance; }
+    .about-by-t { display: grid; gap: 5px; }
+    .about-by-t b { font: 600 17px/1.2 var(--font-ui); letter-spacing: -0.01em; }
+    .about-by-t span { font: 400 14px/1.2 var(--font-ui); opacity: 0.6; }
+    .about-lead { font: 500 clamp(28px, 3.4vw, 46px)/1.16 var(--font-ui); letter-spacing: -0.03em; max-width: 21em; text-wrap: balance; margin-bottom: 40px; }
+    .about-body { display: grid; gap: 22px; max-width: 680px; }
+    .about-body p { font: 400 19px/1.6 var(--font-ui); opacity: 0.72; text-wrap: pretty; }
     @media (max-width: 720px){
       .about { padding: 80px 22px 24px; }
       .about .foot-base { flex-direction: column-reverse; align-items: flex-start; gap: 18px; margin-top: 72px; }
-      .about-grid { grid-template-columns: 1fr; gap: 20px; }
-      .about-k { padding-top: 0; }
       .about-body p { font-size: 17px; }
-      .about-head { flex-direction: column; gap: 18px; }
-      .avatar { width: 64px; height: 64px; font-size: 22px; }
+      .avatar { width: 52px; height: 52px; font-size: 18px; }
+      .about-by { margin-bottom: 22px; }
+      .about-lead { margin-bottom: 28px; }
     }
 
     /* ---------- Hero intro (placeholder copy), upper left under the R ---------- */
@@ -402,12 +402,12 @@
 
   <section class="about" id="about" aria-labelledby="aboutK">
     <div class="about-grid">
-      <p class="about-k" id="aboutK">About</p>
+      <div class="about-by">
+        <div class="avatar" role="img" aria-label="Ryan McCaulsky"><span aria-hidden="true">RM</span></div>   <!-- placeholder: swap in a photo (img inside .avatar) -->
+        <div class="about-by-t"><b>Ryan McCaulsky</b><span id="aboutK">Design Engineer · The Bronx, NY</span></div>
+      </div>
+      <p class="about-lead">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
       <div class="about-body">
-        <div class="about-head">
-          <div class="avatar" role="img" aria-label="Ryan McCaulsky"><span aria-hidden="true">RM</span></div>   <!-- placeholder: swap in a photo (img inside .avatar) -->
-          <p class="about-lead">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
-        </div>
         <p>I’ve spent considerable time in high-maturity design orgs and scrappy startups. That experience has turned into an obsession for simplifying the path at early stage companies and cutting through red tape keeping larger teams agile.</p>
         <p>A recent career pivot has given me the space to fully own my process, allowing me to bridge the gap from theoretical and static systems to live, interactive code tested by real users.</p>
         <p>This pivot has also given me the space to experiment with modern, tactile interfaces—specifically using WebGL and GSAP to bring skeuomorphic and 3D elements to life.</p>
