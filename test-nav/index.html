@@ -393,8 +393,10 @@
     }
     @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
     /* the frame: an 8px white border round the whole site, drawn over everything; edge-anchored tiles sit just inside it */
-    :root { --frame: 8px; }
-    body::after { content: ''; position: fixed; inset: 0; z-index: 1000; pointer-events: none; border: var(--frame) solid #fff; }
+    :root { --frame: 8px; --frame-r: 12px; }
+    /* drawn as a rounded window with a white spread round it, so the inside corners are rounded (and round off any tile sitting in a corner) */
+    body::after { content: ''; position: fixed; inset: var(--frame); z-index: 1000; pointer-events: none; border-radius: var(--frame-r);
+                  box-shadow: 0 0 0 100px #fff; }
     .rhome { top: var(--frame); left: var(--frame); }
     .rnav { top: var(--frame); right: var(--frame); }
     .widgets { top: var(--frame); right: calc(80px + var(--frame)); }
