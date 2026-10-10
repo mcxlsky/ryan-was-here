@@ -113,6 +113,13 @@
       .foot-social { gap: 14px; }
     }
     @media (prefers-reduced-motion: reduce){ body, .ttl, .ttl.on, .slide, .slide.on, .slide > li, .slide.on > li { transition: none; transform: none; } }
+    /* the frame: an 8px white border round the whole site, drawn over everything; edge-anchored tiles sit just inside it */
+    :root { --frame: 8px; }
+    body::after { content: ''; position: fixed; inset: 0; z-index: 1000; pointer-events: none; border: var(--frame) solid #fff; }
+    .rhome { top: var(--frame); left: var(--frame); }
+    body { padding: var(--frame); box-sizing: border-box; }
+    .arrow.prev { left: var(--frame); } .arrow.next { right: var(--frame); }
+    @media (max-width: 720px){ .arrow { bottom: calc(var(--fh, 51px) + 12px + var(--frame)); } }
   </style>
 </head>
 <body>
