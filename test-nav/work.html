@@ -23,7 +23,7 @@
              background: var(--gold); color: #111; font: 700 46px/1 var(--font); letter-spacing: -0.03em; padding-top: 2px; }
 
     main { flex: 1 1 auto; min-height: 0; width: 100%; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column;
-           padding: clamp(84px, 11vh, 130px) max(110px, calc((100vw - 1180px) / 2)) 20px; }
+           padding: clamp(84px, 11vh, 130px) max(110px, calc((100vw - 1180px) / 2)) clamp(24px, 5vh, 48px); }
     main::-webkit-scrollbar { display: none; }
 
     /* ---------- header: breadcrumbs, then the project's logo as the page title ---------- */
@@ -41,17 +41,14 @@
     .ttl.on { opacity: 1; visibility: visible; transform: none; transition: opacity .5s ease .06s, transform .7s cubic-bezier(.2,.8,.2,1) .02s, visibility 0s; }
     .ttl h2 { line-height: 0; }
     /* each wordmark has its own proportions; --s evens out how big they read (set per project in the list below) */
-    .ttl h2 img { display: block; height: calc(clamp(40px, 8.5vh, 84px) * var(--s, 1)); width: auto; max-width: 100%; }
+    .ttl h2 img { display: block; height: calc(clamp(30px, 6vh, 58px) * var(--s, 1)); width: auto; max-width: 100%; }
     .sum { font: 400 clamp(14px, 2vh, 17px)/1.5 var(--font); color: rgba(255,255,255,0.82); margin-top: clamp(14px, 2.4vh, 24px); max-width: 46em; }
     .meta { display: flex; gap: 8px; margin-top: clamp(10px, 1.8vh, 16px); }
     .meta i { font: 500 11px/1 var(--font); font-style: normal; letter-spacing: 0.04em; padding: 6px 9px; border: 1px solid var(--line); color: rgba(255,255,255,0.9); }
-    .count { white-space: nowrap; font: 500 13px/1 var(--font); letter-spacing: 0.08em; color: rgba(255,255,255,0.62); font-variant-numeric: tabular-nums; padding-bottom: 6px; }
-    .count b { color: #fff; font-weight: 600; }
 
     /* ---------- carousel: each slide is the project's three case studies, as cards side by side ---------- */
-    .stage { position: relative; overflow-x: clip; display: grid; grid-template-rows: minmax(0, 1fr); flex: 1 1 auto; min-height: 0; max-height: 520px;
-             margin-top: clamp(20px, 4vh, 48px); touch-action: pan-y; }
-    .slide { grid-area: 1 / 1; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; list-style: none;
+    .stage { position: relative; overflow-x: clip; display: grid; flex: none; margin-top: auto; padding-top: clamp(20px, 4vh, 40px); touch-action: pan-y; }
+    .slide { grid-area: 1 / 1; min-height: 0; display: grid; grid-template-columns: repeat(3, clamp(200px, 21vw, 290px)); justify-content: start; gap: 14px; list-style: none;
              opacity: 0; visibility: hidden; transform: translateX(48px); pointer-events: none;
              transition: opacity .35s ease, transform .55s cubic-bezier(.4,0,.2,1), visibility 0s linear .55s; }
     .slide.on { opacity: 1; visibility: visible; transform: none; pointer-events: auto;
@@ -61,12 +58,12 @@
             transition: border-color .2s, transform .3s cubic-bezier(.2,.8,.2,1); }
     .card:hover { border-color: rgba(255,255,255,0.4); transform: translateY(-3px); }
     /* cover: the full brand colour (the page is the darker one) — a placeholder until there are real images */
-    .cover { position: relative; flex: 1 1 auto; min-height: 90px; display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 16px; }
+    .cover { position: relative; flex: none; aspect-ratio: 16 / 9; display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 16px; }
     .cover .n { font: 600 13px/1 var(--font); font-variant-numeric: tabular-nums; }
     .cover .k2 { font: 500 11px/1 var(--font); letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.85); }
-    .body { flex: none; display: grid; gap: 6px; padding: clamp(14px, 2.2vh, 20px) 16px clamp(14px, 2.2vh, 18px); }
-    .body b { font: 600 clamp(15px, 2vh, 18px)/1.25 var(--font); letter-spacing: -0.01em; }
-    .body em { font: 400 13px/1.45 var(--font); font-style: normal; color: rgba(255,255,255,0.72); }
+    .body { flex: none; display: grid; gap: 5px; padding: 12px 14px 14px; }
+    .body b { font: 600 15px/1.25 var(--font); letter-spacing: -0.01em; }
+    .body em { font: 400 12.5px/1.45 var(--font); font-style: normal; color: rgba(255,255,255,0.72); }
     .body .read { display: flex; align-items: center; gap: 8px; margin-top: 6px; font: 600 12px/1 var(--font); letter-spacing: 0.02em; }
     .body .read svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: square; transition: transform .2s; }
     .card:hover .read svg { transform: translateX(3px); }
@@ -76,7 +73,7 @@
     .slide.on > li:nth-child(2) { transition-delay: .06s; } .slide.on > li:nth-child(3) { transition-delay: .12s; }
 
     /* pager: one short bar per project */
-    .pager { display: flex; justify-content: center; gap: 8px; margin-top: clamp(14px, 3vh, 28px); }
+    .pager { flex: none; display: flex; justify-content: flex-end; gap: 8px; }
     .pager button { -webkit-appearance: none; appearance: none; border: 0; background: none; padding: 10px 0; cursor: pointer; }
     .pager button i { display: block; width: 28px; height: 3px; background: rgba(255,255,255,0.32); transition: background .25s, width .35s cubic-bezier(.2,.8,.2,1); }
     .pager button[aria-current="true"] i { background: #fff; width: 44px; }
@@ -97,23 +94,21 @@
     .foot-social svg { width: 18px; height: 18px; fill: #fff; opacity: 0.85; transition: opacity .2s; }
     .foot-social a:hover svg { opacity: 1; }
 
-    @media (max-height: 760px) and (min-width: 721px){ .body em { display: none; } }
-    @media (max-width: 1000px) and (min-width: 721px){ .body em { display: none; } }
+    @media (max-height: 640px) and (min-width: 721px){ .body em { display: none; } }
     /* phones: the cards stack as slim rows, arrows sit either side of the pager */
     @media (max-width: 720px){
-      main { padding: 90px 22px 12px; }
+      main { padding: 90px 22px calc(52px + 24px); }
       .ttl h2 img { height: calc(40px * var(--s, 1)); }
       .sum { display: none; }
-      .count { padding-bottom: 2px; }
-      .stage { max-height: none; }
       .slide { grid-template-columns: minmax(0, 1fr); grid-auto-rows: min-content; gap: 10px; }
       .card { flex-direction: row; align-items: stretch; }
-      .cover { flex: none; width: 64px; min-height: 0; padding: 12px; justify-content: center; align-items: center; }
+      .cover { flex: none; width: 64px; aspect-ratio: auto; padding: 12px; justify-content: center; align-items: center; }
       .cover .k2 { display: none; }
-      .body { padding: 10px 14px; gap: 3px; } .body b { font-size: 15px; } .body .read { display: none; }
+      .body { flex: 1 1 auto; min-width: 0; padding: 10px 14px; gap: 3px; } .body b { font-size: 15px; } .body .read { display: none; }
+      .body em { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       .arrow { top: auto; bottom: calc(var(--fh, 51px) + 12px); margin-top: 0; width: 52px; height: 52px; }
       .arrow svg { width: 24px; height: 24px; }
-      .pager { flex: none; height: 52px; align-items: center; margin-top: 14px; padding: 0 60px; }
+      .pager i { width: 18px !important; } .pager button[aria-current="true"] i { width: 28px !important; }
       .foot { padding: 0 22px; }
       .foot-base { margin: 0 -22px; padding: 14px 22px 18px; }
       .foot-social { gap: 14px; }
@@ -128,13 +123,12 @@
   <main>
     <div class="head">
       <div class="head-l">
-        <nav aria-label="Breadcrumb"><ol class="crumbs"><li><a href="index.html">Home</a></li><li><a href="work.html" id="crumbWork">Work</a></li><li><span aria-current="page" id="crumbHere"></span></li></ol></nav>
+        <nav aria-label="Breadcrumb"><ol class="crumbs"><li><a href="work.html" id="crumbWork">Work</a></li><li><span aria-current="page" id="crumbHere"></span></li></ol></nav>
         <div class="titles" id="titles" aria-live="polite"></div>
       </div>
-      <p class="count" aria-hidden="true"><b id="countN">01</b> / <span id="countT">04</span></p>
+      <nav class="pager" id="pager" aria-label="Choose a project"></nav>
     </div>
     <section class="stage" id="stage" aria-roledescription="carousel" aria-label="Projects"></section>
-    <nav class="pager" id="pager" aria-label="Choose a project"></nav>
   </main>
   <footer class="foot">
     <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span><span class="foot-social">
@@ -176,7 +170,6 @@
           pad=function(n){ return (n<10?'0':'')+n; },
           shade=function(hex,f){ var n=parseInt(hex.slice(1),16); return 'rgb('+[n>>16&255,n>>8&255,n&255].map(function(c){ return Math.round(c*f); }).join(',')+')'; },
           arrow='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg>';
-      document.getElementById('countT').textContent=pad(N);
       PROJECTS.forEach(function(p,k){
         p.dark=shade(p.color, 0.55);
         var t=document.createElement('div'); t.className='ttl';
@@ -196,7 +189,6 @@
         slides.forEach(function(s,k){ var on=k===i; s.classList.toggle('on',on); s.setAttribute('aria-hidden',!on); s.inert=!on;
           ttls[k].classList.toggle('on',on); ttls[k].setAttribute('aria-hidden',!on); });
         dots.forEach(function(d,k){ d.setAttribute('aria-current', k===i?'true':'false'); });
-        document.getElementById('countN').textContent=pad(i+1);
         document.getElementById('crumbHere').textContent=p.name;
         document.title=p.name+' — Work — ryan was here';
         document.body.style.backgroundColor=p.dark;
