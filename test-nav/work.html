@@ -55,7 +55,7 @@
              transition: opacity .5s ease .08s, transform .7s cubic-bezier(.2,.8,.2,1) .04s, visibility 0s; }
     /* the project's line and tags sit right above its cards */
     .blurb { margin-bottom: clamp(16px, 3vh, 26px); }
-    .blurb .sum { margin-top: 0; }
+    .blurb .meta { margin-top: 0; } .blurb .sum { margin-top: clamp(10px, 1.6vh, 14px); }
     .cards { display: grid; grid-template-columns: repeat(3, clamp(200px, 21vw, 290px)); justify-content: start; gap: 14px; list-style: none; }
     .cards > li { min-height: 0; display: flex; }
     .card { flex: 1; min-height: 0; display: flex; flex-direction: column; background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.14);
@@ -190,7 +190,7 @@
         titles.appendChild(t); ttls.push(t);
         var el=document.createElement('div'); el.className='slide'; el.dataset.id=p.id;   // no id: a #project address must not make the browser scroll to it
         el.setAttribute('aria-roledescription','slide'); el.setAttribute('aria-label',(k+1)+' of '+N+': '+p.name+' case studies');
-        el.innerHTML='<div class="blurb"><p class="sum">'+p.sum+'</p><div class="meta">'+p.tags.map(function(x){ return '<i>'+x+'</i>'; }).join('')+'</div></div>'+
+        el.innerHTML='<div class="blurb"><div class="meta">'+p.tags.map(function(x){ return '<i>'+x+'</i>'; }).join('')+'</div><p class="sum">'+p.sum+'</p></div>'+
           '<ol class="cards">'+p.cases.map(function(c,j){
           return '<li><a class="card" href="#"><span class="cover" style="background:'+p.color+'"><span class="k2">'+c[0]+'</span></span>'+
                  '<span class="body"><b>'+c[1]+'</b><em>'+c[2]+'</em><span class="read">Read case study '+arrow+'</span></span></a></li>'; }).join('')+'</ol>';
