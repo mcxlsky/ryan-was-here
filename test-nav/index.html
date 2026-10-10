@@ -283,18 +283,18 @@
     .about-by-t { display: grid; gap: 5px; }
     .about-by-t b { font: 600 17px/1.2 var(--font-ui); letter-spacing: -0.01em; }
     .about-by-t span { font: 400 14px/1.2 var(--font-ui); opacity: 0.6; }
-    .about-lead { font: 500 clamp(22px, min(3.4vw, 4.2vh), 46px)/1.16 var(--font-ui); letter-spacing: -0.03em; max-width: 24em; text-wrap: balance; margin-bottom: clamp(18px, 4vh, 40px); }
-    .about-body { display: grid; gap: clamp(12px, 2.2vh, 22px); max-width: 760px; }
-    .about-body p { font: 400 clamp(14px, 2vh, 19px)/1.58 var(--font-ui); opacity: 0.72; text-wrap: pretty; }
+    /* one size for the lead and the body (roughly the average of the two it replaced); the lead keeps its weight, the body its softer tone */
+    .about { --about-fs: clamp(18px, min(2.4vw, 3vh), 32px); --about-gap: clamp(12px, 2.2vh, 22px); }
+    .about-lead { font: 500 var(--about-fs)/1.32 var(--font-ui); letter-spacing: -0.02em; max-width: 30em; text-wrap: pretty; margin-bottom: var(--about-gap); }
+    .about-body { display: grid; gap: var(--about-gap); max-width: 30em; font-size: var(--about-fs); }
+    .about-body p { font: 400 var(--about-fs)/1.32 var(--font-ui); letter-spacing: -0.01em; opacity: 0.72; text-wrap: pretty; }
     @media (max-width: 720px){
       .about { padding: 84px 22px calc(var(--base-h, 64px) + 20px); }
       .homebase { padding: 0 22px; }
       .homebase .foot-base { margin: 0 -22px; padding: 18px 22px 20px; }
-      .about-body p { font-size: 14.5px; line-height: 1.5; }
-      .about-body { gap: 14px; }
+      .about { --about-fs: 17px; --about-gap: 14px; }
       .avatar { width: 52px; height: 52px; font-size: 18px; }
       .about-by { margin-bottom: 22px; }
-      .about-lead { margin-bottom: 28px; }
     }
 
     /* ---------- Hero intro (placeholder copy), upper left under the R ---------- */
