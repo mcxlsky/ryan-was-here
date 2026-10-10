@@ -19,29 +19,12 @@
     .rhome { position: fixed; top: 0; left: 0; z-index: 10; width: 74px; height: 74px; display: grid; place-items: center;
              background: var(--gold); color: #111; font: 700 46px/1 var(--font); letter-spacing: -0.03em; padding-top: 2px; }
 
-    main { max-width: 1180px; margin: 0 auto; padding: clamp(92px, 14vh, 150px) 40px 32px; }
+    main { max-width: 1180px; margin: 0 auto; padding: clamp(86px, 12vh, 140px) 40px 32px; }
     .k { font: 500 12px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.5; margin-bottom: 18px; }
     h1 { font: 500 clamp(36px, min(7vw, 9vh), 96px)/1 var(--font); letter-spacing: -0.04em; margin-bottom: clamp(10px, 2vh, 22px); }
     .lede { font: 400 clamp(15px, 2.2vh, 18px)/1.55 var(--font); opacity: 0.7; max-width: 720px; }
 
-    .grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; margin-top: clamp(22px, 5vh, 64px); }
-    .proj-body span { display: none; }
-    @media (max-width: 1000px){ .grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    .proj { display: block; background: var(--card); border: 1px solid var(--line); transition: border-color .2s, transform .25s cubic-bezier(.2,.8,.2,1); }
-    .proj:hover { border-color: rgba(255,255,255,0.22); transform: translateY(-2px); }
-    .proj-art { aspect-ratio: 16 / 9; background: var(--gold); display: grid; place-items: center; }
-    .proj-art img { width: 46%; max-height: 40%; object-fit: contain; }
-    .proj-body { padding: 14px 16px 16px; display: grid; gap: 6px; }
-    .proj-body b { font: 600 16px/1.25 var(--font); letter-spacing: -0.01em; }
-    .proj-body span { font: 400 14px/1.5 var(--font); opacity: 0.6; }
-    .proj-tags { display: flex; gap: 8px; margin-top: 4px; }
-    .proj-tags i { font: 500 11px/1 var(--font); font-style: normal; letter-spacing: 0.04em; padding: 6px 9px; border: 1px solid var(--line); opacity: 0.75; }
-
-    @media (max-width: 720px){
-      main { padding: 90px 22px 16px; }
-      .grid { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 24px; }
-      .proj-body { padding: 10px 12px 12px; } .proj-tags { display: none; } .proj-body b { font-size: 13.5px; }
-    }
+    @media (max-width: 720px){ main { padding: 90px 22px 16px; } }
     /* ---------- Footer (shared with the other pages) ---------- */
     .foot { position: relative; background: #0f0f10; border-top: 1px solid rgba(255,255,255,0.08); color: #f2f2f0; padding: 64px 40px 26px; }
     .foot-grid { display: grid; grid-template-columns: 2.6fr repeat(2, 1fr); gap: 32px; max-width: 1180px; margin: 0 auto; }
@@ -81,24 +64,90 @@
       .foot .foot-base { margin: 0 -22px; padding: 14px 22px 18px; }
       .foot-social { gap: 14px; }
     }
+    /* ---------- Carousel: one project at a time, arrows flush to the page edges ---------- */
+    main { display: flex; flex-direction: column; padding-left: 40px; padding-right: 40px; padding-bottom: 20px; }
+    .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+    .count { white-space: nowrap; font: 500 13px/1 var(--font); letter-spacing: 0.08em; opacity: 0.5; font-variant-numeric: tabular-nums; padding-bottom: 6px; }
+    .count b { color: var(--ink); opacity: 1; font-weight: 600; }
+    .stage { position: relative; display: grid; grid-template-rows: minmax(0, 1fr); flex: 1 1 auto; min-height: 0; max-height: 600px; margin-top: clamp(16px, 3.4vh, 44px); touch-action: pan-y; }
+    .slide { grid-area: 1 / 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); gap: clamp(20px, 3vw, 44px); align-items: stretch;
+             opacity: 0; visibility: hidden; transform: translateX(48px); pointer-events: none;
+             transition: opacity .35s ease, transform .55s cubic-bezier(.4,0,.2,1), visibility 0s linear .55s; }
+    .slide.on { opacity: 1; visibility: visible; transform: none; pointer-events: auto;
+             transition: opacity .5s ease .08s, transform .7s cubic-bezier(.2,.8,.2,1) .04s, visibility 0s; }
+    .art { background: var(--gold); display: grid; place-items: center; min-height: 0; }
+    .art img { width: 46%; max-height: 34%; object-fit: contain; }
+    .info { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+    .info h2 { font: 500 clamp(30px, min(4vw, 6vh), 56px)/1 var(--font); letter-spacing: -0.035em; }
+    .sum { font: 400 clamp(14px, 2vh, 16px)/1.5 var(--font); color: rgba(242,242,240,0.66); margin-top: clamp(8px, 1.6vh, 14px); max-width: 34em; }
+    .meta { display: flex; gap: 8px; margin-top: clamp(10px, 1.8vh, 16px); }
+    .meta i { font: 500 11px/1 var(--font); font-style: normal; letter-spacing: 0.04em; padding: 6px 9px; border: 1px solid var(--line); opacity: 0.75; }
+    .cases-k { font: 500 11px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(242,242,240,0.45); margin: auto 0 10px; padding-top: clamp(14px, 2.6vh, 28px); }
+    .cases { list-style: none; display: grid; gap: 8px; }
+    .case { display: grid; grid-template-columns: auto minmax(0,1fr) auto auto; align-items: center; gap: 16px; padding: clamp(10px, 1.8vh, 16px) 16px;
+            background: var(--card); border: 1px solid var(--line); transition: border-color .2s, background .2s; }
+    .case:hover { border-color: rgba(255,255,255,0.22); background: #1d1d20; }
+    .case .n { font: 600 12px/1 var(--font); color: var(--gold); font-variant-numeric: tabular-nums; }
+    .case .t { display: grid; gap: 4px; min-width: 0; }
+    .case .t b { font: 600 15px/1.25 var(--font); letter-spacing: -0.01em; }
+    .case .t em { font: 400 13px/1.4 var(--font); font-style: normal; opacity: 0.55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .case .k2 { font: 500 11px/1 var(--font); letter-spacing: 0.04em; opacity: 0.5; white-space: nowrap; }
+    .case .go { width: 16px; height: 16px; fill: none; stroke: var(--gold); stroke-width: 1.8; stroke-linecap: square; transition: transform .2s; }
+    .case:hover .go { transform: translateX(3px); }
+    /* the inner bits arrive a beat after the panel */
+    .slide .info > * { opacity: 0; transform: translateX(14px); transition: opacity .3s ease, transform .3s ease; }
+    .slide.on .info > * { opacity: 1; transform: none; transition: opacity .5s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+    .slide.on .info > :nth-child(2) { transition-delay: .06s; } .slide.on .info > :nth-child(3) { transition-delay: .1s; }
+    .slide.on .info > :nth-child(4) { transition-delay: .14s; } .slide.on .info > :nth-child(5) { transition-delay: .18s; }
+    /* pager: one short bar per project */
+    .pager { display: flex; justify-content: center; gap: 8px; margin-top: clamp(14px, 3vh, 28px); }
+    .pager button { -webkit-appearance: none; appearance: none; border: 0; background: none; padding: 10px 0; cursor: pointer; }
+    .pager button i { display: block; width: 28px; height: 3px; background: rgba(255,255,255,0.22); transition: background .25s, width .35s cubic-bezier(.2,.8,.2,1); }
+    .pager button[aria-current="true"] i { background: var(--gold); width: 44px; }
+    .pager button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    /* arrows: black squares with gold chevrons, like the home page's tiles, flush to each edge */
+    .arrow { position: fixed; top: 50%; z-index: 10; width: 74px; height: 74px; margin-top: -37px; display: grid; place-items: center; border: 0; cursor: pointer;
+             background: #1c1c1f; transition: background .2s; }
+    .arrow:hover { background: #2a2a2e; }
+    .arrow:focus-visible { outline: 2px solid var(--gold); outline-offset: -6px; }
+    .arrow svg { width: 30px; height: 30px; fill: none; stroke: var(--gold); stroke-width: 2.4; stroke-linecap: square; }
+    .arrow.prev { left: 0; } .arrow.next { right: 0; }
+    @media (min-width: 721px){ main { padding-left: max(110px, calc((100vw - 1180px) / 2)); padding-right: max(110px, calc((100vw - 1180px) / 2)); max-width: none; } }
+    @media (max-width: 1000px) and (min-width: 721px){ .case .k2 { display: none; } }
+    /* shorter screens: the header gives up room to the carousel first */
+    @media (max-height: 900px) and (min-width: 721px){ .lede { display: none; } h1 { font-size: clamp(34px, min(6vw, 7.5vh), 72px); } main { padding-top: clamp(84px, 11vh, 120px); } }
+    @media (max-height: 700px) and (min-width: 721px){ .case .t em { display: none; } }
+    @media (max-width: 720px){
+      .lede { display: none; }
+      .slide { grid-template-columns: 1fr; gap: 16px; }
+      main { padding-bottom: 12px; }
+      .art { min-height: 0; aspect-ratio: 2 / 1; }
+      .info h2 { font-size: 28px; }
+      .sum { display: none; }
+      .cases-k { margin: 14px 0 8px; padding-top: 0; }
+      .case { padding: 10px 12px; gap: 12px; } .case .t em, .case .k2 { display: none; }
+      .arrow { top: auto; bottom: calc(var(--fh, 51px) + 12px); margin-top: 0; width: 52px; height: 52px; }
+      .arrow svg { width: 24px; height: 24px; }
+      .pager { flex: none; height: 52px; align-items: center; margin-top: 14px; padding: 0 60px; }
+    }
+    @media (prefers-reduced-motion: reduce){ .slide, .slide.on, .slide .info > *, .slide.on .info > * { transition: none; transform: none; } }
   </style>
 </head>
 <body>
   <a class="rhome" href="index.html" aria-label="Back to the street">R</a>
+  <button class="arrow prev" id="prev" aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button>
+  <button class="arrow next" id="next" aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8"/></svg></button>
   <main>
-    <p class="k">Work</p>
-    <h1>Selected work</h1>
-    <p class="lede">Placeholder copy. A short line about the kind of work collected here: interfaces, design systems and the engineering that ships them.</p>
-    <div class="grid">
-      <a class="proj" href="#"><div class="proj-art"><img src="logos/hush.svg" alt="The Hush"></div>
-        <div class="proj-body"><b>Placeholder project title</b><span>One or two lines describing the project and Ryan's role in it.</span><div class="proj-tags"><i>Product design</i><i>2025</i></div></div></a>
-      <a class="proj" href="#"><div class="proj-art"><img src="logos/fleeting.svg" alt="fleeting"></div>
-        <div class="proj-body"><b>Placeholder project title</b><span>One or two lines describing the project and Ryan's role in it.</span><div class="proj-tags"><i>Design systems</i><i>2025</i></div></div></a>
-      <a class="proj" href="#"><div class="proj-art"><img src="logos/heatcheck.svg" alt="heatcheck"></div>
-        <div class="proj-body"><b>Placeholder project title</b><span>One or two lines describing the project and Ryan's role in it.</span><div class="proj-tags"><i>Brand</i><i>2024</i></div></div></a>
-      <a class="proj" href="#"><div class="proj-art"><img src="logos/khealth.svg" alt="K Health"></div>
-        <div class="proj-body"><b>Placeholder project title</b><span>One or two lines describing the project and Ryan's role in it.</span><div class="proj-tags"><i>Consumer health</i><i>2024</i></div></div></a>
+    <div class="head">
+      <div>
+        <p class="k">Work</p>
+        <h1>Selected work</h1>
+        <p class="lede">Placeholder copy. A short line about the kind of work collected here: interfaces, design systems and the engineering that ships them.</p>
+      </div>
+      <p class="count" aria-hidden="true"><b id="countN">01</b> / <span id="countT">04</span></p>
     </div>
+    <section class="stage" id="stage" aria-roledescription="carousel" aria-label="Projects"></section>
+    <nav class="pager" id="pager" aria-label="Choose a project"></nav>
   </main>
   <footer class="foot">
     <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span><span class="foot-social">
@@ -110,6 +159,69 @@
   </footer>
   <script>
     document.getElementById('yr').textContent=new Date().getFullYear();
+  </script>
+  <script>
+    /* projects: edit here. Case studies are placeholders until the real write-ups exist. */
+    var PROJECTS=[
+      { id:'the-hush',  name:'The Hush',  logo:'logos/hush.svg',      tags:['Product design','2025'],
+        sum:"Placeholder: a line or two on what The Hush is and the part Ryan played in it.",
+        cases:[['Product','Placeholder case study','The problem, the approach and what shipped.'],
+               ['Brand','Placeholder case study','How the identity came together.'],
+               ['Launch','Placeholder case study','Getting it out the door and what we learned.']] },
+      { id:'fleeting',  name:'Fleeting',  logo:'logos/fleeting.svg',  tags:['Design systems','2025'],
+        sum:"Placeholder: a line or two on what Fleeting is and the part Ryan played in it.",
+        cases:[['Design system','Placeholder case study','The components, tokens and docs behind it.'],
+               ['Product','Placeholder case study','The problem, the approach and what shipped.'],
+               ['Engineering','Placeholder case study','From prototype to production code.']] },
+      { id:'heatcheck', name:'Heatcheck', logo:'logos/heatcheck.svg', tags:['Brand','2024'],
+        sum:"Placeholder: a line or two on what Heatcheck is and the part Ryan played in it.",
+        cases:[['Brand','Placeholder case study','How the identity came together.'],
+               ['Product','Placeholder case study','The problem, the approach and what shipped.'],
+               ['Growth','Placeholder case study','What moved the numbers, and what didn\u2019t.']] },
+      { id:'k-health',  name:'K Health',  logo:'logos/khealth.svg',   tags:['Consumer health','2024'],
+        sum:"Placeholder: a line or two on what K Health is and the part Ryan played in it.",
+        cases:[['Research','Placeholder case study','What we heard from patients and clinicians.'],
+               ['Product','Placeholder case study','The problem, the approach and what shipped.'],
+               ['Design system','Placeholder case study','Scaling one system across the product.']] }
+    ];
+    (function(){
+      var stage=document.getElementById('stage'), pager=document.getElementById('pager'), N=PROJECTS.length, i=0,
+          pad=function(n){ return (n<10?'0':'')+n; }, go='<svg class="go" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg>';
+      document.getElementById('countT').textContent=pad(N);
+      var slides=PROJECTS.map(function(p,k){
+        var el=document.createElement('article'); el.className='slide'; el.id=p.id;
+        el.setAttribute('aria-roledescription','slide'); el.setAttribute('aria-label',(k+1)+' of '+N+': '+p.name);
+        el.innerHTML='<div class="art"><img src="'+p.logo+'" alt="'+p.name+' logo"></div>'+
+          '<div class="info"><h2>'+p.name+'</h2><p class="sum">'+p.sum+'</p><div class="meta">'+p.tags.map(function(t){ return '<i>'+t+'</i>'; }).join('')+'</div>'+
+          '<p class="cases-k">Case studies</p><ol class="cases">'+p.cases.map(function(c,j){
+            return '<li><a class="case" href="#"><span class="n">'+pad(j+1)+'</span><span class="t"><b>'+c[1]+'</b><em>'+c[2]+'</em></span><span class="k2">'+c[0]+'</span>'+go+'</a></li>'; }).join('')+'</ol></div>';
+        stage.appendChild(el);
+        var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label',p.name); b.innerHTML='<i></i>';
+        b.addEventListener('click', function(){ show(k, k>i?1:-1); }); pager.appendChild(b);
+        return el; });
+      var dots=[].slice.call(pager.children);
+      function paint(){ slides.forEach(function(s,k){ var on=k===i; s.classList.toggle('on',on); s.setAttribute('aria-hidden',!on); s.inert=!on; });
+        dots.forEach(function(d,k){ d.setAttribute('aria-current', k===i?'true':'false'); });
+        document.getElementById('countN').textContent=pad(i+1);
+        try{ history.replaceState(null,'','#'+PROJECTS[i].id); }catch(e){} }
+      // slide in from the side you're heading towards; the old one leaves the other way
+      function show(n, dir){ n=(n+N)%N; if (n===i) return; var cur=slides[i], nxt=slides[n];
+        nxt.style.transition='none'; nxt.style.transform='translateX('+(dir*48)+'px)'; void nxt.offsetWidth; nxt.style.transition=''; nxt.style.transform='';
+        cur.style.transform='translateX('+(-dir*48)+'px)';
+        i=n; paint(); }
+      document.getElementById('prev').addEventListener('click', function(){ show(i-1,-1); });
+      document.getElementById('next').addEventListener('click', function(){ show(i+1, 1); });
+      addEventListener('keydown', function(e){ if (e.key==='ArrowRight'){ e.preventDefault(); show(i+1,1); } else if (e.key==='ArrowLeft'){ e.preventDefault(); show(i-1,-1); } });
+      // swipe on touch screens
+      var x0=null, y0=0; stage.addEventListener('touchstart', function(e){ x0=e.touches[0].clientX; y0=e.touches[0].clientY; }, { passive:true });
+      stage.addEventListener('touchend', function(e){ if (x0==null) return; var dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null;
+        if (Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)) show(dx<0?i+1:i-1, dx<0?1:-1); }, { passive:true });
+      // open on the project named in the address (work.html#heatcheck)
+      var foot=document.querySelector('.foot'), fh=function(){ document.body.style.setProperty('--fh', foot.offsetHeight+'px'); };
+      addEventListener('resize', fh); fh();
+      var h=location.hash.slice(1); PROJECTS.forEach(function(p,k){ if (p.id===h) i=k; });
+      paint();
+    })();
   </script>
 </body>
 </html>
