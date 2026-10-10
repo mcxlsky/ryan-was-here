@@ -256,7 +256,7 @@
     .homebase > * { pointer-events: auto; }
     .about-body p, .about-lead, .about-by-t { text-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 2px 18px rgba(0,0,0,0.45); }
     /* the copyright + social line, as on the other pages' footers */
-    .homebase .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 1180px; margin: 0 auto; padding: 16px 0 20px;
+    .homebase .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: none; margin: 0 -40px; padding: 16px 40px 20px;
                         border-top: 1px solid rgba(255,255,255,0.14); font: 400 12px/1.4 var(--font-ui); color: rgba(242,242,240,0.6);
                         text-shadow: 0 1px 6px rgba(0,0,0,0.4); }
     .foot-social { display: flex; gap: 18px; }
@@ -279,6 +279,7 @@
     @media (max-width: 720px){
       .about { padding: 84px 22px calc(var(--base-h, 64px) + 20px); }
       .homebase { padding: 0 22px; }
+      .homebase .foot-base { margin: 0 -22px; padding: 14px 22px 18px; }
       .about-body p { font-size: 14.5px; line-height: 1.5; }
       .about-body { gap: 14px; }
       .avatar { width: 52px; height: 52px; font-size: 18px; }
@@ -335,7 +336,6 @@
     .eq i { transform-origin: bottom; }
     @media (prefers-reduced-motion: reduce) { .eq i { animation: none; } }
     /* gold tiles anchored to the left edge, like the R square */
-    .widgets { left: 0; top: 80px; gap: 6px; }   /* half the old 12px gaps between the R and the tiles */
     /* the time card sits on its own at the bottom left */
     .wbottom { position: absolute; z-index: 5; left: 18px; bottom: 18px; width: 300px; transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); }
     .wbottom.away { opacity: 0; transform: translateY(10px); pointer-events: none; }
@@ -372,6 +372,14 @@
       .wbottom { left: 18px; right: 18px; width: auto; }
       .wbottom .wcard { width: auto; }
       .wtile { flex: none; scroll-snap-align: start; }
+    }
+    /* the tiles are the nav now: a row flush to the top edge, just left of the gold menu square (same 6px gap as everywhere) */
+    .widgets { top: 0; left: auto; right: 80px; bottom: auto; width: auto; padding: 0; flex-direction: row; gap: 6px; overflow: visible; }
+    .widgets.away { transform: translateY(-12px); }
+    @media (max-width: 600px){
+      .widgets { right: 78px; gap: 4px; }
+      .wfav { width: 58px; height: 58px; }
+      .wfav svg { width: 28px; height: 28px; }
     }
     @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
   </style>
