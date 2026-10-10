@@ -520,7 +520,7 @@
   <script>
     (function () {
       var veil = document.getElementById('veil');
-      (function wait(){ if (window.__ready) veil.classList.add('hide'); else requestAnimationFrame(wait); })();   // loading veil fades once the train is built
+      (function wait(){ if (window.__ready && window.__warm) veil.classList.add('hide'); else requestAnimationFrame(wait); })();   // loading veil fades once the train is built
     })();
   </script>
   <script src="train-data.js"></script>
@@ -2219,9 +2219,15 @@ THREE.ColorManagement.enabled = false;
 
   const clock = new THREE.Clock(), perf={ t:0, n:0, step:0 };
   let heroOn=true; new IntersectionObserver(e=>{ heroOn=e[0].isIntersecting; }).observe(sceneEl);
-  function tick(){
+  // frame timing: step the motion by the display's own frame clock (rAF's vsync-aligned timestamp, not the moment this
+  // code happens to run) and smooth out small wobbles, so trains glide at an even speed; a real hitch still catches up
+  let lastTs=0, sdt=1/60;
+  function tick(ts){
     FRAME.n++; window.__frames=FRAME.n;
-    const dt=Math.min(clock.getDelta(),0.1);
+    const rawDt=Math.min(clock.getDelta(),0.1);
+    let fdt=(ts && lastTs) ? (ts-lastTs)/1000 : rawDt; if (ts) lastTs=ts; fdt=Math.min(Math.max(fdt,0),0.1);
+    sdt += (fdt-sdt)*0.2;
+    const dt = Math.abs(fdt-sdt) < sdt*0.5 ? sdt : fdt;
     if (train){
       if (RIDE.anim){ const a=RIDE.anim; a.t=Math.min(1,a.t+dt/a.dur); const e=a.t<0.5?4*a.t*a.t*a.t:1-Math.pow(-2*a.t+2,3)/2;
         RIDE.target=a.from+(a.to-a.from)*e; if (a.t>=1) RIDE.anim=null; }
@@ -2230,6 +2236,11 @@ THREE.ColorManagement.enabled = false;
       if (Math.abs(s-RIDE.target)<1e-4) s=RIDE.target;
       choreo(s);
       if (!reduce) runAmbient(dt, train.position.x); else { ambient.sb.visible=ambient.nb.visible=false; }
+      // warm-up: on the first frame, draw both passing trains right by the camera (still behind the loading veil) so
+      // every shader they need (materials, shadows, motion blur) compiles now rather than the first time one comes past
+      if (!FRAME.warm && !reduce){ FRAME.warm=1; const cx=camera.position.x;
+        placeTrain(ambient.sb, cx+40, 1); placeTrain(ambient.nb, cx-40, -1); ambient.sb.visible=ambient.nb.visible=true; }
+      else if (FRAME.warm===1 || reduce){ FRAME.warm=2; window.__warm=true; }
       RIDE.shown=s; if (window.__rideUI) window.__rideUI(s);
     }
     finish.uniforms.time.value = clock.elapsedTime;
@@ -2262,7 +2273,7 @@ THREE.ColorManagement.enabled = false;
       prevVP.copy(curVP);
     }
     // quality governor: if frames run slow for ~2 s, step down one notch (resolution, then AO, then depth of field)
-    if (heroOn && !lite && FRAME.n>90){ perf.t+=dt; perf.n++;
+    if (heroOn && !lite && FRAME.n>90){ perf.t+=fdt; perf.n++;
       if (perf.t>2){ const avg=perf.t/perf.n; perf.t=perf.n=0;
         if (avg>1/42 && perf.step<4){ perf.step++;
           if (perf.step===1||perf.step===3){ const pr=Math.max(1, renderer.getPixelRatio()*0.8); renderer.setPixelRatio(pr); composer.setPixelRatio(pr); composer.setSize(vw(),vh()); }
