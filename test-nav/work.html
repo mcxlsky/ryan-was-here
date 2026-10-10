@@ -59,7 +59,6 @@
     .card:hover { border-color: rgba(255,255,255,0.4); transform: translateY(-3px); }
     /* cover: the full brand colour (the page is the darker one) — a placeholder until there are real images */
     .cover { position: relative; flex: none; aspect-ratio: 16 / 9; display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 16px; }
-    .cover .n { font: 600 13px/1 var(--font); font-variant-numeric: tabular-nums; }
     .cover .k2 { font: 500 11px/1 var(--font); letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.85); }
     .body { flex: none; display: grid; gap: 5px; padding: 12px 14px 14px; }
     .body b { font: 600 15px/1.25 var(--font); letter-spacing: -0.01em; }
@@ -179,7 +178,7 @@
         var el=document.createElement('ol'); el.className='slide'; el.dataset.id=p.id;   // no id: a #project address must not make the browser scroll to it
         el.setAttribute('aria-roledescription','slide'); el.setAttribute('aria-label',(k+1)+' of '+N+': '+p.name+' case studies');
         el.innerHTML=p.cases.map(function(c,j){
-          return '<li><a class="card" href="#"><span class="cover" style="background:'+p.color+'"><span class="n">'+pad(j+1)+'</span><span class="k2">'+c[0]+'</span></span>'+
+          return '<li><a class="card" href="#"><span class="cover" style="background:'+p.color+'"><span class="k2">'+c[0]+'</span></span>'+
                  '<span class="body"><b>'+c[1]+'</b><em>'+c[2]+'</em><span class="read">Read case study '+arrow+'</span></span></a></li>'; }).join('');
         stage.appendChild(el); slides.push(el);
         var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label',p.name); b.innerHTML='<i></i>';
