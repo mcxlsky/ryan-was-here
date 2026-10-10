@@ -450,21 +450,24 @@
         el.style.setProperty('--a', a.toFixed(3)); el.style.setProperty('--t', t.toFixed(3)); el.classList.toggle('on', t>0.5);
         if (w){ w.style.opacity=(1-a).toFixed(3); w.style.visibility=a>0.98?'hidden':''; }   // the hero's tiles step back
         window.__aboutP=P; }
-      function step(now){ var dt=Math.min(0.05,(now-last)/1000||0.016); last=now;
+      function step(now){ var dt=Math.min(0.05,Math.max(0,(now-last)/1000)); last=now;   // rAF's timestamp can precede the go() call
         var d=T-P, v=dt/0.55; P = Math.abs(d)<=v ? T : P+Math.sign(d)*v;       // ~0.55 s either way
         paint(); raf = P!==T ? requestAnimationFrame(step) : 0; }
       function go(t){ if (t===T && P===T) return; T=t; if (reduce){ P=T; paint(); return; } if (!raf){ last=performance.now(); raf=requestAnimationFrame(step); } }
-      window.__about={ open:function(){ go(1); }, close:function(){ go(0); }, get p(){ return P; } };
+      window.__about={ open:function(){ go(1); }, close:function(){ go(0); }, get p(){ return P; }, get target(){ return T; } };
       function sizeBase(){ el.style.setProperty('--base-h', base.offsetHeight+'px'); }
       addEventListener('resize', sizeBase); sizeBase(); paint();
       // wheel / trackpad: a short push in either direction is enough (no scrolling, no scrollbar)
+      //   a reversal starts a fresh count, so trackpad momentum from the last swipe never has to be "paid back" before you can go the other way
       addEventListener('wheel', function(e){ if (document.getElementById('rnav').classList.contains('open')) return;
-        e.preventDefault(); var now=performance.now(); if (now-accT>220) acc=0; accT=now; acc+=e.deltaY;
-        if (acc>28) go(1); else if (acc<-28) go(0); }, { passive:false });
+        e.preventDefault(); var now=performance.now(), dy=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+        if (!dy) return;
+        if (now-accT>180 || Math.sign(dy)!==Math.sign(acc)) acc=0; accT=now; acc+=dy;
+        if (acc>=10) go(1); else if (acc<=-10) go(0); }, { passive:false });
       // touch: swipe up opens, swipe down closes
       var y0=null; addEventListener('touchstart', function(e){ y0=e.touches[0].clientY; }, { passive:true });
       addEventListener('touchmove', function(e){ if (y0==null) return; var dy=y0-e.touches[0].clientY;
-        if (dy>36){ go(1); y0=null; } else if (dy<-36){ go(0); y0=null; } }, { passive:true });
+        if (dy>20){ go(1); y0=null; } else if (dy<-20){ go(0); y0=null; } }, { passive:true });
       // keys
       addEventListener('keydown', function(e){ var k=e.key; if (e.target.closest && e.target.closest('input,textarea')) return;
         if (k==='ArrowDown'||k==='PageDown'||k==='End'||(k===' '&&!e.shiftKey)){ e.preventDefault(); go(1); }
