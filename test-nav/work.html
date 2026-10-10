@@ -161,24 +161,25 @@
     document.getElementById('yr').textContent=new Date().getFullYear();
   </script>
   <script>
-    /* projects: edit here. Case studies are placeholders until the real write-ups exist. */
+    /* projects: edit here. color is the brand colour (taken from each brand's own logo file), behind the white logo.
+       Case studies are placeholders until the real write-ups exist. */
     var PROJECTS=[
-      { id:'the-hush',  name:'The Hush',  logo:'logos/hush.svg',      tags:['Product design','2025'],
+      { id:'the-hush',  name:'The Hush',  logo:'logos/hush-white.svg',      color:'#380B85', tags:['Product design','2025'],
         sum:"Placeholder: a line or two on what The Hush is and the part Ryan played in it.",
         cases:[['Product','Placeholder case study','The problem, the approach and what shipped.'],
                ['Brand','Placeholder case study','How the identity came together.'],
                ['Launch','Placeholder case study','Getting it out the door and what we learned.']] },
-      { id:'fleeting',  name:'Fleeting',  logo:'logos/fleeting.svg',  tags:['Design systems','2025'],
+      { id:'fleeting',  name:'Fleeting',  logo:'logos/fleeting-white.svg',  color:'#2962D6', tags:['Design systems','2025'],
         sum:"Placeholder: a line or two on what Fleeting is and the part Ryan played in it.",
         cases:[['Design system','Placeholder case study','The components, tokens and docs behind it.'],
                ['Product','Placeholder case study','The problem, the approach and what shipped.'],
                ['Engineering','Placeholder case study','From prototype to production code.']] },
-      { id:'heatcheck', name:'Heatcheck', logo:'logos/heatcheck.svg', tags:['Brand','2024'],
+      { id:'heatcheck', name:'Heatcheck', logo:'logos/heatcheck-white.svg', color:'#E52E00', tags:['Brand','2024'],
         sum:"Placeholder: a line or two on what Heatcheck is and the part Ryan played in it.",
         cases:[['Brand','Placeholder case study','How the identity came together.'],
                ['Product','Placeholder case study','The problem, the approach and what shipped.'],
                ['Growth','Placeholder case study','What moved the numbers, and what didn\u2019t.']] },
-      { id:'k-health',  name:'K Health',  logo:'logos/khealth.svg',   tags:['Consumer health','2024'],
+      { id:'k-health',  name:'K Health',  logo:'logos/khealth-white.svg',   color:'#2C90FF', tags:['Consumer health','2024'],
         sum:"Placeholder: a line or two on what K Health is and the part Ryan played in it.",
         cases:[['Research','Placeholder case study','What we heard from patients and clinicians.'],
                ['Product','Placeholder case study','The problem, the approach and what shipped.'],
@@ -191,7 +192,7 @@
       var slides=PROJECTS.map(function(p,k){
         var el=document.createElement('article'); el.className='slide'; el.id=p.id;
         el.setAttribute('aria-roledescription','slide'); el.setAttribute('aria-label',(k+1)+' of '+N+': '+p.name);
-        el.innerHTML='<div class="art"><img src="'+p.logo+'" alt="'+p.name+' logo"></div>'+
+        el.innerHTML='<div class="art" style="background:'+p.color+'"><img src="'+p.logo+'" alt="'+p.name+' logo"></div>'+
           '<div class="info"><h2>'+p.name+'</h2><p class="sum">'+p.sum+'</p><div class="meta">'+p.tags.map(function(t){ return '<i>'+t+'</i>'; }).join('')+'</div>'+
           '<p class="cases-k">Case studies</p><ol class="cases">'+p.cases.map(function(c,j){
             return '<li><a class="case" href="#"><span class="n">'+pad(j+1)+'</span><span class="t"><b>'+c[1]+'</b><em>'+c[2]+'</em></span><span class="k2">'+c[0]+'</span>'+go+'</a></li>'; }).join('')+'</ol></div>';
