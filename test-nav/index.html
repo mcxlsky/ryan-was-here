@@ -245,14 +245,15 @@
        a spacer after it gives the scroll its length. Taller-than-screen About (phones) scrolls only its overflow. */
     /* About: an overlay over the hero, its copy resting just above the footer line. A scroll gesture (wheel, swipe, keys)
        fades its gradient in, then the copy; the page itself never scrolls. The fades are CSS transitions on opacity and
-       transform only, so the compositor runs them smoothly even while the 3D scene keeps the main thread busy */
+       transform only, so the compositor runs them smoothly even while the 3D scene keeps the main thread busy. No will-change:
+       a permanent layer over the WebGL canvas can stop some browsers showing its new frames; transitions get layers on their own */
     .about { position: fixed; inset: 0; z-index: 2; color: #f2f2f0; pointer-events: none;
              display: flex; flex-direction: column; justify-content: flex-end; padding: 96px 40px calc(var(--base-h, 64px) + 36px);
-             isolation: isolate; }
+             }
     .about::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
              background: linear-gradient(to bottom, rgba(15,15,16,0) 8%, rgba(15,15,16,0.62) 42%, rgba(15,15,16,0.92) 100%);
-             opacity: 0; will-change: opacity; transition: opacity .5s cubic-bezier(.4,0,.2,1) .12s; }   /* closing: copy first, then the gradient */
-    .about-grid { width: 100%; opacity: 0; transform: translate3d(0,14px,0); will-change: opacity, transform;
+             opacity: 0; transition: opacity .5s cubic-bezier(.4,0,.2,1) .12s; }   /* closing: copy first, then the gradient */
+    .about-grid { width: 100%; opacity: 0; transform: translateY(14px);
              transition: opacity .3s ease, transform .4s cubic-bezier(.4,0,.2,1); }
     .about.open { pointer-events: auto; }
     .about.open::before { opacity: 1; transition-delay: 0s; }                                         /* opening: gradient first, then the copy */
