@@ -620,9 +620,12 @@ THREE.ColorManagement.enabled = false;
   const key = new THREE.DirectionalLight(0xffffff, 2.0);
   key.position.set(-14, 22, 10);
   key.castShadow = true;
-  key.shadow.mapSize.set(4096, 4096);
-  key.shadow.bias = -0.0003; key.shadow.normalBias = 0.02; key.shadow.radius = 3;
-  { const d=36, c=key.shadow.camera; c.left=-d; c.right=d; c.top=d; c.bottom=-d; c.near=1; c.far=190; c.updateProjectionMatrix(); }
+  // the shadow map is a long strip laid down the shot (oriented each frame below): ~30 m behind the camera to ~200 m ahead,
+  // ±45 m across, so buildings and the el keep their shadows out into the haze. Same memory as a 4096² square.
+  const SH={ ahead:200, behind:30, side:45 };
+  key.shadow.mapSize.set(2048, renderer.capabilities.maxTextureSize>=8192 ? 8192 : 4096);
+  key.shadow.bias = -0.0001; key.shadow.normalBias = 0.03; key.shadow.radius = 3;
+  { const c=key.shadow.camera; c.left=-SH.side; c.right=SH.side; c.top=SH.ahead; c.bottom=-SH.behind; c.near=1; c.far=700; c.updateProjectionMatrix(); }
   scene.add(key);
   const rim = new THREE.DirectionalLight(0xffffff, 0.5);   // soft sky fill from the far side: daytime only (set by the atmosphere), off underground
   rim.position.set(18, 10, -14); scene.add(rim);
@@ -2118,7 +2121,7 @@ THREE.ColorManagement.enabled = false;
     const out=1-inT;
     hemi.intensity=ATM.hemi*(0.15+0.85*out); rim.intensity=ATM.rim*out; scene.fog.density=ATM.fog*out;
     if (floorRef){ floorRef.material.uniforms.fogDen.value=scene.fog.density; floorRef.material.uniforms.fogCol.value.copy(scene.fog.color); }
-    keyOff.copy(ATM.keyDir).multiplyScalar(90); key.intensity=ATM.key;
+    keyOff.copy(ATM.keyDir).multiplyScalar(300); key.intensity=ATM.key;
     const poles=ATM.poleOn?1:0; for (const pl of poleRefs) pl.intensity=1.6*poles; if (poleLampM) poleLampM.emissiveIntensity=2.4*poles;
     for (const pm of [rain,snow]){ const u=pm.material.uniforms; u.camPos.value.copy(pos); u.opacity.value=ATM.precipOpacity*out; }
     { const L0=TUNNEL.x0+4.7, SPC=7;
@@ -2132,8 +2135,14 @@ THREE.ColorManagement.enabled = false;
       const fd=THREE.MathUtils.lerp(fCab, pos.distanceTo(rel(DOOR_T)), inside);
       const ap=THREE.MathUtils.lerp(0.00035*onCab,0.0022,inside); bokeh.uniforms.focus.value=fd; bokeh.uniforms.aperture.value=ap;
       bokeh.enabled = ap>1e-5 && !FRAME.lite && !(perf.step>=4); }   // a pinhole while watching the street: skip the pass
-    { const fwd=tgt.clone().sub(pos).setY(0); if (fwd.lengthSq()>1e-6) fwd.normalize();    // shadow box centred ~26 m into the shot
-      key.target.position.set(pos.x+fwd.x*26, PY-1, pos.z*0.3+fwd.z*26); key.position.copy(key.target.position).add(keyOff); }
+    { const fwd=tgt.clone().sub(pos).setY(0); if (fwd.lengthSq()>1e-6) fwd.normalize(); else fwd.set(-1,0,0);
+      // shadow strip: its long axis points down the shot (as the sun sees it, so its extent scales by how square-on that is);
+      // with the sun almost straight down the street that axis degenerates, so fall back to a plain square around the camera
+      const L=ATM.keyDir, fl=fwd.x*L.x+fwd.z*L.z, fp=Math.sqrt(Math.max(0,1-fl*fl)), c=key.shadow.camera;
+      if (fp>0.2){ c.up.copy(fwd); c.top=SH.ahead*fp; c.bottom=-SH.behind*fp; c.left=-SH.side; c.right=SH.side; }
+      else { c.up.set(0,1,0); c.top=c.right=SH.side*1.4; c.bottom=c.left=-SH.side*1.4; }
+      c.updateProjectionMatrix();
+      key.target.position.set(pos.x, PY-1, pos.z*0.3); key.position.copy(key.target.position).add(keyOff); }
   }
   /* ---------- post: AO → bloom → depth of field → tone map → film finish ---------- */
   const lowPower = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth,innerHeight) < 600;
