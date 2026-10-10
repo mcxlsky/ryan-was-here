@@ -244,12 +244,21 @@
     /* About doesn't scroll in: it sits over the hero (sticky, pulled up a screen) and only fades in as you scroll;
        a spacer after it gives the scroll its length. Taller-than-screen About (phones) scrolls only its overflow. */
     /* About: an overlay over the hero, its copy resting just above the footer line. A scroll gesture (wheel, swipe, keys)
-       fades its gradient in, then the copy; the page itself never scrolls. --a / --t: 0 → 1 */
+       fades its gradient in, then the copy; the page itself never scrolls. The fades are CSS transitions on opacity and
+       transform only, so the compositor runs them smoothly even while the 3D scene keeps the main thread busy */
     .about { position: fixed; inset: 0; z-index: 2; color: #f2f2f0; pointer-events: none;
              display: flex; flex-direction: column; justify-content: flex-end; padding: 96px 40px calc(var(--base-h, 64px) + 36px);
-             background: linear-gradient(to bottom, rgba(15,15,16,0) 8%, rgba(15,15,16, calc(0.62 * var(--a, 0))) 42%, rgba(15,15,16, calc(0.92 * var(--a, 0))) 100%); }
-    .about.on { pointer-events: auto; }
-    .about-grid { opacity: var(--t, 0); transform: translateY(calc((1 - var(--t, 0)) * 14px)); width: 100%; }
+             isolation: isolate; }
+    .about::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+             background: linear-gradient(to bottom, rgba(15,15,16,0) 8%, rgba(15,15,16,0.62) 42%, rgba(15,15,16,0.92) 100%);
+             opacity: 0; will-change: opacity; transition: opacity .5s cubic-bezier(.4,0,.2,1) .12s; }   /* closing: copy first, then the gradient */
+    .about-grid { width: 100%; opacity: 0; transform: translate3d(0,14px,0); will-change: opacity, transform;
+             transition: opacity .3s ease, transform .4s cubic-bezier(.4,0,.2,1); }
+    .about.open { pointer-events: auto; }
+    .about.open::before { opacity: 1; transition-delay: 0s; }                                         /* opening: gradient first, then the copy */
+    .about.open .about-grid { opacity: 1; transform: none; transition: opacity .5s ease .16s, transform .65s cubic-bezier(.2,.8,.2,1) .16s; }
+    .widgets.covered { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .3s ease, visibility 0s linear .3s; }
+    @media (prefers-reduced-motion: reduce){ .about::before, .about-grid, .about.open .about-grid { transition: none; } }
     /* the footer line: always there, along the bottom of the screen */
     .homebase { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; padding: 0 40px; pointer-events: none;
                 background: linear-gradient(to top, rgba(10,10,11,0.55), rgba(10,10,11,0)); }
@@ -444,19 +453,15 @@
     /* About: a scroll gesture opens it (gradient, then copy) and the opposite gesture closes it. Nothing scrolls. */
     (function(){
       var el=document.getElementById('about'), w=document.getElementById('widgets'), base=document.getElementById('homebase');
-      var ease=function(x){ return x*x*(3-2*x); }, P=0, T=0, last=0, acc=0, accT=0, raf=0;
-      var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-      function paint(){ var a=ease(Math.min(1,P/0.6)), t=ease(Math.min(1,Math.max(0,(P-0.25)/0.75)));
-        el.style.setProperty('--a', a.toFixed(3)); el.style.setProperty('--t', t.toFixed(3)); el.classList.toggle('on', t>0.5);
-        if (w){ w.style.opacity=(1-a).toFixed(3); w.style.visibility=a>0.98?'hidden':''; }   // the hero's tiles step back
-        window.__aboutP=P; }
-      function step(now){ var dt=Math.min(0.05,Math.max(0,(now-last)/1000)); last=now;   // rAF's timestamp can precede the go() call
-        var d=T-P, v=dt/0.55; P = Math.abs(d)<=v ? T : P+Math.sign(d)*v;       // ~0.55 s either way
-        paint(); raf = P!==T ? requestAnimationFrame(step) : 0; }
-      function go(t){ if (t===T && P===T) return; T=t; if (reduce){ P=T; paint(); return; } if (!raf){ last=performance.now(); raf=requestAnimationFrame(step); } }
-      window.__about={ open:function(){ go(1); }, close:function(){ go(0); }, get p(){ return P; }, get target(){ return T; } };
+      var T=0, timer=0, acc=0, accT=0, reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      // the scene drops to its lighter mode only once the About is fully in (so nothing visibly switches mid-fade),
+      // and goes back to full quality the moment it starts to leave
+      function go(t){ if (t===T) return; T=t; el.classList.toggle('open', T===1); if (w) w.classList.toggle('covered', T===1);
+        clearTimeout(timer); if (T===1) timer=setTimeout(function(){ if (T===1) window.__aboutP=1; }, reduce?0:700); else window.__aboutP=0; }
+      window.__aboutP=0;
+      window.__about={ open:function(){ go(1); }, close:function(){ go(0); }, get p(){ return T; }, get target(){ return T; } };
       function sizeBase(){ el.style.setProperty('--base-h', base.offsetHeight+'px'); }
-      addEventListener('resize', sizeBase); sizeBase(); paint();
+      addEventListener('resize', sizeBase); sizeBase();
       // wheel / trackpad: a short push in either direction is enough (no scrolling, no scrollbar)
       //   a reversal starts a fresh count, so trackpad momentum from the last swipe never has to be "paid back" before you can go the other way
       addEventListener('wheel', function(e){ if (document.getElementById('rnav').classList.contains('open')) return;
