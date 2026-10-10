@@ -35,7 +35,8 @@
     }
 
     /* ---------- Scroll scene ---------- */
-    .scene  { position: sticky; top: 0; height: 100vh; z-index: 1; }   /* the hero: one screen; each section then slides up over the last */
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }   /* one screen: nothing scrolls past the viewport */
+    .scene  { position: relative; height: 100vh; height: 100dvh; z-index: 1; }
     .sticky { position: relative; height: 100vh; overflow: hidden; background: #000; }
 
     /* video stage we scale slightly on scroll */
@@ -242,16 +243,22 @@
     /* ---------- About: scrolls up over the (sticky) hero ---------- */
     /* About doesn't scroll in: it sits over the hero (sticky, pulled up a screen) and only fades in as you scroll;
        a spacer after it gives the scroll its length. Taller-than-screen About (phones) scrolls only its overflow. */
-    .about { position: sticky; top: var(--stick, 0px); margin-top: calc(-1 * var(--h, 100vh));   /* rests at the bottom of the screen, its natural size */
-             z-index: 2; color: #f2f2f0; padding: 120px 40px 28px; pointer-events: none;
-             background: linear-gradient(to bottom, rgba(15,15,16,0), rgba(15,15,16, calc(0.86 * var(--a, 0))) 200px); }   /* --a: 0 → 1 with the scroll; soft top edge */
+    /* About: an overlay over the hero, its copy resting just above the footer line. A scroll gesture (wheel, swipe, keys)
+       fades its gradient in, then the copy; the page itself never scrolls. --a / --t: 0 → 1 */
+    .about { position: fixed; inset: 0; z-index: 2; color: #f2f2f0; pointer-events: none;
+             display: flex; flex-direction: column; justify-content: flex-end; padding: 96px 40px calc(var(--base-h, 64px) + 36px);
+             background: linear-gradient(to bottom, rgba(15,15,16,0) 8%, rgba(15,15,16, calc(0.62 * var(--a, 0))) 42%, rgba(15,15,16, calc(0.92 * var(--a, 0))) 100%); }
     .about.on { pointer-events: auto; }
-    .after-space { height: 100vh; }
-    .about-grid, .about .foot-base { opacity: var(--t, 0); }
+    .about-grid { opacity: var(--t, 0); transform: translateY(calc((1 - var(--t, 0)) * 14px)); width: 100%; }
+    /* the footer line: always there, along the bottom of the screen */
+    .homebase { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; padding: 0 40px; pointer-events: none;
+                background: linear-gradient(to top, rgba(10,10,11,0.55), rgba(10,10,11,0)); }
+    .homebase > * { pointer-events: auto; }
     .about-body p, .about-lead, .about-by-t { text-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 2px 18px rgba(0,0,0,0.45); }
     /* the copyright + social line, as on the other pages' footers */
-    .about .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 1180px; margin: 120px auto 0; padding-top: 18px;
-                        border-top: 1px solid rgba(255,255,255,0.08); font: 400 12px/1.4 var(--font-ui); color: rgba(242,242,240,0.45); }
+    .homebase .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 1180px; margin: 0 auto; padding: 16px 0 20px;
+                        border-top: 1px solid rgba(255,255,255,0.14); font: 400 12px/1.4 var(--font-ui); color: rgba(242,242,240,0.6);
+                        text-shadow: 0 1px 6px rgba(0,0,0,0.4); }
     .foot-social { display: flex; gap: 18px; }
     .foot-social a { display: grid; place-items: center; }
     .foot-social a:focus-visible { outline: 1px solid rgba(255,255,255,0.7); outline-offset: 3px; }
@@ -259,20 +266,21 @@
     .foot-social a:hover svg { opacity: 1; }
     /* one column on the footer line's left edge: byline, lead, then the body copy */
     .about-grid { max-width: 1180px; margin: 0 auto; }
-    .about-by { display: flex; align-items: center; gap: 16px; margin-bottom: 30px; }
+    .about-by { display: flex; align-items: center; gap: 16px; margin-bottom: clamp(14px, 3vh, 30px); }
     .avatar { flex: none; width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #e5ab00; color: #111;
               display: grid; place-items: center; font: 700 22px/1 var(--font-ui); letter-spacing: -0.02em; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
     .about-by-t { display: grid; gap: 5px; }
     .about-by-t b { font: 600 17px/1.2 var(--font-ui); letter-spacing: -0.01em; }
     .about-by-t span { font: 400 14px/1.2 var(--font-ui); opacity: 0.6; }
-    .about-lead { font: 500 clamp(28px, 3.4vw, 46px)/1.16 var(--font-ui); letter-spacing: -0.03em; max-width: 21em; text-wrap: balance; margin-bottom: 40px; }
-    .about-body { display: grid; gap: 22px; max-width: 680px; }
-    .about-body p { font: 400 19px/1.6 var(--font-ui); opacity: 0.72; text-wrap: pretty; }
+    .about-lead { font: 500 clamp(22px, min(3.4vw, 4.2vh), 46px)/1.16 var(--font-ui); letter-spacing: -0.03em; max-width: 24em; text-wrap: balance; margin-bottom: clamp(18px, 4vh, 40px); }
+    .about-body { display: grid; gap: clamp(12px, 2.2vh, 22px); max-width: 760px; }
+    .about-body p { font: 400 clamp(14px, 2vh, 19px)/1.58 var(--font-ui); opacity: 0.72; text-wrap: pretty; }
     @media (max-width: 720px){
-      .about { padding: 80px 22px 24px; }
-      .about .foot-base { flex-direction: column-reverse; align-items: flex-start; gap: 18px; margin-top: 72px; }
-      .about-body p { font-size: 17px; }
+      .about { padding: 84px 22px calc(var(--base-h, 64px) + 20px); }
+      .homebase { padding: 0 22px; }
+      .about-body p { font-size: 14.5px; line-height: 1.5; }
+      .about-body { gap: 14px; }
       .avatar { width: 52px; height: 52px; font-size: 18px; }
       .about-by { margin-bottom: 22px; }
       .about-lead { margin-bottom: 28px; }
@@ -413,30 +421,52 @@
         <p>This pivot has also given me the space to experiment with modern, tactile interfaces—specifically using WebGL and GSAP to bring skeuomorphic and 3D elements to life.</p>
       </div>
     </div>
+  </section>
+  <div class="homebase" id="homebase">
     <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span><span class="foot-social">
         <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 1.6a10.4 10.4 0 0 0-3.3 20.3c.5.1.7-.2.7-.5v-1.8c-2.9.6-3.5-1.4-3.5-1.4-.5-1.2-1.2-1.5-1.2-1.5-.9-.6.1-.6.1-.6 1 .1 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.7-1.2-4.7-5.1 0-1.1.4-2 1.1-2.7-.1-.3-.5-1.3.1-2.8 0 0 .9-.3 2.9 1.1a9.8 9.8 0 0 1 5.2 0c2-1.4 2.9-1.1 2.9-1.1.6 1.5.2 2.5.1 2.8.7.7 1.1 1.6 1.1 2.7 0 3.9-2.4 4.8-4.7 5.1.4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A10.4 10.4 0 0 0 12 1.6z"/></svg></a>
         <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.4 2H3.6C2.7 2 2 2.7 2 3.6v16.8c0 .9.7 1.6 1.6 1.6h16.8c.9 0 1.6-.7 1.6-1.6V3.6c0-.9-.7-1.6-1.6-1.6zM8 19H5V9.5h3V19zM6.5 8.2a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5zM19 19h-3v-4.6c0-1.1 0-2.5-1.5-2.5S12.8 13 12.8 14.3V19h-3V9.5h2.9v1.3c.4-.8 1.4-1.5 2.8-1.5 3 0 3.6 2 3.6 4.6V19z"/></svg></a>
         <a href="#" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.8 2.5h3.1l-6.8 7.8 8 10.6h-6.3l-4.9-6.4-5.6 6.4H2.2l7.3-8.3L1.8 2.5h6.4l4.4 5.9 5.2-5.9zm-1.1 16.5h1.7L7.3 4.3H5.5L16.7 19z"/></svg></a>
         <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 3.2c2.9 0 3.2 0 4.3.1 1 0 1.6.2 2 .4.5.2.8.4 1.2.8.4.4.6.7.8 1.2.1.4.3 1 .4 2 .1 1.1.1 1.4.1 4.3s0 3.2-.1 4.3c0 1-.2 1.6-.4 2-.2.5-.4.8-.8 1.2-.4.4-.7.6-1.2.8-.4.1-1 .3-2 .4-1.1.1-1.4.1-4.3.1s-3.2 0-4.3-.1c-1 0-1.6-.2-2-.4a3.3 3.3 0 0 1-1.2-.8c-.4-.4-.6-.7-.8-1.2-.1-.4-.3-1-.4-2-.1-1.1-.1-1.4-.1-4.3s0-3.2.1-4.3c0-1 .2-1.6.4-2 .2-.5.4-.8.8-1.2.4-.4.7-.6 1.2-.8.4-.1 1-.3 2-.4 1.1-.1 1.4-.1 4.3-.1M12 1.3c-2.9 0-3.3 0-4.4.1-1.1 0-1.9.2-2.6.5-.7.3-1.3.6-1.9 1.2S2.2 4.3 1.9 5C1.6 5.7 1.4 6.5 1.4 7.6 1.3 8.7 1.3 9.1 1.3 12s0 3.3.1 4.4c0 1.1.2 1.9.5 2.6.3.7.6 1.3 1.2 1.9.6.6 1.2.9 1.9 1.2.7.3 1.5.4 2.6.5 1.1.1 1.5.1 4.4.1s3.3 0 4.4-.1c1.1 0 1.9-.2 2.6-.5.7-.3 1.3-.6 1.9-1.2.6-.6.9-1.2 1.2-1.9.3-.7.4-1.5.5-2.6.1-1.1.1-1.5.1-4.4s0-3.3-.1-4.4c0-1.1-.2-1.9-.5-2.6-.3-.7-.6-1.3-1.2-1.9-.6-.6-1.2-.9-1.9-1.2-.7-.3-1.5-.4-2.6-.5-1.1-.1-1.5-.1-4.4-.1zm0 5.2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zm0 9.1a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2zm5.7-10.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg></a>
       </span></div>
-  </section>
-  <div class="after-space" aria-hidden="true"></div>
+  </div>
 
   <script>
     document.getElementById('yr').textContent=new Date().getFullYear();
-    /* About fades in with the scroll: its dark veil first, then the words */
-    (function(){ var el=document.getElementById('about'), ease=function(x){ return x*x*(3-2*x); };
-      function upd(){ var p=Math.min(1,Math.max(0,scrollY/(innerHeight*0.8))), t=ease(Math.min(1,Math.max(0,(p-0.15)/0.6)));
-        el.style.setProperty('--h', el.offsetHeight+'px'); el.style.setProperty('--stick', (innerHeight-el.offsetHeight)+'px');
-        el.style.setProperty('--a', ease(Math.min(1,p/0.7)).toFixed(3));
-        el.style.setProperty('--t', t.toFixed(3)); el.classList.toggle('on', t>0.05);
-        var w=document.getElementById('widgets'); if (w){ w.style.opacity=(1-t).toFixed(3); w.style.visibility=t>0.98?'hidden':''; } }   // the hero's tiles step back behind the About
-      var tk=false; addEventListener('scroll', function(){ if (!tk){ tk=true; requestAnimationFrame(function(){ tk=false; upd(); }); } }, { passive:true });
-      addEventListener('resize', upd); upd(); })();
+    /* About: a scroll gesture opens it (gradient, then copy) and the opposite gesture closes it. Nothing scrolls. */
+    (function(){
+      var el=document.getElementById('about'), w=document.getElementById('widgets'), base=document.getElementById('homebase');
+      var ease=function(x){ return x*x*(3-2*x); }, P=0, T=0, last=0, acc=0, accT=0, raf=0;
+      var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function paint(){ var a=ease(Math.min(1,P/0.6)), t=ease(Math.min(1,Math.max(0,(P-0.25)/0.75)));
+        el.style.setProperty('--a', a.toFixed(3)); el.style.setProperty('--t', t.toFixed(3)); el.classList.toggle('on', t>0.5);
+        if (w){ w.style.opacity=(1-a).toFixed(3); w.style.visibility=a>0.98?'hidden':''; }   // the hero's tiles step back
+        window.__aboutP=P; }
+      function step(now){ var dt=Math.min(0.05,(now-last)/1000||0.016); last=now;
+        var d=T-P, v=dt/0.55; P = Math.abs(d)<=v ? T : P+Math.sign(d)*v;       // ~0.55 s either way
+        paint(); raf = P!==T ? requestAnimationFrame(step) : 0; }
+      function go(t){ if (t===T && P===T) return; T=t; if (reduce){ P=T; paint(); return; } if (!raf){ last=performance.now(); raf=requestAnimationFrame(step); } }
+      window.__about={ open:function(){ go(1); }, close:function(){ go(0); }, get p(){ return P; } };
+      function sizeBase(){ el.style.setProperty('--base-h', base.offsetHeight+'px'); }
+      addEventListener('resize', sizeBase); sizeBase(); paint();
+      // wheel / trackpad: a short push in either direction is enough (no scrolling, no scrollbar)
+      addEventListener('wheel', function(e){ if (document.getElementById('rnav').classList.contains('open')) return;
+        e.preventDefault(); var now=performance.now(); if (now-accT>220) acc=0; accT=now; acc+=e.deltaY;
+        if (acc>28) go(1); else if (acc<-28) go(0); }, { passive:false });
+      // touch: swipe up opens, swipe down closes
+      var y0=null; addEventListener('touchstart', function(e){ y0=e.touches[0].clientY; }, { passive:true });
+      addEventListener('touchmove', function(e){ if (y0==null) return; var dy=y0-e.touches[0].clientY;
+        if (dy>36){ go(1); y0=null; } else if (dy<-36){ go(0); y0=null; } }, { passive:true });
+      // keys
+      addEventListener('keydown', function(e){ var k=e.key; if (e.target.closest && e.target.closest('input,textarea')) return;
+        if (k==='ArrowDown'||k==='PageDown'||k==='End'||(k===' '&&!e.shiftKey)){ e.preventDefault(); go(1); }
+        else if (k==='ArrowUp'||k==='PageUp'||k==='Home'||(k===' '&&e.shiftKey)){ e.preventDefault(); go(0); }
+        else if (k==='Escape' && T===1) go(0); });
+    })();
     /* nav: the R and Home go to the top; Work and About are pages still to come; the footer's Copy email is a placeholder */
     (function(){
       var stops=[].slice.call(document.querySelectorAll('.rnav-stop'));
-      var top=function(e){ if (e) e.preventDefault(); if (window.__goHome) window.__goHome(); scrollTo({ top:0, behavior:'smooth' }); };
+      var top=function(e){ if (e) e.preventDefault(); if (window.__goHome) window.__goHome(); if (window.__about) window.__about.close(); };
       document.querySelectorAll('[data-top]').forEach(function(a){ a.addEventListener('click', top); });
       var nav=document.getElementById('rnav'), tog=document.getElementById('rnavToggle');
       function setOpen(o){ nav.classList.toggle('open',o); tog.setAttribute('aria-expanded',o); tog.setAttribute('aria-label',o?'Close menu':'Menu');
@@ -444,7 +474,7 @@
       tog.addEventListener('click', function(){ setOpen(!nav.classList.contains('open')); });
       document.addEventListener('keydown', function(e){ if (e.key==='Escape' && nav.classList.contains('open')){ setOpen(false); tog.focus(); } });
       document.addEventListener('pointerdown', function(e){ if (nav.classList.contains('open') && !nav.contains(e.target)) setOpen(false); });
-      stops.forEach(function(b){ b.addEventListener('click', function(){ setOpen(false); if (b.dataset.go==='home') top(); else if (b.dataset.go==='work') location.href='work.html'; else if (b.dataset.go==='about') document.getElementById('about').scrollIntoView({ behavior:'smooth' }); }); });
+      stops.forEach(function(b){ b.addEventListener('click', function(){ setOpen(false); if (b.dataset.go==='home') top(); else if (b.dataset.go==='work') location.href='work.html'; else if (b.dataset.go==='about') window.__about.open(); }); });
     })();
 
     /* the R: hover shows when the next train is due (1 board minute ≈ 8 s here — the line runs far more often than the real one);
@@ -459,7 +489,7 @@
         T.textContent='Next train'; D.textContent='Flatbush Av'; M.textContent=m==null?'–':m; U.textContent='min'; sign.classList.toggle('now', m===0); }
       setInterval(board, 400); board();
       el.addEventListener('click', function(e){ e.preventDefault(); var R=r(); if (!R) return;
-        if (scrollY>2) scrollTo({ top:0, behavior:'smooth' });
+        if (window.__about && window.__about.p>0.05) window.__about.close();
         if (R.target>0.999) R.go(0,true);               // at the platform: back up to the street
         else if (!R.anim) R.go(1);                       // ride all the way
         board(); });
@@ -2194,7 +2224,7 @@ THREE.ColorManagement.enabled = false;
         sky.material.uniforms.flash.value=a; hemi.intensity+=a*2.2; if (f>0.6){ ATM.flashT=-1; sky.material.uniforms.flash.value=0; } } }
     // how much of the hero the About section covers, read straight from the scroll position each frame:
     // ~0 → full quality; partly covered → lite (trains keep running, the costly extras pause); fully covered → no render
-    const cover=Math.min(1,Math.max(0,scrollY/Math.max(1,sceneEl.offsetHeight))), lite=cover>0.03;   // the About is see-through: the scene keeps running, lighter, behind it
+    const cover=window.__aboutP||0, lite=cover>0.03;   // the About is see-through: the scene keeps running, lighter, behind it
     if (lite!==FRAME.lite){ FRAME.lite=lite;
       if (gtao) gtao.enabled=!lite && !(perf.step>=2); if (blurPass) blurPass.enabled=!lite; }
     if (heroOn && !lite && blurPass && ambient.sb){
