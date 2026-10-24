@@ -260,6 +260,17 @@
     .about.open .about-grid { opacity: 1; transform: none; transition: opacity .5s ease .16s, transform .65s cubic-bezier(.2,.8,.2,1) .16s; }
     .widgets.covered { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .3s ease, visibility 0s linear .3s; }
     @media (prefers-reduced-motion: reduce){ .about::before, .about-grid, .about.open .about-grid { transition: none; } }
+    /* About CTAs: square like the tiles; View work in the R's gold, About outlined */
+    .about-cta { display: flex; gap: 10px; margin-top: clamp(20px, 3.6vh, 32px); }
+    .cta { display: inline-flex; align-items: center; gap: 10px; height: 50px; padding: 0 22px; font: 600 15px/1 var(--font-ui); letter-spacing: -0.005em;
+           text-decoration: none; transition: background .2s, border-color .2s, color .2s; }
+    .cta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: square; transition: transform .2s; }
+    .cta:hover svg { transform: translateX(3px); }
+    .cta-primary { background: #e5ab00; color: #111; }
+    .cta-primary:hover { background: #f0b80c; }
+    .cta-ghost { color: #fff; border: 1px solid rgba(255,255,255,0.5); }
+    .cta-ghost:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+    .cta:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
     /* the footer line: always there, along the bottom of the screen */
     .homebase { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; padding: 0 40px; pointer-events: none;
                 background: linear-gradient(to top, rgba(10,10,11,0.55), rgba(10,10,11,0)); }
@@ -267,7 +278,7 @@
     .about-body p, .about-lead { text-shadow: 0 1px 2px rgba(0,0,0,0.35), 0 2px 18px rgba(0,0,0,0.45); }
     /* the copyright + social line, as on the other pages' footers */
     .homebase .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: none; margin: 0 -40px; padding: 24px 40px 26px;
-                        border-top: 1px solid rgba(255,255,255,0.14); font: 400 12px/1.4 var(--font-ui); color: rgba(242,242,240,0.6);
+                        font: 400 12px/1.4 var(--font-ui); color: rgba(242,242,240,0.6);
                         text-shadow: 0 1px 6px rgba(0,0,0,0.4); }
     .foot-social { display: flex; gap: 18px; }
     .foot-social a { display: grid; place-items: center; }
@@ -281,17 +292,19 @@
               display: grid; place-items: center; font: 700 22px/1 var(--font-ui); letter-spacing: -0.02em; }
     .avatar img { width: 100%; height: 100%; object-fit: cover; }
     /* one size for the lead and the body (roughly the average of the two it replaced); the lead keeps its weight, the body its softer tone */
-    .about { --about-fs: clamp(18px, min(2.4vw, 3vh), 32px); --about-gap: clamp(12px, 2.2vh, 22px); }
-    .about-lead { font: 500 var(--about-fs)/1.32 var(--font-ui); letter-spacing: -0.02em; max-width: 30em; text-wrap: pretty; margin-bottom: var(--about-gap); }
-    .about-body { display: grid; gap: var(--about-gap); max-width: 30em; font-size: var(--about-fs); }
+    .about { --about-fs: clamp(15px, min(2.2vw, 2.45vh), 30px); --about-gap: clamp(10px, 2vh, 20px); }
+    @media (max-height: 760px){ .about-by { display: none; } }   /* short screens: the placeholder avatar gives its room to the copy */
+    .about-lead { font: 500 var(--about-fs)/1.32 var(--font-ui); letter-spacing: -0.02em; max-width: 32em; text-wrap: pretty; margin-bottom: var(--about-gap); }
+    .about-body { display: grid; gap: var(--about-gap); max-width: 32em; font-size: var(--about-fs); }
     .about-body p { font: 400 var(--about-fs)/1.32 var(--font-ui); letter-spacing: -0.01em; opacity: 0.72; text-wrap: pretty; }
     @media (max-width: 720px){
       .about { padding: 84px 22px calc(var(--base-h, 64px) + 20px); }
       .homebase { padding: 0 22px; }
       .homebase .foot-base { margin: 0 -22px; padding: 18px 22px 20px; }
-      .about { --about-fs: 17px; --about-gap: 14px; }
-      .avatar { width: 52px; height: 52px; font-size: 18px; }
-      .about-by { margin-bottom: 22px; }
+      .about { --about-fs: 16px; --about-gap: 12px; }
+      @media (max-height: 700px){ .about { --about-fs: 14.5px; --about-gap: 10px; } .about-cta { margin-top: 14px; } .cta { height: 42px; } }
+      .about-by { margin-bottom: 16px; } .avatar { width: 44px; height: 44px; font-size: 16px; }
+      .about-cta { margin-top: 18px; } .cta { flex: 1; justify-content: center; height: 46px; }
     }
 
     /* ---------- Hero intro (placeholder copy), upper left under the R ---------- */
@@ -443,6 +456,10 @@
         <p>I’ve spent considerable time in high-maturity design orgs and scrappy startups. That experience has turned into an obsession for simplifying the path at early stage companies and cutting through red tape keeping larger teams agile.</p>
         <p>A recent career pivot has given me the space to fully own my process, allowing me to bridge the gap from theoretical and static systems to live, interactive code tested by real users.</p>
         <p>This pivot has also given me the space to experiment with modern, tactile interfaces—specifically using WebGL and GSAP to bring skeuomorphic and 3D elements to life.</p>
+      </div>
+      <div class="about-cta">
+        <a class="cta cta-primary" href="work.html">View work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></a>
+        <a class="cta cta-ghost" href="#" id="ctaAbout">About</a>   <!-- placeholder: point at the About page once it exists -->
       </div>
     </div>
   </section>
@@ -642,6 +659,21 @@ THREE.ColorManagement.enabled = false;
      preview overrides:  ?wx=clear|partly|overcast|fog|drizzle|rain|snow|storm   ?hour=0..24 (New York time) */
   const BRONX = { lat:40.8164, lon:-73.9175, tz:'America/New_York' };
   const QS = new URLSearchParams(location.search);
+  /* the season on the avenue, from today's date in New York (preview: ?date=2026-07-01). Street trees here (planes, honey locusts,
+     pin oaks, pears) leaf out in April, turn from late September, peak around the start of November and are bare by early December.
+     turn: share of trees in fall colour · leaf: how much canopy is left (0 bare … 1 full) · bud: spring's light new green */
+  const SEASON=(()=>{
+    const q=QS.get('date'), d=q&&/^\d{4}-\d{2}-\d{2}$/.test(q) ? new Date(q+'T12:00:00Z') : null;
+    const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{ timeZone:'America/New_York', year:'numeric', month:'numeric', day:'numeric' })
+      .formatToParts(d||new Date()).map(x=>[x.type,x.value]));
+    const doy=(Date.UTC(+p.year,+p.month-1,+p.day)-Date.UTC(+p.year,0,0))/864e5;
+    const ramp=(a,b,x)=>Math.min(1,Math.max(0,(x-a)/(b-a)));
+    const turn=ramp(266,314,doy);                                             // ~Sep 23 → Nov 10
+    const leaf=doy<97 ? 0 : doy<135 ? 0.25+0.75*ramp(97,135,doy) : 1-ramp(306,340,doy);   // buds ~Apr 7, full by mid May; drop Nov 2 → Dec 6
+    const bud=doy>=97&&doy<160 ? 1-ramp(125,160,doy) : 0;
+    return { doy, turn, leaf, bud };
+  })();
+  window.__season=SEASON;
   function sunPos(date){                                   // degrees; az from north, clockwise
     const rad=Math.PI/180, d=date.getTime()/86400000+2440587.5-2451545.0;
     const g=(357.529+0.98560028*d)*rad, q=280.459+0.98564736*d;
@@ -1645,9 +1677,11 @@ THREE.ColorManagement.enabled = false;
       /* ---------- the plaza over the portal: trees, lamps ---------- */
       { const trunkM=new THREE.MeshStandardMaterial({ color:0x2b231c, roughness:0.95 }), leafM=new THREE.MeshStandardMaterial({ color:0x2f4a2a, roughness:0.9, envMapIntensity:0.4 });
         const rt=(()=>{ let a=777; return ()=>((a=(Math.imul(a,1103515245)+12345)>>>0)/4294967296); })();
+        leafM.color.lerp(new THREE.Color(0x4a2a05), SEASON.turn*0.75); if (SEASON.bud) leafM.color.lerp(new THREE.Color(0x3c5a20), SEASON.bud*0.5);
+        const plazaLeaf=SEASON.leaf<0.06 ? 0 : 0.4+0.6*Math.sqrt(SEASON.leaf);
         for (let i=0;i<12;i++){ const x=T.x0+4+rt()*46, z=(rt()<0.5?-1:1)*(7+rt()*12);
           const tr=new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.22,3.2,8),trunkM); tr.position.set(x,H2+1.6,z); tr.castShadow=true; scene.add(tr);
-          const cn=new THREE.Mesh(new THREE.IcosahedronGeometry(2.2+rt()*1.2,1),leafM); cn.position.set(x,H2+4.4,z); cn.scale.y=0.8; cn.castShadow=cn.receiveShadow=true; scene.add(cn); } }
+          const cn=new THREE.Mesh(new THREE.IcosahedronGeometry(2.2+rt()*1.2,1),leafM); cn.position.set(x,H2+4.4,z); cn.scale.set(plazaLeaf,0.8*plazaLeaf,plazaLeaf); cn.castShadow=cn.receiveShadow=true; if (plazaLeaf) scene.add(cn); } }
 
       /* ---------- the neighbourhood around 3 Av–149 St: 5–8 storey walk-ups lining the line ---------- */
       { const rr=(()=>{ let a=424242; return ()=>((a=(Math.imul(a,1103515245)+12345)>>>0)/4294967296); })();
@@ -1742,18 +1776,25 @@ THREE.ColorManagement.enabled = false;
             sw.position.set((xa+xb)/2, G+0.075, (z0+z1)/2); sw.receiveShadow=true; scene.add(sw);
             const ce=z0>0?z0:z1; box(xa,xb, G, G+0.16, ce-0.12, ce+0.12, curbM, false);   // granite curb at the street edge
           }
-          // street trees: trunk + three clustered canopy blobs, instanced; October tints from green toward amber
+          // street trees: trunk + three clustered canopy blobs, instanced; coloured and thinned by the season (SEASON above)
           const spots=[]; for (const [z0,z1] of walks){ const zc=z0>0?z0+1.3:z1-1.3; for (let x=xa+4; x<xb-3; x+=8+rr()*4) if (rr()<0.85) spots.push([x,zc]); }
           const trunks=new THREE.InstancedMesh(new THREE.CylinderGeometry(0.11,0.16,3.2,7), new THREE.MeshStandardMaterial({ color:0x2a2018, roughness:0.95 }), spots.length);
           const pits=new THREE.InstancedMesh(new THREE.BoxGeometry(1.5,0.02,1.5), pitM, spots.length);
           const blobGeo=new THREE.IcosahedronGeometry(1,1); const canM=new THREE.MeshStandardMaterial({ color:0xffffff, roughness:0.9, metalness:0, flatShading:true, envMapIntensity:0.5 });
           const blobs=new THREE.InstancedMesh(blobGeo, canM, spots.length*3);
-          const greens=[0x0b1d05,0x0e2407,0x122a06,0x18300a,0x2b2c06,0x3c2506].map(h=>new THREE.Color(h));   // linear values: deep street-tree greens, a few turning
+          const greens=[0x0b1d05,0x0e2407,0x122a06,0x18300a].map(h=>new THREE.Color(h));                    // linear values: deep summer greens
+          const falls=[0x2b2c06,0x5a3a04,0x6a2a03,0x4a1604,0x3a0c04,0x2e1a08].map(h=>new THREE.Color(h));   // olive, honey-locust gold, orange, rust, oak red, brown
+          const spring=new THREE.Color(0x24400a);                                                             // new leaves: lighter, yellower
+          // per-tree dice of their own, so the season never shifts the rest of the street's layout
+          const dice=(i,k)=>{ const v=Math.sin(i*127.1+k*311.7)*43758.5453; return v-Math.floor(v); };
           spots.forEach(([x,z],i)=>{ const s=0.8+rr()*0.45, hgt=3.0*s;
             M4.compose(P.set(x,G+0.15+hgt/2,z), Q.identity(), S.set(s,s,s)); trunks.setMatrixAt(i,M4);
             M4.makeTranslation(x,G+0.155,z); pits.setMatrixAt(i,M4);
-            const col=greens[Math.min(greens.length-1,Math.floor(Math.pow(rr(),1.6)*greens.length))];
-            for (let k=0;k<3;k++){ const a=k*2.1+rr(), r=0.7*s, cs=(1.5+rr()*0.6)*s;
+            let col=greens[Math.min(greens.length-1,Math.floor(Math.pow(rr(),1.6)*greens.length))];
+            if (SEASON.turn>dice(i,1)) col=falls[Math.floor(dice(i,2)*falls.length)];                   // this tree has turned
+            else if (SEASON.bud>0) col=col.clone().lerp(spring, SEASON.bud*(0.6+0.4*dice(i,3)));
+            const keep=Math.min(1,Math.max(0,SEASON.leaf*1.35-dice(i,4)*0.35));                        // early droppers go bare first
+            for (let k=0;k<3;k++){ const a=k*2.1+rr(), r=0.7*s, cs=(1.5+rr()*0.6)*s*(keep<0.06?0:0.35+0.65*Math.sqrt(keep));
               E.set(rr()*3,rr()*3,0); Q.setFromEuler(E);
               M4.compose(P.set(x+Math.cos(a)*r, G+0.15+hgt+0.9*s+(k===0?0.6*s:0), z+Math.sin(a)*r), Q, S.set(cs,cs*0.85,cs)); blobs.setMatrixAt(i*3+k,M4);
               blobs.setColorAt(i*3+k, col.clone().multiplyScalar(0.85+rr()*0.3)); } });
