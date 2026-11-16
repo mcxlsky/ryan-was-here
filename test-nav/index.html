@@ -481,14 +481,17 @@
     .dock > .away { opacity: 0; transform: translateY(10px); pointer-events: none; }
     .glass { position: relative; flex: none; width: min(430px, 100%); display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px 16px 16px;
              border-radius: 22px; color: #fff; isolation: isolate;
-             background: linear-gradient(140deg, rgba(255,255,255,0.20), rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.10));
-             -webkit-backdrop-filter: blur(18px) saturate(1.8) brightness(1.05); backdrop-filter: blur(18px) saturate(1.8) brightness(1.05);
-             border: 1px solid rgba(255,255,255,0.26);
-             box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(255,255,255,0.10), inset 1px 0 0 rgba(255,255,255,0.12),
+             background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.12) 100%);
+             -webkit-backdrop-filter: blur(28px) saturate(2.0) brightness(1.08); backdrop-filter: blur(28px) saturate(2.0) brightness(1.08);
+             border: 1px solid rgba(255,255,255,0.30);
+             box-shadow: inset 0 1px 0 rgba(255,255,255,0.60), inset 0 -1px 0 rgba(255,255,255,0.08), inset 1px 0 0 rgba(255,255,255,0.14), inset -1px 0 0 rgba(255,255,255,0.08),
                          0 20px 44px -18px rgba(0,0,0,0.55); }
-    /* the specular sheen along the top edge that sells the glass */
+    /* specular sheen: the highlight along the top-left that sells the liquid glass curvature */
     .glass::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
-             background: radial-gradient(120% 60% at 20% -10%, rgba(255,255,255,0.35), rgba(255,255,255,0) 60%); mix-blend-mode: overlay; }
+             background: radial-gradient(140% 70% at 15% -15%, rgba(255,255,255,0.40), rgba(255,255,255,0) 55%); mix-blend-mode: overlay; }
+    /* secondary specular: a faint bottom-right highlight that closes the glass loop */
+    .glass::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+             background: radial-gradient(80% 50% at 85% 110%, rgba(255,255,255,0.12), rgba(255,255,255,0) 50%); mix-blend-mode: overlay; }
     .glass-av { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #e5ab00; color: #111; display: grid; place-items: center;
              font: 700 15px/1 var(--font-ui); letter-spacing: -0.02em; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
     .glass-t { min-width: 0; display: grid; gap: 6px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
@@ -506,6 +509,8 @@
       .glass-av { width: 34px; height: 34px; font-size: 13px; } .glass-p { font-size: 13px; } }
     /* the train card: the next southbound, and a button to board it (or, at the platform, to go back up) */
     .train { width: 272px; flex-direction: column; gap: 10px; padding: 14px 14px 14px 16px; }
+    .train-bullet { width: 64px; height: 64px; aspect-ratio: 1; flex-shrink: 0; border-radius: 50%; background: #FCCC0A; display: grid; place-items: center; margin: auto 0; }
+    .train-bullet span { font: 700 36px/1 var(--font-ui); color: #111; letter-spacing: -0.02em; }
     .train-k { font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.78); text-shadow: 0 1px 2px rgba(0,0,0,0.25);
                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .train-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
@@ -526,22 +531,17 @@
       .train-k { white-space: normal; display: grid; gap: 4px; } .train-sep { display: none; } #tD { font-size: 13px; letter-spacing: 0; text-transform: none; color: #fff; }
       .train-m b { font-size: 26px; } .train-m { min-height: 0; }
       .train-row { gap: 10px; }
+      .train-bullet { width: 40px; height: 40px; margin: 0; } .train-bullet span { font-size: 22px; }
     }
-    /* the About card is white (the train card stays glass); its expand button grows it into a full-screen About */
-    .glass-about { background: #fff; color: #111; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; padding-right: 48px;
-                   box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
-    .glass-about::before { display: none; }
-    .glass-about .glass-t { text-shadow: none; }
-    .glass-about .glass-h span { color: rgba(17,17,17,0.55); }
-    .glass-about .glass-p { color: rgba(17,17,17,0.78); }
-    .glass-about .glass-av { box-shadow: none; }
-    .glass-about .glass-a, .about-full .glass-a { background: #111; color: #fff; border-color: #111; }
-    .glass-about .glass-a:hover, .about-full .glass-a:hover { background: #2a2a2a; }
-    .glass-about .glass-a:focus-visible, .about-full .glass-a:focus-visible { outline-color: #111; }
+    /* the expanded About panel stays white; card button grows it full-screen */
+    .glass-about { padding-right: 48px; }
+    .about-full .glass-a { background: #111; color: #fff; border-color: #111; }
+    .about-full .glass-a:hover { background: #2a2a2a; }
+    .about-full .glass-a:focus-visible { outline-color: #111; }
     .card-x { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
-              background: rgba(17,17,17,0.06); color: #111; transition: background .2s, transform .2s; }
-    .card-x:hover { background: rgba(17,17,17,0.12); transform: scale(1.06); }
-    .card-x:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+              background: rgba(255,255,255,0.14); color: #fff; transition: background .2s, transform .2s; }
+    .card-x:hover { background: rgba(255,255,255,0.24); transform: scale(1.06); }
+    .card-x:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     .card-x svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     /* full screen: white, inside the frame, under the header; it opens out of the card (clip-path from the card's box to the whole window) */
     .about-full { position: fixed; z-index: 900; inset: var(--frame); border-radius: var(--frame-r); background: #fff; color: #111; overflow-y: auto; scrollbar-width: none;
@@ -583,31 +583,19 @@
     .full-gh-h b { font-weight: 600; color: #111; } .full-gh-h a { color: inherit; text-decoration: none; } .full-gh-h a:hover { color: #111; }
     .contrib-full { overflow-x: auto; scrollbar-width: none; } .contrib-full svg { min-width: 560px; }
     @media (max-width: 720px){ .contrib-mini { display: none; } }
-    /* the train card is white too, to match the About card: dark type, a black Board button */
-    .train { background: #fff; color: #111; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
-    .train::before { display: none; }
-    .train .train-k, .train .train-m { text-shadow: none; }
-    .train .train-k { color: rgba(17,17,17,0.55); }
-    .train .train-m { color: #111; } .train .train-m span { color: rgba(17,17,17,0.55); }
-    .train.now .train-m b { color: #c48a00; }                 /* "Now": the R's gold, a shade deeper so it reads on white */
-    .train .train-go { background: #111; color: #fff; } .train .train-go:hover { background: #2a2a2a; }
-    .train .train-go:focus-visible { outline-color: #111; }
-    @media (max-width: 760px){ .train #tD { color: #111; } }
+    .train.now .train-m b { color: #ffd23a; }
     /* About card: avatar stacked above the copy; the expand button sits bottom right */
     .glass-about { flex-direction: column; gap: 12px; width: min(360px, 100%); padding: 18px 18px 18px 18px; }
     .glass-about .card-x { top: auto; bottom: 14px; right: 14px; }
     .glass-about .glass-t { padding-right: 0; }
     .glass-about .contrib-mini { margin: 4px 40px 0 0; }
-    /* currently working on: a white card with a placeholder thumbnail */
-    .glass-now { flex-direction: column; gap: 8px; width: 250px; padding: 14px; background: #fff; color: #111; border-color: transparent;
-                 -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
-    .glass-now::before { display: none; }
-    .now-k { display: flex; align-items: center; gap: 7px; font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(17,17,17,0.55); }
+    .glass-now { flex-direction: column; gap: 8px; width: 250px; padding: 14px; }
+    .now-k { display: flex; align-items: center; gap: 7px; font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.65); text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
     .now-k i { width: 7px; height: 7px; border-radius: 50%; background: #2fb35a; box-shadow: 0 0 0 0 rgba(47,179,90,0.5); animation: nowPulse 2s ease-out infinite; }
     @keyframes nowPulse { 0% { box-shadow: 0 0 0 0 rgba(47,179,90,0.5); } 70%,100% { box-shadow: 0 0 0 7px rgba(47,179,90,0); } }
-    .now-art { align-self: stretch; height: 72px; border-radius: 10px; background: repeating-linear-gradient(135deg, #eeece6 0 8px, #e2e0d8 8px 16px); }
-    .now-t { font: 600 15px/1.25 var(--font-ui); letter-spacing: -0.01em; margin-top: 2px; }
-    .now-p { font: 400 13px/1.45 var(--font-ui); color: rgba(17,17,17,0.65); }
+    .now-art { align-self: stretch; height: 72px; border-radius: 10px; background: repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 8px, rgba(255,255,255,0.14) 8px 16px); }
+    .now-t { font: 600 15px/1.25 var(--font-ui); letter-spacing: -0.01em; margin-top: 2px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
+    .now-p { font: 400 13px/1.45 var(--font-ui); color: rgba(255,255,255,0.72); text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
     .dock { flex-wrap: wrap; }
     @media (max-width: 1100px) and (min-width: 761px){ .glass-now { display: none; } }   /* not enough width for three */
     @media (max-width: 760px){
@@ -692,6 +680,7 @@
   </section>
   <section class="glass train" id="trainCard" aria-label="Next train">
     <p class="train-k"><span id="tK">Next train</span><span class="train-sep"> · </span><span id="tD">Flatbush Av</span></p>
+    <div class="train-bullet" aria-label="R train"><span>R</span></div>
     <div class="train-row">
       <p class="train-m" aria-live="polite"><b id="tM">–</b><span id="tU">min</span></p>
       <button class="train-go" id="tGo" type="button">Board<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></button>
