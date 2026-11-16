@@ -605,7 +605,7 @@
     .now-k { display: flex; align-items: center; gap: 7px; font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(17,17,17,0.55); }
     .now-k i { width: 7px; height: 7px; border-radius: 50%; background: #2fb35a; box-shadow: 0 0 0 0 rgba(47,179,90,0.5); animation: nowPulse 2s ease-out infinite; }
     @keyframes nowPulse { 0% { box-shadow: 0 0 0 0 rgba(47,179,90,0.5); } 70%,100% { box-shadow: 0 0 0 7px rgba(47,179,90,0); } }
-    .now-art { height: 72px; border-radius: 10px; background: repeating-linear-gradient(135deg, #eeece6 0 8px, #e2e0d8 8px 16px); }
+    .now-art { align-self: stretch; height: 72px; border-radius: 10px; background: repeating-linear-gradient(135deg, #eeece6 0 8px, #e2e0d8 8px 16px); }
     .now-t { font: 600 15px/1.25 var(--font-ui); letter-spacing: -0.01em; margin-top: 2px; }
     .now-p { font: 400 13px/1.45 var(--font-ui); color: rgba(17,17,17,0.65); }
     .dock { flex-wrap: wrap; }
@@ -629,6 +629,13 @@
     .foot-social a:hover svg { opacity: 1; }
     .dock { right: calc(var(--frame) + 64px); }                                  /* leave the icon stack its corner */
     body.full-open .foot-social svg { fill: #111 !important; filter: none; }         /* over the expanded About they turn dark */
+    /* the three cards share one height (the tallest sets it): the train card's countdown sits at its foot, the placeholder art takes up the slack */
+    @media (min-width: 761px){
+      .dock { align-items: stretch; }
+      .train { justify-content: space-between; }
+      .glass-now .now-art { flex: 1 1 auto; height: auto; min-height: 48px; }
+      .glass-about .contrib-mini { margin-top: auto; }
+    }
   </style>
 </head>
 <body>
