@@ -433,22 +433,56 @@
     .widgets { top: var(--frame); right: calc(80px + var(--frame)); }
     .homebase { left: var(--frame); right: var(--frame); bottom: var(--frame); }
     @media (max-width: 600px){ .widgets { right: calc(78px + var(--frame)); } }
+    /* ---------- header: a white tab hanging from the top of the frame (after supaste.com's black one) ----------
+       rounded underneath, with curved fillets where it meets the frame; brand left, links after it, one button on the right */
+    .tab { --tab-h: 52px; --tab-r: 14px; position: fixed; z-index: 1001; top: var(--frame, 8px); left: calc(var(--frame, 8px) + 28px); right: calc(var(--frame, 8px) + 28px);
+           height: var(--tab-h); display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: #fff; color: #111;
+           border-radius: 0 0 var(--tab-r) var(--tab-r); font-family: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; }
+    .tab::before, .tab::after { content: ''; position: absolute; top: 0; width: var(--tab-r); height: var(--tab-r); pointer-events: none; }
+    .tab::before { right: 100%; background: radial-gradient(circle at 0 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
+    .tab::after  { left: 100%;  background: radial-gradient(circle at 100% 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
+    .tab a { color: inherit; text-decoration: none; }
+    .tab-brand { position: relative; display: flex; align-items: center; gap: 10px; height: 100%; flex: none; }
+    .tab-r { width: 32px; height: 32px; border-radius: 8px; background: #e5ab00; color: #111; display: grid; place-items: center;
+             font: 700 20px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; letter-spacing: -0.03em; padding-top: 1px; }
+    .tab-name { font: 600 15px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; letter-spacing: -0.01em; white-space: nowrap; }
+    .tab-links { display: flex; align-items: center; gap: 4px; margin-left: 22px; }
+    .tab-links a, .tab-drop a { font: 500 14.5px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; color: rgba(17,17,17,0.52); padding: 9px 10px; border-radius: 8px;
+             transition: color .15s, background .15s; white-space: nowrap; }
+    .tab-links a:hover, .tab-drop a:hover { color: #111; background: rgba(17,17,17,0.05); }
+    .tab-links a[aria-current="page"], .tab-drop a[aria-current="page"] { color: #111; }
+    .tab-cta { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px; background: #111; color: #fff !important;
+               font: 600 14px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; white-space: nowrap; transition: background .15s; }
+    .tab-cta:hover { background: #2a2a2a; }
+    .tab-cta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+    .tab a:focus-visible, .tab button:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+    .tab-menu { display: none; -webkit-appearance: none; appearance: none; width: 36px; height: 36px; border: 0; border-radius: 9px; background: rgba(17,17,17,0.06); cursor: pointer; place-items: center; }
+    .tab-menu i, .tab-menu i::before, .tab-menu i::after { display: block; width: 16px; height: 1.6px; background: #111; border-radius: 1px; position: relative; transition: transform .25s, top .25s, background .2s; }
+    .tab-menu i::before, .tab-menu i::after { content: ''; position: absolute; left: 0; } .tab-menu i::before { top: -5px; } .tab-menu i::after { top: 5px; }
+    .tab.open .tab-menu i { background: transparent; } .tab.open .tab-menu i::before { top: 0; transform: rotate(45deg); } .tab.open .tab-menu i::after { top: 0; transform: rotate(-45deg); }
+    .tab-drop { position: absolute; top: calc(100% + 8px); right: 0; min-width: 190px; padding: 6px; background: #fff; border-radius: 14px; display: grid;
+                box-shadow: 0 12px 32px -8px rgba(0,0,0,0.35); opacity: 0; visibility: hidden; transform: translateY(-6px);
+                transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s linear .25s; }
+    .tab-drop a { padding: 12px 12px; font-size: 15px; }
+    .tab.open .tab-drop { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+    @media (max-width: 760px){
+      .tab { left: calc(var(--frame, 8px) + 18px); right: calc(var(--frame, 8px) + 18px); --tab-h: 50px; --tab-r: 12px; }
+      .tab-links { display: none; } .tab-menu { display: grid; } .tab-cta { margin-left: auto; }
+    }
+    @media (max-width: 380px){ .tab-name { display: none; } }
+    /* the countdown board drops out under the brand on hover */
+    .tab-brand .rsign { left: 0; top: calc(100% + 8px); height: 60px; border-radius: 12px; }
+    .tab-brand:hover .rsign, .tab-brand:focus-visible .rsign { clip-path: inset(0 0 0 0); }
   </style>
 </head>
 <body>
-  <a class="rhome" href="#" id="rhome" aria-label="Ride to 3 Av–149 St"><span class="rnav-r">R</span>
-    <span class="rsign" aria-hidden="true"><span class="rsign-t"><b id="rsignT">Next train</b><span id="rsignD">Flatbush Av</span></span><span class="rsign-m"><b id="rsignM">–</b><span id="rsignU">min</span></span></span>
-  </a>
-  <nav class="rnav" id="rnav" aria-label="Primary">
-    <div class="rnav-bar">
-      <button class="rnav-toggle" id="rnavToggle" aria-expanded="false" aria-controls="rnavMenu" aria-label="Menu"><i></i></button>
-    </div>
-    <div class="rnav-menu" id="rnavMenu"><div><ul>
-      <li><button class="rnav-item rnav-stop" data-go="home" tabindex="-1" aria-current="page">Home</button></li>
-      <li><button class="rnav-item rnav-stop" data-go="work" tabindex="-1">Work</button></li>
-      <li><button class="rnav-item rnav-stop" data-go="about" tabindex="-1">About</button></li>
-    </ul></div></div>
-  </nav>
+  <header class="tab" id="rnav">
+    <a class="tab-brand" href="#" id="rhome" aria-label="Ryan McCaulsky — hover for the next train, click to ride to 3 Av–149 St"><span class="tab-r" aria-hidden="true">R</span><span class="tab-name">Ryan McCaulsky</span><span class="rsign" aria-hidden="true"><span class="rsign-t"><b id="rsignT">Next train</b><span id="rsignD">Flatbush Av</span></span><span class="rsign-m"><b id="rsignM">–</b><span id="rsignU">min</span></span></span></a>
+    <nav class="tab-links" aria-label="Primary"><a href="work.html">Work</a><a href="#about" data-about>About</a><a href="#">Favorites</a><a href="weather.html">Weather</a></nav>
+    <a class="tab-cta" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg>Say hello</a>   <!-- placeholder: point at an email or contact page -->
+    <button class="tab-menu" id="rnavToggle" type="button" aria-expanded="false" aria-controls="tabDrop" aria-label="Menu"><i></i></button>
+    <div class="tab-drop" id="tabDrop"><a href="work.html">Work</a><a href="#about" data-about>About</a><a href="#">Favorites</a><a href="weather.html">Weather</a></div>
+  </header>
   <main class="scene" id="scene">
     <div class="sticky">
       <div class="stage" id="stage">
@@ -457,11 +491,6 @@
 
 
 
-      <div class="widgets" id="widgets">
-        <a class="wtile wfav" href="work.html" aria-label="Work"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7.6" height="7.6"/><rect x="13.4" y="3" width="7.6" height="7.6"/><rect x="3" y="13.4" width="7.6" height="7.6"/><rect x="13.4" y="13.4" width="7.6" height="7.6"/></svg></a>
-        <a class="wtile wfav" href="#" aria-label="Recent favorites"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.5l-5.9 3.2 1.3-6.6-4.9-4.6 6.6-.8z"/></svg></a>
-        <a class="wtile wfav" href="weather.html" aria-label="Bronx time and weather"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8.5" cy="8.5" r="3.6"/><path d="M8.5 2v1.6M2 8.5h1.6M3.9 3.9l1.1 1.1M13.1 3.9l-1.1 1.1" stroke="#e5ab00" stroke-width="1.6" stroke-linecap="round" fill="none"/><path d="M8.8 20.5h9a3.7 3.7 0 0 0 .3-7.4 5 5 0 0 0-9.6 1.3 3.1 3.1 0 0 0 .3 6.1z"/></svg></a>
-      </div>
       <div class="wx" id="wx" hidden></div>   <!-- time / weather readout, hidden for now -->
       <div class="veil" id="veil"><div class="spinner"></div></div>
     </div>
@@ -524,18 +553,10 @@
         else if (k==='ArrowUp'||k==='PageUp'||k==='Home'||(k===' '&&e.shiftKey)){ e.preventDefault(); go(0); }
         else if (k==='Escape' && T===1) go(0); });
     })();
-    /* nav: the R and Home go to the top; Work and About are pages still to come; the footer's Copy email is a placeholder */
+    /* header links: About opens the About overlay here (and index.html#about from other pages lands on it open) */
     (function(){
-      var stops=[].slice.call(document.querySelectorAll('.rnav-stop'));
-      var top=function(e){ if (e) e.preventDefault(); if (window.__goHome) window.__goHome(); if (window.__about) window.__about.close(); };
-      document.querySelectorAll('[data-top]').forEach(function(a){ a.addEventListener('click', top); });
-      var nav=document.getElementById('rnav'), tog=document.getElementById('rnavToggle');
-      function setOpen(o){ nav.classList.toggle('open',o); tog.setAttribute('aria-expanded',o); tog.setAttribute('aria-label',o?'Close menu':'Menu');
-        stops.forEach(function(b){ b.tabIndex=o?0:-1; }); }
-      tog.addEventListener('click', function(){ setOpen(!nav.classList.contains('open')); });
-      document.addEventListener('keydown', function(e){ if (e.key==='Escape' && nav.classList.contains('open')){ setOpen(false); tog.focus(); } });
-      document.addEventListener('pointerdown', function(e){ if (nav.classList.contains('open') && !nav.contains(e.target)) setOpen(false); });
-      stops.forEach(function(b){ b.addEventListener('click', function(){ setOpen(false); if (b.dataset.go==='home') top(); else if (b.dataset.go==='work') location.href='work.html'; else if (b.dataset.go==='about') window.__about.open(); }); });
+      document.querySelectorAll('.tab [data-about]').forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); if (window.__about) window.__about.open(); }); });
+      if (location.hash==='#about' && window.__about) window.__about.open();
     })();
 
     /* the R: hover shows when the next train is due (1 board minute ≈ 8 s here — the line runs far more often than the real one);
@@ -555,8 +576,7 @@
         else if (!R.anim) R.go(1);                       // ride all the way
         board(); });
       window.__goHome=function(){ var R=r(); if (R && R.target>0.0005){ R.anim=null; R.go(0,true); } };
-      var lastS=-1, widgets=document.getElementById('widgets');
-      window.__rideUI=function(s){ if (s===lastS) return; lastS=s; widgets.classList.toggle('away', s>0.004); };   // the widgets step aside while you ride
+      window.__rideUI=function(){};   // (the old nav tiles stepped aside during the ride; the header stays put)
     })();
   </script>
 
@@ -2372,6 +2392,16 @@ THREE.ColorManagement.enabled = false;
   }
   tick();
 })();
+  </script>
+  <script>
+    /* header: the phone menu (opens under the tab; Escape or a tap elsewhere closes it) */
+    (function(){ var t=document.getElementById('rnav'), b=document.getElementById('rnavToggle');
+      function set(o){ t.classList.toggle('open',o); b.setAttribute('aria-expanded',o); b.setAttribute('aria-label',o?'Close menu':'Menu'); }
+      b.addEventListener('click', function(){ set(!t.classList.contains('open')); });
+      document.addEventListener('keydown', function(e){ if (e.key==='Escape' && t.classList.contains('open')){ set(false); b.focus(); } });
+      document.addEventListener('pointerdown', function(e){ if (t.classList.contains('open') && !t.contains(e.target)) set(false); });
+      t.querySelectorAll('.tab-drop a').forEach(function(a){ a.addEventListener('click', function(){ set(false); }); });
+    })();
   </script>
 </body>
 </html>

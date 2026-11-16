@@ -127,10 +127,53 @@
     body { padding: var(--frame); box-sizing: border-box; }
     .arrow.prev { left: var(--frame); } .arrow.next { right: var(--frame); }
     @media (max-width: 720px){ .arrow { bottom: calc(var(--fh, 51px) + 12px + var(--frame)); } }
+    /* ---------- header: a white tab hanging from the top of the frame (after supaste.com's black one) ----------
+       rounded underneath, with curved fillets where it meets the frame; brand left, links after it, one button on the right */
+    .tab { --tab-h: 52px; --tab-r: 14px; position: fixed; z-index: 1001; top: var(--frame, 8px); left: calc(var(--frame, 8px) + 28px); right: calc(var(--frame, 8px) + 28px);
+           height: var(--tab-h); display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: #fff; color: #111;
+           border-radius: 0 0 var(--tab-r) var(--tab-r); font-family: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; }
+    .tab::before, .tab::after { content: ''; position: absolute; top: 0; width: var(--tab-r); height: var(--tab-r); pointer-events: none; }
+    .tab::before { right: 100%; background: radial-gradient(circle at 0 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
+    .tab::after  { left: 100%;  background: radial-gradient(circle at 100% 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
+    .tab a { color: inherit; text-decoration: none; }
+    .tab-brand { position: relative; display: flex; align-items: center; gap: 10px; height: 100%; flex: none; }
+    .tab-r { width: 32px; height: 32px; border-radius: 8px; background: #e5ab00; color: #111; display: grid; place-items: center;
+             font: 700 20px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; letter-spacing: -0.03em; padding-top: 1px; }
+    .tab-name { font: 600 15px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; letter-spacing: -0.01em; white-space: nowrap; }
+    .tab-links { display: flex; align-items: center; gap: 4px; margin-left: 22px; }
+    .tab-links a, .tab-drop a { font: 500 14.5px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; color: rgba(17,17,17,0.52); padding: 9px 10px; border-radius: 8px;
+             transition: color .15s, background .15s; white-space: nowrap; }
+    .tab-links a:hover, .tab-drop a:hover { color: #111; background: rgba(17,17,17,0.05); }
+    .tab-links a[aria-current="page"], .tab-drop a[aria-current="page"] { color: #111; }
+    .tab-cta { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px; background: #111; color: #fff !important;
+               font: 600 14px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; white-space: nowrap; transition: background .15s; }
+    .tab-cta:hover { background: #2a2a2a; }
+    .tab-cta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+    .tab a:focus-visible, .tab button:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+    .tab-menu { display: none; -webkit-appearance: none; appearance: none; width: 36px; height: 36px; border: 0; border-radius: 9px; background: rgba(17,17,17,0.06); cursor: pointer; place-items: center; }
+    .tab-menu i, .tab-menu i::before, .tab-menu i::after { display: block; width: 16px; height: 1.6px; background: #111; border-radius: 1px; position: relative; transition: transform .25s, top .25s, background .2s; }
+    .tab-menu i::before, .tab-menu i::after { content: ''; position: absolute; left: 0; } .tab-menu i::before { top: -5px; } .tab-menu i::after { top: 5px; }
+    .tab.open .tab-menu i { background: transparent; } .tab.open .tab-menu i::before { top: 0; transform: rotate(45deg); } .tab.open .tab-menu i::after { top: 0; transform: rotate(-45deg); }
+    .tab-drop { position: absolute; top: calc(100% + 8px); right: 0; min-width: 190px; padding: 6px; background: #fff; border-radius: 14px; display: grid;
+                box-shadow: 0 12px 32px -8px rgba(0,0,0,0.35); opacity: 0; visibility: hidden; transform: translateY(-6px);
+                transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s linear .25s; }
+    .tab-drop a { padding: 12px 12px; font-size: 15px; }
+    .tab.open .tab-drop { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+    @media (max-width: 760px){
+      .tab { left: calc(var(--frame, 8px) + 18px); right: calc(var(--frame, 8px) + 18px); --tab-h: 50px; --tab-r: 12px; }
+      .tab-links { display: none; } .tab-menu { display: grid; } .tab-cta { margin-left: auto; }
+    }
+    @media (max-width: 380px){ .tab-name { display: none; } }
   </style>
 </head>
 <body>
-  <a class="rhome" href="index.html" aria-label="Back to the street">R</a>
+  <header class="tab" id="rnav">
+    <a class="tab-brand" href="index.html" aria-label="Ryan McCaulsky — home"><span class="tab-r" aria-hidden="true">R</span><span class="tab-name">Ryan McCaulsky</span></a>
+    <nav class="tab-links" aria-label="Primary"><a href="work.html" aria-current="page">Work</a><a href="index.html#about" data-about>About</a><a href="#">Favorites</a><a href="weather.html">Weather</a></nav>
+    <a class="tab-cta" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg>Say hello</a>   <!-- placeholder: point at an email or contact page -->
+    <button class="tab-menu" id="rnavToggle" type="button" aria-expanded="false" aria-controls="tabDrop" aria-label="Menu"><i></i></button>
+    <div class="tab-drop" id="tabDrop"><a href="work.html" aria-current="page">Work</a><a href="index.html#about" data-about>About</a><a href="#">Favorites</a><a href="weather.html">Weather</a></div>
+  </header>
   <button class="arrow prev" id="prev" aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button>
   <button class="arrow next" id="next" aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8"/></svg></button>
   <main>
@@ -225,6 +268,16 @@
       var pick=function(){ var h=location.hash.slice(1), n=-1; PROJECTS.forEach(function(p,k){ if (p.id===h) n=k; }); return n; };
       var n0=pick(); if (n0>=0) i=n0; paint();
       addEventListener('hashchange', function(){ var n=pick(); if (n>=0 && n!==i) show(n, n>i?1:-1); });
+    })();
+  </script>
+  <script>
+    /* header: the phone menu (opens under the tab; Escape or a tap elsewhere closes it) */
+    (function(){ var t=document.getElementById('rnav'), b=document.getElementById('rnavToggle');
+      function set(o){ t.classList.toggle('open',o); b.setAttribute('aria-expanded',o); b.setAttribute('aria-label',o?'Close menu':'Menu'); }
+      b.addEventListener('click', function(){ set(!t.classList.contains('open')); });
+      document.addEventListener('keydown', function(e){ if (e.key==='Escape' && t.classList.contains('open')){ set(false); b.focus(); } });
+      document.addEventListener('pointerdown', function(e){ if (t.classList.contains('open') && !t.contains(e.target)) set(false); });
+      t.querySelectorAll('.tab-drop a').forEach(function(a){ a.addEventListener('click', function(){ set(false); }); });
     })();
   </script>
 </body>
