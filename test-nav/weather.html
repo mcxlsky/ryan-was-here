@@ -105,8 +105,8 @@
     .rhome { top: var(--frame); left: var(--frame); }
     body { padding: var(--frame); box-sizing: border-box; }
     /* ---------- header: a white tab hanging from the top of the frame (after supaste.com's black one) ----------
-       rounded underneath, with curved fillets where it meets the frame; brand left, links after it, one button on the right */
-    .tab { --tab-h: 52px; --tab-r: 14px; position: fixed; z-index: 1001; top: var(--frame, 8px); left: calc(var(--frame, 8px) + 28px); right: calc(var(--frame, 8px) + 28px);
+       rounded underneath, with curved fillets where it meets the frame; only as wide as what's in it, centred */
+    .tab { --tab-h: 52px; --tab-r: 14px; position: fixed; z-index: 1001; top: var(--frame, 8px); left: 50%; transform: translateX(-50%); max-width: calc(100% - 2 * var(--frame, 8px) - 36px);
            height: var(--tab-h); display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: #fff; color: #111;
            border-radius: 0 0 var(--tab-r) var(--tab-r); font-family: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; }
     .tab::before, .tab::after { content: ''; position: absolute; top: 0; width: var(--tab-r); height: var(--tab-r); pointer-events: none; }
@@ -114,15 +114,15 @@
     .tab::after  { left: 100%;  background: radial-gradient(circle at 100% 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
     .tab a { color: inherit; text-decoration: none; }
     .tab-brand { position: relative; display: flex; align-items: center; gap: 10px; height: 100%; flex: none; }
-    .tab-r { width: 32px; height: 32px; border-radius: 8px; background: #e5ab00; color: #111; display: grid; place-items: center;
+    .tab-r { width: 32px; height: 32px; border-radius: 50%; background: #e5ab00; color: #111; display: grid; place-items: center;
              font: 700 20px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; letter-spacing: -0.03em; padding-top: 1px; }
     .tab-name { font: 600 15px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; letter-spacing: -0.01em; white-space: nowrap; }
-    .tab-links { display: flex; align-items: center; gap: 4px; margin-left: 22px; }
+    .tab-links { display: flex; align-items: center; gap: 2px; margin-left: 16px; }
     .tab-links a, .tab-drop a { font: 500 14.5px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; color: rgba(17,17,17,0.52); padding: 9px 10px; border-radius: 8px;
              transition: color .15s, background .15s; white-space: nowrap; }
     .tab-links a:hover, .tab-drop a:hover { color: #111; background: rgba(17,17,17,0.05); }
     .tab-links a[aria-current="page"], .tab-drop a[aria-current="page"] { color: #111; }
-    .tab-cta { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px; background: #111; color: #fff !important;
+    .tab-cta { margin-left: 14px; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px; background: #111; color: #fff !important;
                font: 600 14px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; white-space: nowrap; transition: background .15s; }
     .tab-cta:hover { background: #2a2a2a; }
     .tab-cta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
@@ -137,19 +137,19 @@
     .tab-drop a { padding: 12px 12px; font-size: 15px; }
     .tab.open .tab-drop { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s; }
     @media (max-width: 760px){
-      .tab { left: calc(var(--frame, 8px) + 18px); right: calc(var(--frame, 8px) + 18px); --tab-h: 50px; --tab-r: 12px; }
-      .tab-links { display: none; } .tab-menu { display: grid; } .tab-cta { margin-left: auto; }
+      .tab { --tab-h: 50px; --tab-r: 12px; }
+      .tab-links { display: none; } .tab-menu { display: grid; } .tab-cta { margin-left: 12px; }
     }
     @media (max-width: 380px){ .tab-name { display: none; } }
   </style>
 </head>
 <body>
   <header class="tab" id="rnav">
-    <a class="tab-brand" href="index.html" aria-label="Ryan McCaulsky — home"><span class="tab-r" aria-hidden="true">R</span><span class="tab-name">Ryan McCaulsky</span></a>
-    <nav class="tab-links" aria-label="Primary"><a href="work.html">Work</a><a href="index.html#about" data-about>About</a><a href="#">Favorites</a><a href="weather.html" aria-current="page">Weather</a></nav>
+    <a class="tab-brand" href="index.html" aria-label="ryan was here — home"><span class="tab-r" aria-hidden="true">R</span><span class="tab-name">ryan was here</span></a>
+    <nav class="tab-links" aria-label="Primary"><a href="work.html">Work</a><a href="weather.html" aria-current="page">Weather</a></nav>
     <a class="tab-cta" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg>Say hello</a>   <!-- placeholder: point at an email or contact page -->
     <button class="tab-menu" id="rnavToggle" type="button" aria-expanded="false" aria-controls="tabDrop" aria-label="Menu"><i></i></button>
-    <div class="tab-drop" id="tabDrop"><a href="work.html">Work</a><a href="index.html#about" data-about>About</a><a href="#">Favorites</a><a href="weather.html" aria-current="page">Weather</a></div>
+    <div class="tab-drop" id="tabDrop"><a href="work.html">Work</a><a href="weather.html" aria-current="page">Weather</a></div>
   </header>
   <main id="main">
     <p class="k">Weather</p>
