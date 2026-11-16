@@ -148,6 +148,14 @@
     .foot-social svg { fill: #111; opacity: 0.7; } .foot-social a:hover svg { opacity: 1; }
     .foot { position: relative; z-index: 1001; }
     .foot .foot-base { height: var(--foot-h); padding-top: 0; padding-bottom: 0; margin-top: 0; color: rgba(17,17,17,0.6); }
+    /* social icons: back on the page, stacked bottom right just inside the frame; the copyright sits alone, centred, in the white band */
+    .foot-base { justify-content: center !important; }
+    .foot-social { position: fixed; z-index: 6; right: calc(var(--frame) + 18px); bottom: calc(var(--frame) + var(--foot-h) + 18px);
+                   flex-direction: column; gap: 14px !important; }
+    .foot-social svg { fill: #fff !important; opacity: 0.82; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35)); }
+    .foot-social a:hover svg { opacity: 1; }
+    main { padding-right: max(40px, calc(var(--frame) + 56px)); }
+    @media (max-width: 720px){ main { padding-right: 56px; } }
   </style>
 </head>
 <body>

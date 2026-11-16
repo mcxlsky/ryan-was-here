@@ -583,11 +583,57 @@
     .full-gh-h b { font-weight: 600; color: #111; } .full-gh-h a { color: inherit; text-decoration: none; } .full-gh-h a:hover { color: #111; }
     .contrib-full { overflow-x: auto; scrollbar-width: none; } .contrib-full svg { min-width: 560px; }
     @media (max-width: 720px){ .contrib-mini { display: none; } }
+    /* the train card is white too, to match the About card: dark type, a black Board button */
+    .train { background: #fff; color: #111; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
+    .train::before { display: none; }
+    .train .train-k, .train .train-m { text-shadow: none; }
+    .train .train-k { color: rgba(17,17,17,0.55); }
+    .train .train-m { color: #111; } .train .train-m span { color: rgba(17,17,17,0.55); }
+    .train.now .train-m b { color: #c48a00; }                 /* "Now": the R's gold, a shade deeper so it reads on white */
+    .train .train-go { background: #111; color: #fff; } .train .train-go:hover { background: #2a2a2a; }
+    .train .train-go:focus-visible { outline-color: #111; }
+    @media (max-width: 760px){ .train #tD { color: #111; } }
+    /* About card: avatar stacked above the copy; the expand button sits bottom right */
+    .glass-about { flex-direction: column; gap: 12px; width: min(360px, 100%); padding: 18px 18px 18px 18px; }
+    .glass-about .card-x { top: auto; bottom: 14px; right: 14px; }
+    .glass-about .glass-t { padding-right: 0; }
+    .glass-about .contrib-mini { margin: 4px 40px 0 0; }
+    /* currently working on: a white card with a placeholder thumbnail */
+    .glass-now { flex-direction: column; gap: 8px; width: 250px; padding: 14px; background: #fff; color: #111; border-color: transparent;
+                 -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
+    .glass-now::before { display: none; }
+    .now-k { display: flex; align-items: center; gap: 7px; font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(17,17,17,0.55); }
+    .now-k i { width: 7px; height: 7px; border-radius: 50%; background: #2fb35a; box-shadow: 0 0 0 0 rgba(47,179,90,0.5); animation: nowPulse 2s ease-out infinite; }
+    @keyframes nowPulse { 0% { box-shadow: 0 0 0 0 rgba(47,179,90,0.5); } 70%,100% { box-shadow: 0 0 0 7px rgba(47,179,90,0); } }
+    .now-art { height: 72px; border-radius: 10px; background: repeating-linear-gradient(135deg, #eeece6 0 8px, #e2e0d8 8px 16px); }
+    .now-t { font: 600 15px/1.25 var(--font-ui); letter-spacing: -0.01em; margin-top: 2px; }
+    .now-p { font: 400 13px/1.45 var(--font-ui); color: rgba(17,17,17,0.65); }
+    .dock { flex-wrap: wrap; }
+    @media (max-width: 1100px) and (min-width: 761px){ .glass-now { display: none; } }   /* not enough width for three */
+    @media (max-width: 760px){
+      .glass-about, .glass-now { width: auto; }
+      .glass-now { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 12px 14px; border-radius: 18px; }
+      .glass-now .now-art { display: none; } .glass-now .now-k { width: 100%; } .glass-now .now-p { display: none; }
+      .glass-about { flex-direction: row; align-items: flex-start; } .glass-about .card-x { bottom: 12px; right: 12px; }
+    }
+    @media (prefers-reduced-motion: reduce){ .now-k i { animation: none; } }
+    /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
+    .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
+    .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
+    .full-gh { background: #fff; }
+    /* social icons: back on the page, stacked bottom right just inside the frame; the copyright sits alone, centred, in the white band */
+    .foot-base { justify-content: center !important; }
+    .foot-social { position: fixed; z-index: 6; right: calc(var(--frame) + 18px); bottom: calc(var(--frame) + var(--foot-h) + 18px);
+                   flex-direction: column; gap: 14px !important; }
+    .foot-social svg { fill: #fff !important; opacity: 0.82; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35)); }
+    .foot-social a:hover svg { opacity: 1; }
+    .dock { right: calc(var(--frame) + 64px); }                                  /* leave the icon stack its corner */
+    body.full-open .foot-social svg { fill: #111 !important; filter: none; }         /* over the expanded About they turn dark */
   </style>
 </head>
 <body>
   <header class="tab" id="rnav">
-    <a class="tab-brand" href="#" id="rhome" aria-label="ryan was here — hover for the next train, click to ride to 3 Av–149 St"><span class="tab-r" aria-hidden="true">R</span><span class="tab-name">ryan was here</span><span class="rsign" aria-hidden="true"><span class="rsign-t"><b id="rsignT">Next train</b><span id="rsignD">Flatbush Av</span></span><span class="rsign-m"><b id="rsignM">–</b><span id="rsignU">min</span></span></span></a>
+    <a class="tab-brand" href="#" id="rhome" aria-label="ryan was here — home"><span class="tab-r" aria-hidden="true">R</span><span class="tab-name">ryan was here</span></a>
     <nav class="tab-links" aria-label="Primary"><a href="work.html">Work</a><a href="weather.html">Weather</a></nav>
     <a class="tab-cta" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg>Say hello</a>   <!-- placeholder: point at an email or contact page -->
     <button class="tab-menu" id="rnavToggle" type="button" aria-expanded="false" aria-controls="tabDrop" aria-label="Menu"><i></i></button>
@@ -626,12 +672,17 @@
     <button class="card-x" id="aboutOpen" type="button" aria-label="Open the full About" aria-controls="aboutFull" aria-expanded="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button>
     <div class="glass-av" aria-hidden="true">RM</div>   <!-- placeholder: swap in a photo -->
     <div class="glass-t">
-      <p class="glass-h"><b>Ryan McCaulsky</b><span>Design Engineer · The Bronx</span></p>
+      <p class="glass-h"><b>Ryan McCaulsky</b></p>
       <p class="glass-p">8+ years across human‑computer interaction, design systems and product design for consumer and SaaS. Lately: tactile, 3D interfaces in WebGL.</p>
       <a class="contrib contrib-mini" id="contribMini" href="https://github.com/mcxlsky" target="_blank" rel="noopener" aria-label="GitHub contributions in the last year"></a>
-      <a class="glass-a" href="work.html">View work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></a>
     </div>
   </aside>
+  <section class="glass glass-now" aria-label="Currently working on">   <!-- placeholder: fill in the current project -->
+    <p class="now-k"><i aria-hidden="true"></i>Currently working on…</p>
+    <div class="now-art" aria-hidden="true"></div>
+    <p class="now-t">Placeholder project</p>
+    <p class="now-p">A line about what's being built right now and why.</p>
+  </section>
   <section class="glass train" id="trainCard" aria-label="Next train">
     <p class="train-k"><span id="tK">Next train</span><span class="train-sep"> · </span><span id="tD">Flatbush Av</span></p>
     <div class="train-row">
@@ -658,12 +709,10 @@
     /* the R: hover shows when the next train is due (1 board minute ≈ 8 s here — the line runs far more often than the real one);
        click it and you ride the whole way to 3 Av–149 St; click again at the platform to go back up to the street */
     (function(){
-      var r=function(){ return window.__ride; }, el=document.getElementById('rhome'), sign=el.querySelector('.rsign'),
-          T=document.getElementById('rsignT'), D=document.getElementById('rsignD'), M=document.getElementById('rsignM'), U=document.getElementById('rsignU');
+      var r=function(){ return window.__ride; }, el=document.getElementById('rhome');
       var card=document.getElementById('trainCard'), K=document.getElementById('tK'), Dd=document.getElementById('tD'), Mm=document.getElementById('tM'),
           Uu=document.getElementById('tU'), go=document.getElementById('tGo'), about=document.getElementById('aboutCard'), lbl=go.firstChild;
-      var set=function(t,d,m,u,now,btn,dis){ T.textContent=t; D.textContent=d; M.textContent=m; U.textContent=u; sign.classList.toggle('now',now);
-        K.textContent=t; Dd.textContent=d; Mm.textContent=m; Uu.textContent=u; card.classList.toggle('now',now); lbl.nodeValue=btn; go.disabled=dis; };
+      var set=function(t,d,m,u,now,btn,dis){ K.textContent=t; Dd.textContent=d; Mm.textContent=m; Uu.textContent=u; card.classList.toggle('now',now); lbl.nodeValue=btn; go.disabled=dis; };
       function board(){ var R=r(); if (!R || !window.__nextTrain) return;
         if (R.target>0.999) return set('3 Av–149 St','Doors open','','',false,'Back to street',false);
         if (R.target>0.0005) return set('Now riding','Next stop 3 Av–149 St','','',true,'Riding…',true);
@@ -672,7 +721,7 @@
       setInterval(board, 400); board();
       // board: ride the whole way to 3 Av–149 St; at the platform the same action takes you back up to the street
       function act(){ var R=r(); if (!R) return; if (R.target>0.999) R.go(0,true); else if (!R.anim) R.go(1); board(); }
-      el.addEventListener('click', function(e){ e.preventDefault(); act(); });
+      el.addEventListener('click', function(e){ e.preventDefault(); if (window.__goHome) window.__goHome(); });   // the brand: back to the street
       go.addEventListener('click', act);
       window.__goHome=function(){ var R=r(); if (R && R.target>0.0005){ R.anim=null; R.go(0,true); } };
       var lastS=-1; window.__rideUI=function(s){ if (s===lastS) return; lastS=s; about.classList.toggle('away', s>0.004); };   // the About card steps aside while you ride
@@ -2513,8 +2562,8 @@ THREE.ColorManagement.enabled = false;
       function toFull(){ ['--ct','--cl','--cr','--cb'].forEach(function(k){ full.style.setProperty(k,'0px'); }); full.style.setProperty('--crad','12px'); }
       function open(){ full.hidden=false; full.classList.add('instant'); toCard(); void full.offsetWidth; full.classList.remove('instant');
         requestAnimationFrame(function(){ toFull(); full.classList.add('open'); }); openB.setAttribute('aria-expanded','true');
-        window.__aboutP=1; full.scrollTop=0; closeB.focus({ preventScroll:true }); }
-      function close(){ if (full.hidden) return; full.classList.remove('open'); toCard(); openB.setAttribute('aria-expanded','false'); window.__aboutP=0;
+        window.__aboutP=1; document.body.classList.add('full-open'); full.scrollTop=0; closeB.focus({ preventScroll:true }); }
+      function close(){ if (full.hidden) return; full.classList.remove('open'); toCard(); openB.setAttribute('aria-expanded','false'); window.__aboutP=0; document.body.classList.remove('full-open');
         var done=function(){ full.hidden=true; full.removeEventListener('transitionend',done); }; full.addEventListener('transitionend',done);
         setTimeout(done, 700); openB.focus({ preventScroll:true }); }
       openB.addEventListener('click', open); closeB.addEventListener('click', close);
