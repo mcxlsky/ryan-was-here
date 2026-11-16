@@ -7,9 +7,30 @@
   <meta name="description" content="Scroll-driven subway arrival hero — a live 3D R142 pulls into the station." />
 
   <script type="importmap">
-    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.min.js",
                    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
   </script>
+  <!-- fetch the whole module graph at once (otherwise it arrives in three rounds as each file names the next) -->
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.min.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/utils/BufferGeometryUtils.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/objects/Reflector.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/EffectComposer.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/RenderPass.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/GTAOPass.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/UnrealBloomPass.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/BokehPass.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/OutputPass.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/ShaderPass.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/Pass.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/postprocessing/MaskPass.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/shaders/CopyShader.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/shaders/OutputShader.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/shaders/BokehShader.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/shaders/GTAOShader.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/shaders/PoissonDenoiseShader.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/math/SimplexNoise.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/shaders/LuminosityHighPassShader.js" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -1932,7 +1953,9 @@ THREE.ColorManagement.enabled = false;
 
         // the reveal: a glass-tile mosaic over a wooden bench, centred on car 1's doors
         { const MW=3.4, MH=1.3, mx=STOP_X, my=PT+2.16;
-          const mosT=tex(1024,392,(c,w,h)=>{
+          // it's only seen at the end of the ride, and laying ~3,300 tiles is slow: grout now, tiles laid in idle time after the page is up
+          const mosT=tex(1024,392,(c,w,h)=>{ c.fillStyle='#2a2826'; c.fillRect(0,0,w,h); });
+          (window.__later=window.__later||[]).push(()=>(function*(c,w,h){ let sd2=4242; const rnd=()=>(sd2=(sd2*16807)%2147483647)/2147483647;
             const src=document.createElement('canvas'); src.width=w; src.height=h; const s=src.getContext('2d');
             const blob=(col,pts)=>{ s.fillStyle=col; s.beginPath(); s.moveTo(pts[0]*w,pts[1]*h); for (let i=2;i<pts.length;i+=6) s.bezierCurveTo(pts[i]*w,pts[i+1]*h,pts[i+2]*w,pts[i+3]*h,pts[i+4]*w,pts[i+5]*h); s.closePath(); s.fill(); };
             const rib=(col,wd,pts)=>{ s.strokeStyle=col; s.lineWidth=wd; s.lineCap='round'; s.beginPath(); s.moveTo(pts[0]*w,pts[1]*h); for (let i=2;i<pts.length;i+=6) s.bezierCurveTo(pts[i]*w,pts[i+1]*h,pts[i+2]*w,pts[i+3]*h,pts[i+4]*w,pts[i+5]*h); s.stroke(); };
@@ -1961,15 +1984,16 @@ THREE.ColorManagement.enabled = false;
             // set it in tesserae: irregular little tiles, each a shade off the design, in dark grout
             c.fillStyle='#2a2826'; c.fillRect(0,0,w,h);
             const T=11;
-            for (let y=0;y<h;y+=T) for (let x=0;x<w;x+=T){
+            for (let y=0;y<h;y+=T){ for (let x=0;x<w;x+=T){
               const sx=Math.min(w-1,(x+T/2)|0), sy=Math.min(h-1,(y+T/2)|0), o=(sy*w+sx)*4, f=0.82+rnd()*0.32;
               c.fillStyle=`rgb(${Math.min(255,px[o]*f)|0},${Math.min(255,px[o+1]*f)|0},${Math.min(255,px[o+2]*f)|0})`;
               const j=()=>(rnd()-0.5)*2.4;
               c.beginPath(); c.moveTo(x+1+j(),y+1+j()); c.lineTo(x+T-1+j(),y+1+j()); c.lineTo(x+T-1+j(),y+T-1+j()); c.lineTo(x+1+j(),y+T-1+j()); c.closePath(); c.fill();
-              if (rnd()<0.25){ c.fillStyle='rgba(255,255,255,0.18)'; c.fillRect(x+2,y+2,3,2); } }
+              if (rnd()<0.25){ c.fillStyle='rgba(255,255,255,0.18)'; c.fillRect(x+2,y+2,3,2); } } yield; }   // a row at a time
             // border: navy glass with red corner squares
             c.strokeStyle='#1a2350'; c.lineWidth=18; c.strokeRect(9,9,w-18,h-18);
-            c.fillStyle='#c9302c'; for (const [x,y] of [[0,0],[w-18,0],[0,h-18],[w-18,h-18]]) c.fillRect(x,y,18,18); });
+            c.fillStyle='#c9302c'; for (const [x,y] of [[0,0],[w-18,0],[0,h-18],[w-18,h-18]]) c.fillRect(x,y,18,18);
+            mosT.needsUpdate=true; })(mosT.image.getContext('2d'),mosT.image.width,mosT.image.height));
           plane(MW,MH, lit(mosT,0.22,{ roughness:0.28, metalness:0.05, envMapIntensity:1.0 }), mx,my,W-0.012, Math.PI);
           // a slightly proud white-tile surround, like the real panel's setting
           box(mx-MW/2-0.06,mx+MW/2+0.06, my-MH/2-0.06,my+MH/2+0.06, W-0.011,W-0.005, new THREE.MeshStandardMaterial({ color:0xd8d5cd, emissive:0xd8d5cd, emissiveIntensity:0.12, roughness:0.35 }),false);
@@ -2068,7 +2092,14 @@ THREE.ColorManagement.enabled = false;
       window.__merged=[kill.length, by.size]; }
 
     setGround(); applyAtmosphere();
-    window.__ready=true;
+    // compile the scene's shaders up front, in parallel where the browser can (KHR_parallel_shader_compile), instead of one by one
+    // inside the first frame. The passing trains are shown for the call so theirs are included, and the composer's buffer is bound so
+    // the programs match how they'll really be drawn (no tone mapping into a render target).
+    { const vis=[ambient.sb.visible, ambient.nb.visible], done=()=>{ window.__ready=true; }; let p=null;
+      ambient.sb.visible=ambient.nb.visible=true;
+      try { renderer.setRenderTarget(composer.readBuffer); p=renderer.compileAsync(scene, camera); } catch(e){ p=null; }
+      renderer.setRenderTarget(null); ambient.sb.visible=vis[0]; ambient.nb.visible=vis[1];
+      if (p) p.then(done, done); else done(); }
   }, (err)=>{ window.__err=String(err); });
 
   addEventListener('resize', ()=>{ camera.aspect=vw()/vh(); camera.updateProjectionMatrix(); renderer.setSize(vw(),vh(),false); });
@@ -2278,13 +2309,20 @@ THREE.ColorManagement.enabled = false;
   // frame timing: step the motion by the display's own frame clock (rAF's vsync-aligned timestamp, not the moment this
   // code happens to run) and smooth out small wobbles, so trains glide at an even speed; a real hitch still catches up
   let lastTs=0, sdt=1/60;
+  // jobs deferred until the page is up (the station mosaic): stepped through in idle time so they never cost a frame
+  function runLater(){ const its=(window.__later||[]).map(f=>f()); window.__later=null; if (!its.length) return;
+    // idle time can be scarce while the scene renders, so a step is forced every 300 ms and always lays a couple of rows
+    const idle=window.requestIdleCallback ? cb=>requestIdleCallback(cb,{ timeout:300 }) : cb=>setTimeout(()=>cb({ timeRemaining:()=>0 }),60);
+    const step=dl=>{ let n=0; while (its.length && (n++<2 || dl.timeRemaining()>1)){ if (its[0].next().done) its.shift(); }
+      if (its.length) idle(step); else window.__laterDone=true; };
+    idle(step); }
   function tick(ts){
     FRAME.n++; window.__frames=FRAME.n;
     const rawDt=Math.min(clock.getDelta(),0.1);
     let fdt=(ts && lastTs) ? (ts-lastTs)/1000 : rawDt; if (ts) lastTs=ts; fdt=Math.min(Math.max(fdt,0),0.1);
     sdt += (fdt-sdt)*0.2;
     const dt = Math.abs(fdt-sdt) < sdt*0.5 ? sdt : fdt;
-    if (train){
+    if (train && window.__ready){                 // nothing moves or draws until the shaders are ready
       if (RIDE.anim){ const a=RIDE.anim; a.t=Math.min(1,a.t+dt/a.dur); const e=a.t<0.5?4*a.t*a.t*a.t:1-Math.pow(-2*a.t+2,3)/2;
         RIDE.target=a.from+(a.to-a.from)*e; if (a.t>=1) RIDE.anim=null; }
       if (RIDE.cut){ s=RIDE.target; RIDE.cut=false; }
@@ -2296,7 +2334,7 @@ THREE.ColorManagement.enabled = false;
       // every shader they need (materials, shadows, motion blur) compiles now rather than the first time one comes past
       if (!FRAME.warm && !reduce){ FRAME.warm=1; const cx=camera.position.x;
         placeTrain(ambient.sb, cx+40, 1); placeTrain(ambient.nb, cx-40, -1); ambient.sb.visible=ambient.nb.visible=true; }
-      else if (FRAME.warm===1 || reduce){ FRAME.warm=2; window.__warm=true; }
+      else if (FRAME.warm===1 || reduce){ FRAME.warm=2; window.__warm=true; runLater(); }
       RIDE.shown=s; if (window.__rideUI) window.__rideUI(s);
     }
     finish.uniforms.time.value = clock.elapsedTime;
@@ -2336,7 +2374,7 @@ THREE.ColorManagement.enabled = false;
           else if (perf.step===2 && gtao) gtao.enabled=false;
           else if (perf.step===4 && bokeh) bokeh.enabled=false;
           window.__perfStep=perf.step; } } }
-    if (heroOn) composer.render();
+    if (heroOn && window.__ready) composer.render();
     requestAnimationFrame(tick);
   }
   tick();
