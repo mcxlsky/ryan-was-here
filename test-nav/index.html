@@ -438,9 +438,10 @@
     .tab { --tab-h: 52px; --tab-r: 14px; position: fixed; z-index: 1001; top: var(--frame, 8px); left: 50%; transform: translateX(-50%); max-width: calc(100% - 2 * var(--frame, 8px) - 36px);
            height: var(--tab-h); display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: #fff; color: #111;
            border-radius: 0 0 var(--tab-r) var(--tab-r); font-family: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; }
-    .tab::before, .tab::after { content: ''; position: absolute; top: 0; width: var(--tab-r); height: var(--tab-r); pointer-events: none; }
-    .tab::before { right: 100%; background: radial-gradient(circle at 0 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
-    .tab::after  { left: 100%;  background: radial-gradient(circle at 100% 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
+    /* the fillets overlap the tab and the frame by 1px: centring can land the tab on a half pixel, which left a hairline seam */
+    .tab::before, .tab::after { content: ''; position: absolute; top: -1px; width: calc(var(--tab-r) + 1px); height: calc(var(--tab-r) + 1px); pointer-events: none; }
+    .tab::before { right: calc(100% - 1px); background: radial-gradient(circle at 0 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
+    .tab::after  { left: calc(100% - 1px);  background: radial-gradient(circle at 100% 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
     .tab a { color: inherit; text-decoration: none; }
     .tab-brand { position: relative; display: flex; align-items: center; gap: 10px; height: 100%; flex: none; }
     .tab-r { width: 32px; height: 32px; border-radius: 50%; background: #e5ab00; color: #111; display: grid; place-items: center;
@@ -474,8 +475,11 @@
     .tab-brand .rsign { left: 0; top: calc(100% + 8px); height: 60px; border-radius: 12px; }
     .tab-brand:hover .rsign, .tab-brand:focus-visible .rsign { clip-path: inset(0 0 0 0); }
     /* ---------- the About, in brief: a liquid-glass card bottom left, over the scene ---------- */
-    .glass { position: fixed; z-index: 4; left: calc(var(--frame) + 24px); bottom: calc(var(--frame) + var(--base-h, 70px) - 6px);
-             width: min(430px, calc(100% - 2 * var(--frame) - 48px)); display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px 16px 16px;
+    .dock { position: fixed; z-index: 4; left: calc(var(--frame) + 24px); right: calc(var(--frame) + 24px); bottom: calc(var(--frame) + var(--base-h, 70px) - 6px);
+            display: flex; align-items: flex-end; gap: 12px; pointer-events: none; }
+    .dock > * { pointer-events: auto; transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); }
+    .dock > .away { opacity: 0; transform: translateY(10px); pointer-events: none; }
+    .glass { position: relative; flex: none; width: min(430px, 100%); display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px 16px 16px;
              border-radius: 22px; color: #fff; isolation: isolate;
              background: linear-gradient(140deg, rgba(255,255,255,0.20), rgba(255,255,255,0.05) 55%, rgba(255,255,255,0.10));
              -webkit-backdrop-filter: blur(18px) saturate(1.8) brightness(1.05); backdrop-filter: blur(18px) saturate(1.8) brightness(1.05);
@@ -498,8 +502,87 @@
     .glass-a:hover { background: rgba(255,255,255,0.26); }
     .glass-a svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: square; }
     .glass-a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
-    @media (max-width: 720px){ .glass { left: calc(var(--frame) + 12px); width: calc(100% - 2 * var(--frame) - 24px); padding: 14px; gap: 12px; border-radius: 18px; }
+    @media (max-width: 720px){ .glass { padding: 14px; gap: 12px; border-radius: 18px; }
       .glass-av { width: 34px; height: 34px; font-size: 13px; } .glass-p { font-size: 13px; } }
+    /* the train card: the next southbound, and a button to board it (or, at the platform, to go back up) */
+    .train { width: 272px; flex-direction: column; gap: 10px; padding: 14px 14px 14px 16px; }
+    .train-k { font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.78); text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .train-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+    .train-m { display: flex; align-items: baseline; gap: 5px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.25); min-height: 34px; }
+    .train-m b { font: 600 34px/1 var(--font-ui); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+    .train-m span { font: 500 13px/1 var(--font-ui); color: rgba(255,255,255,0.75); }
+    .train.now .train-m b { color: #ffd23a; }
+    .train-go { -webkit-appearance: none; appearance: none; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px;
+                border-radius: 999px; background: #fff; color: #111; font: 600 13.5px/1 var(--font-ui); white-space: nowrap; transition: background .2s, opacity .2s; }
+    .train-go:hover { background: #f0efe9; }
+    .train-go svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: square; }
+    .train-go:disabled { opacity: 0.55; cursor: default; }
+    .train-go:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    @media (max-width: 760px){
+      .dock { left: calc(var(--frame) + 12px); right: calc(var(--frame) + 12px); flex-direction: column-reverse; align-items: stretch; gap: 10px; }
+      .glass, .train { width: auto; }
+      .train { flex-direction: row; align-items: center; justify-content: space-between; padding: 12px 12px 12px 14px; border-radius: 18px; }
+      .train-k { white-space: normal; display: grid; gap: 4px; } .train-sep { display: none; } #tD { font-size: 13px; letter-spacing: 0; text-transform: none; color: #fff; }
+      .train-m b { font-size: 26px; } .train-m { min-height: 0; }
+      .train-row { gap: 10px; }
+    }
+    /* the About card is white (the train card stays glass); its expand button grows it into a full-screen About */
+    .glass-about { background: #fff; color: #111; border-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; padding-right: 48px;
+                   box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
+    .glass-about::before { display: none; }
+    .glass-about .glass-t { text-shadow: none; }
+    .glass-about .glass-h span { color: rgba(17,17,17,0.55); }
+    .glass-about .glass-p { color: rgba(17,17,17,0.78); }
+    .glass-about .glass-av { box-shadow: none; }
+    .glass-about .glass-a, .about-full .glass-a { background: #111; color: #fff; border-color: #111; }
+    .glass-about .glass-a:hover, .about-full .glass-a:hover { background: #2a2a2a; }
+    .glass-about .glass-a:focus-visible, .about-full .glass-a:focus-visible { outline-color: #111; }
+    .card-x { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+              background: rgba(17,17,17,0.06); color: #111; transition: background .2s, transform .2s; }
+    .card-x:hover { background: rgba(17,17,17,0.12); transform: scale(1.06); }
+    .card-x:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+    .card-x svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+    /* full screen: white, inside the frame, under the header; it opens out of the card (clip-path from the card's box to the whole window) */
+    .about-full { position: fixed; z-index: 900; inset: var(--frame); border-radius: var(--frame-r); background: #fff; color: #111; overflow-y: auto; scrollbar-width: none;
+                  clip-path: inset(var(--ct, 0) var(--cr, 0) var(--cb, 0) var(--cl, 0) round var(--crad, 12px));
+                  transition: clip-path .55s cubic-bezier(.2,.8,.2,1); }
+    .about-full::-webkit-scrollbar { display: none; }
+    /* as the long About scrolls, the copy fades out under the header instead of showing either side of the tab */
+    .about-full::before { content: ''; position: sticky; top: 0; z-index: 1; display: block; height: 96px; margin-bottom: -96px; pointer-events: none;
+                          background: linear-gradient(#fff 62%, rgba(255,255,255,0)); }
+    .about-full.instant { transition: none; }
+    .full-in { max-width: 760px; margin: 0 auto; padding: clamp(96px, 16vh, 150px) 40px 64px; display: grid; gap: clamp(14px, 2.2vh, 20px);
+               opacity: 0; transform: translateY(10px); transition: opacity .3s ease, transform .4s cubic-bezier(.2,.8,.2,1); }
+    .about-full.open .full-in { opacity: 1; transform: none; transition-delay: .18s; }
+    .full-by { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+    .full-by .glass-av { width: 56px; height: 56px; font-size: 19px; box-shadow: none; }
+    .full-by p { display: grid; gap: 4px; } .full-by b { font: 600 17px/1.2 var(--font-ui); } .full-by span { font: 400 14px/1.2 var(--font-ui); color: rgba(17,17,17,0.55); }
+    .full-in > p { font: 400 clamp(16px, 2.1vh, 19px)/1.55 var(--font-ui); color: rgba(17,17,17,0.72); text-wrap: pretty; }
+    .full-in > .full-lead { font: 500 clamp(22px, min(3vw, 3.6vh), 34px)/1.25 var(--font-ui); letter-spacing: -0.02em; color: #111; text-wrap: balance; }
+    .full-cta { margin-top: 10px; } .full-cta .glass-a { font-size: 14px; padding: 10px 16px; }
+    .full-x { position: fixed; top: calc(var(--frame) + 70px); right: calc(var(--frame) + 20px); width: 40px; height: 40px; }
+    .full-x svg { width: 16px; height: 16px; }
+    @media (max-width: 720px){ .full-in { padding: 104px 22px 48px; } .full-x { top: calc(var(--frame) + 66px); right: calc(var(--frame) + 12px); } }
+    @media (prefers-reduced-motion: reduce){ .about-full, .full-in { transition: none; } }
+    /* the footer lives in the frame: the frame's bottom edge widens into a white band that carries the copyright + social line */
+    :root { --foot-h: 44px; }
+    body::after { inset: var(--frame) var(--frame) calc(var(--frame) + var(--foot-h)) var(--frame); }
+    .foot-social svg { fill: #111; opacity: 0.7; } .foot-social a:hover svg { opacity: 1; }
+    .homebase { z-index: 1001; background: none; bottom: var(--frame); }
+    .homebase .foot-base { height: var(--foot-h); padding-top: 0; padding-bottom: 0; color: rgba(17,17,17,0.6); text-shadow: none; }
+    .dock { bottom: calc(var(--frame) + var(--foot-h) + 16px); }
+    .about-full { inset: var(--frame) var(--frame) calc(var(--frame) + var(--foot-h)) var(--frame); }
+    /* GitHub contributions, the usual year-long grid: a strip in the card, full size in the expanded About */
+    .contrib { display: block; line-height: 0; }
+    .contrib svg { display: block; width: 100%; height: auto; }
+    .contrib-mini { margin: 2px 0 4px; border-radius: 4px; }
+    .contrib-mini:focus-visible { outline: 2px solid #111; outline-offset: 3px; }
+    .full-gh { margin-top: 14px; padding: 18px; border: 1px solid rgba(17,17,17,0.1); border-radius: 16px; display: grid; gap: 12px; }
+    .full-gh-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font: 500 14px/1.2 var(--font-ui); color: rgba(17,17,17,0.6); }
+    .full-gh-h b { font-weight: 600; color: #111; } .full-gh-h a { color: inherit; text-decoration: none; } .full-gh-h a:hover { color: #111; }
+    .contrib-full { overflow-x: auto; scrollbar-width: none; } .contrib-full svg { min-width: 560px; }
+    @media (max-width: 720px){ .contrib-mini { display: none; } }
   </style>
 </head>
 <body>
@@ -523,14 +606,40 @@
     </div>
   </main>
 
-  <aside class="glass" aria-label="About Ryan">
+  <section class="about-full" id="aboutFull" aria-label="About Ryan" aria-modal="true" role="dialog" hidden>
+    <button class="card-x full-x" id="aboutClose" type="button" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button>
+    <div class="full-in">
+      <div class="full-by"><div class="glass-av" aria-hidden="true">RM</div><p><b>Ryan McCaulsky</b><span>Design Engineer · The Bronx, NY</span></p></div>
+      <p class="full-lead">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
+      <p>I’ve spent considerable time in high-maturity design orgs and scrappy startups. That experience has turned into an obsession for simplifying the path at early stage companies and cutting through red tape keeping larger teams agile.</p>
+      <p>A recent career pivot has given me the space to fully own my process, allowing me to bridge the gap from theoretical and static systems to live, interactive code tested by real users.</p>
+      <p>This pivot has also given me the space to experiment with modern, tactile interfaces—specifically using WebGL and GSAP to bring skeuomorphic and 3D elements to life.</p>
+      <div class="full-gh">
+        <p class="full-gh-h"><b id="ghTotal">On GitHub</b><a href="https://github.com/mcxlsky" target="_blank" rel="noopener">@mcxlsky ↗</a></p>
+        <div class="contrib contrib-full" id="contribFull" aria-label="GitHub contributions in the last year"></div>
+      </div>
+      <div class="full-cta"><a class="glass-a" href="work.html">View work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></a></div>
+    </div>
+  </section>
+  <div class="dock">
+  <aside class="glass glass-about" id="aboutCard" aria-label="About Ryan">
+    <button class="card-x" id="aboutOpen" type="button" aria-label="Open the full About" aria-controls="aboutFull" aria-expanded="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button>
     <div class="glass-av" aria-hidden="true">RM</div>   <!-- placeholder: swap in a photo -->
     <div class="glass-t">
       <p class="glass-h"><b>Ryan McCaulsky</b><span>Design Engineer · The Bronx</span></p>
       <p class="glass-p">8+ years across human‑computer interaction, design systems and product design for consumer and SaaS. Lately: tactile, 3D interfaces in WebGL.</p>
+      <a class="contrib contrib-mini" id="contribMini" href="https://github.com/mcxlsky" target="_blank" rel="noopener" aria-label="GitHub contributions in the last year"></a>
       <a class="glass-a" href="work.html">View work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></a>
     </div>
   </aside>
+  <section class="glass train" id="trainCard" aria-label="Next train">
+    <p class="train-k"><span id="tK">Next train</span><span class="train-sep"> · </span><span id="tD">Flatbush Av</span></p>
+    <div class="train-row">
+      <p class="train-m" aria-live="polite"><b id="tM">–</b><span id="tU">min</span></p>
+      <button class="train-go" id="tGo" type="button">Board<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></button>
+    </div>
+  </section>
+  </div>
   <div class="homebase" id="homebase">
     <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span><span class="foot-social">
         <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 1.6a10.4 10.4 0 0 0-3.3 20.3c.5.1.7-.2.7-.5v-1.8c-2.9.6-3.5-1.4-3.5-1.4-.5-1.2-1.2-1.5-1.2-1.5-.9-.6.1-.6.1-.6 1 .1 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.7-1.2-4.7-5.1 0-1.1.4-2 1.1-2.7-.1-.3-.5-1.3.1-2.8 0 0 .9-.3 2.9 1.1a9.8 9.8 0 0 1 5.2 0c2-1.4 2.9-1.1 2.9-1.1.6 1.5.2 2.5.1 2.8.7.7 1.1 1.6 1.1 2.7 0 3.9-2.4 4.8-4.7 5.1.4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A10.4 10.4 0 0 0 12 1.6z"/></svg></a>
@@ -551,19 +660,22 @@
     (function(){
       var r=function(){ return window.__ride; }, el=document.getElementById('rhome'), sign=el.querySelector('.rsign'),
           T=document.getElementById('rsignT'), D=document.getElementById('rsignD'), M=document.getElementById('rsignM'), U=document.getElementById('rsignU');
+      var card=document.getElementById('trainCard'), K=document.getElementById('tK'), Dd=document.getElementById('tD'), Mm=document.getElementById('tM'),
+          Uu=document.getElementById('tU'), go=document.getElementById('tGo'), about=document.getElementById('aboutCard'), lbl=go.firstChild;
+      var set=function(t,d,m,u,now,btn,dis){ T.textContent=t; D.textContent=d; M.textContent=m; U.textContent=u; sign.classList.toggle('now',now);
+        K.textContent=t; Dd.textContent=d; Mm.textContent=m; Uu.textContent=u; card.classList.toggle('now',now); lbl.nodeValue=btn; go.disabled=dis; };
       function board(){ var R=r(); if (!R || !window.__nextTrain) return;
-        if (R.target>0.999){ T.textContent='3 Av–149 St'; D.textContent='Doors open · tap to go back'; M.textContent=''; U.textContent=''; sign.classList.remove('now'); return; }
-        if (R.target>0.0005){ T.textContent='Now riding'; D.textContent='Next stop 3 Av–149 St'; M.textContent=''; U.textContent=''; sign.classList.add('now'); return; }
+        if (R.target>0.999) return set('3 Av–149 St','Doors open','','',false,'Back to street',false);
+        if (R.target>0.0005) return set('Now riding','Next stop 3 Av–149 St','','',true,'Riding…',true);
         var sec=window.__nextTrain(), m=sec==null?null:(sec<=8?0:Math.ceil((sec-8)/8));
-        T.textContent='Next train'; D.textContent='Flatbush Av'; M.textContent=m==null?'–':m; U.textContent='min'; sign.classList.toggle('now', m===0); }
+        set('Next train','Flatbush Av', m==null?'–':(m===0?'Now':m), m===0?'':'min', m===0, 'Board', false); }
       setInterval(board, 400); board();
-      el.addEventListener('click', function(e){ e.preventDefault(); var R=r(); if (!R) return;
-        if (window.__about && window.__about.p>0.05) window.__about.close();
-        if (R.target>0.999) R.go(0,true);               // at the platform: back up to the street
-        else if (!R.anim) R.go(1);                       // ride all the way
-        board(); });
+      // board: ride the whole way to 3 Av–149 St; at the platform the same action takes you back up to the street
+      function act(){ var R=r(); if (!R) return; if (R.target>0.999) R.go(0,true); else if (!R.anim) R.go(1); board(); }
+      el.addEventListener('click', function(e){ e.preventDefault(); act(); });
+      go.addEventListener('click', act);
       window.__goHome=function(){ var R=r(); if (R && R.target>0.0005){ R.anim=null; R.go(0,true); } };
-      window.__rideUI=function(){};   // (the old nav tiles stepped aside during the ride; the header stays put)
+      var lastS=-1; window.__rideUI=function(s){ if (s===lastS) return; lastS=s; about.classList.toggle('away', s>0.004); };   // the About card steps aside while you ride
     })();
   </script>
 
@@ -2388,6 +2500,48 @@ THREE.ColorManagement.enabled = false;
       document.addEventListener('keydown', function(e){ if (e.key==='Escape' && t.classList.contains('open')){ set(false); b.focus(); } });
       document.addEventListener('pointerdown', function(e){ if (t.classList.contains('open') && !t.contains(e.target)) set(false); });
       t.querySelectorAll('.tab-drop a').forEach(function(a){ a.addEventListener('click', function(){ set(false); }); });
+    })();
+  </script>
+  <script>
+    /* the About card's expand button: the full About opens out of the card and closes back into it (Esc or the close button) */
+    (function(){
+      var card=document.getElementById('aboutCard'), full=document.getElementById('aboutFull'), openB=document.getElementById('aboutOpen'), closeB=document.getElementById('aboutClose');
+      // clip the full page down to the card's box, in the page's own coordinates
+      function toCard(){ var c=card.getBoundingClientRect(), f=full.getBoundingClientRect();
+        full.style.setProperty('--ct',(c.top-f.top)+'px'); full.style.setProperty('--cl',(c.left-f.left)+'px');
+        full.style.setProperty('--cr',(f.right-c.right)+'px'); full.style.setProperty('--cb',(f.bottom-c.bottom)+'px'); full.style.setProperty('--crad','22px'); }
+      function toFull(){ ['--ct','--cl','--cr','--cb'].forEach(function(k){ full.style.setProperty(k,'0px'); }); full.style.setProperty('--crad','12px'); }
+      function open(){ full.hidden=false; full.classList.add('instant'); toCard(); void full.offsetWidth; full.classList.remove('instant');
+        requestAnimationFrame(function(){ toFull(); full.classList.add('open'); }); openB.setAttribute('aria-expanded','true');
+        window.__aboutP=1; full.scrollTop=0; closeB.focus({ preventScroll:true }); }
+      function close(){ if (full.hidden) return; full.classList.remove('open'); toCard(); openB.setAttribute('aria-expanded','false'); window.__aboutP=0;
+        var done=function(){ full.hidden=true; full.removeEventListener('transitionend',done); }; full.addEventListener('transitionend',done);
+        setTimeout(done, 700); openB.focus({ preventScroll:true }); }
+      openB.addEventListener('click', open); closeB.addEventListener('click', close);
+      addEventListener('keydown', function(e){ if (e.key==='Escape' && !full.hidden) close(); });
+    })();
+  </script>
+  <script>
+    /* GitHub contributions for mcxlsky, loaded live from a public read-only service (github-contributions-api.jogruber.de, which
+       reads GitHub's own contribution calendar); if it can't be reached the grid stays empty and the total says so */
+    (function(){
+      var USER='mcxlsky', mini=document.getElementById('contribMini'), full=document.getElementById('contribFull'), tot=document.getElementById('ghTotal');
+      var COL=['#ebedf0','#9be9a8','#40c463','#30a14e','#216e39'];                  // GitHub's own greens
+      function draw(el, days){ var C=10, G=3, first=new Date(days[0].date+'T12:00:00Z').getUTCDay(), weeks=Math.ceil((days.length+first)/7),
+          w=weeks*(C+G)-G, h=7*(C+G)-G, r='';
+        days.forEach(function(d,i){ var k=i+first; r+='<rect x="'+Math.floor(k/7)*(C+G)+'" y="'+(k%7)*(C+G)+'" width="'+C+'" height="'+C+'" rx="2" fill="'+COL[d.level||0]+'"><title>'+
+          (d.count==null?'':d.count+' contribution'+(d.count===1?'':'s')+' on ')+d.date+'</title></rect>'; });
+        el.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" role="img" aria-hidden="true">'+r+'</svg>'; }
+      function lastYear(){ var out=[], d=new Date(); d.setUTCHours(12,0,0,0); d.setUTCDate(d.getUTCDate()-364);
+        for (var i=0;i<365;i++){ out.push({ date:d.toISOString().slice(0,10), count:null, level:0 }); d.setUTCDate(d.getUTCDate()+1); } return out; }
+      var blank=lastYear(); draw(mini,blank); draw(full,blank);
+      fetch('https://github-contributions-api.jogruber.de/v4/'+USER+'?y=last').then(function(r){ if (!r.ok) throw r.status; return r.json(); }).then(function(j){
+        var days=(j.contributions||[]).filter(function(d){ return d && d.date; }); if (!days.length) throw 'empty';
+        draw(mini,days); draw(full,days);
+        var n=(j.total&&(j.total.lastYear!=null?j.total.lastYear:null)); if (n==null) n=days.reduce(function(a,d){ return a+(d.count||0); },0);
+        tot.textContent=n.toLocaleString('en-US')+' contribution'+(n===1?'':'s')+' in the last year';
+        mini.setAttribute('aria-label', tot.textContent+' on GitHub'); full.setAttribute('aria-label', tot.textContent);
+      }).catch(function(){ tot.textContent='GitHub activity'; });
     })();
   </script>
 </body>
