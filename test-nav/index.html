@@ -2092,14 +2092,7 @@ THREE.ColorManagement.enabled = false;
       window.__merged=[kill.length, by.size]; }
 
     setGround(); applyAtmosphere();
-    // compile the scene's shaders up front, in parallel where the browser can (KHR_parallel_shader_compile), instead of one by one
-    // inside the first frame. The passing trains are shown for the call so theirs are included, and the composer's buffer is bound so
-    // the programs match how they'll really be drawn (no tone mapping into a render target).
-    { const vis=[ambient.sb.visible, ambient.nb.visible], done=()=>{ window.__ready=true; }; let p=null;
-      ambient.sb.visible=ambient.nb.visible=true;
-      try { renderer.setRenderTarget(composer.readBuffer); p=renderer.compileAsync(scene, camera); } catch(e){ p=null; }
-      renderer.setRenderTarget(null); ambient.sb.visible=vis[0]; ambient.nb.visible=vis[1];
-      if (p) p.then(done, done); else done(); }
+    window.__ready=true;
   }, (err)=>{ window.__err=String(err); });
 
   addEventListener('resize', ()=>{ camera.aspect=vw()/vh(); camera.updateProjectionMatrix(); renderer.setSize(vw(),vh(),false); });
