@@ -1956,7 +1956,7 @@ THREE.ColorManagement.enabled = false;
           // it's only seen at the end of the ride, and laying ~3,300 tiles is slow: grout now, tiles laid in idle time after the page is up
           const mosT=tex(1024,392,(c,w,h)=>{ c.fillStyle='#2a2826'; c.fillRect(0,0,w,h); });
           (window.__later=window.__later||[]).push(()=>(function*(c,w,h){ let sd2=4242; const rnd=()=>(sd2=(sd2*16807)%2147483647)/2147483647;
-            const src=document.createElement('canvas'); src.width=w; src.height=h; const s=src.getContext('2d');
+            const src=document.createElement('canvas'); src.width=w; src.height=h; const s=src.getContext('2d',{ willReadFrequently:true });   // read back below: keep it in memory, not on the GPU
             const blob=(col,pts)=>{ s.fillStyle=col; s.beginPath(); s.moveTo(pts[0]*w,pts[1]*h); for (let i=2;i<pts.length;i+=6) s.bezierCurveTo(pts[i]*w,pts[i+1]*h,pts[i+2]*w,pts[i+3]*h,pts[i+4]*w,pts[i+5]*h); s.closePath(); s.fill(); };
             const rib=(col,wd,pts)=>{ s.strokeStyle=col; s.lineWidth=wd; s.lineCap='round'; s.beginPath(); s.moveTo(pts[0]*w,pts[1]*h); for (let i=2;i<pts.length;i+=6) s.bezierCurveTo(pts[i]*w,pts[i+1]*h,pts[i+2]*w,pts[i+3]*h,pts[i+4]*w,pts[i+5]*h); s.stroke(); };
             // ground: night-blue sky, a red band of the Bronx, a gold sun
