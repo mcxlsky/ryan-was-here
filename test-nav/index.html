@@ -624,6 +624,12 @@
     .edge { position: fixed; left: 0; right: 0; height: 44px; z-index: 2000; pointer-events: none; background: #171715; transition: background-color 1.5s ease; }   /* Safari only honours a strip this tall (4px was ignored); the mask fades it into the scene so only its colour, not a band, shows */
     .edge-t { top: 0; -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 20%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0, #000 20%, transparent 100%); }
     .edge-b { bottom: 0; -webkit-mask-image: linear-gradient(to top, #000 0, #000 20%, transparent 100%); mask-image: linear-gradient(to top, #000 0, #000 20%, transparent 100%); }
+    /* phones: the wordmark sits a little lower and the bottom nav a little higher, clear of the bar-tint fades */
+    @media (pointer: coarse), (max-width: 600px) {
+      .tab { top: calc(var(--frame, 8px) + env(safe-area-inset-top, 0px) + 14px); }
+      .bnav { bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
+      .soon-toast { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+    }
     .about-full { display: none; }   /* About is 'coming soon': keep its full-screen cream layer out of the page entirely (iOS Safari was tinting the bottom bar from it) */
     .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
     /* the Next Train card floats at the centre of the screen instead of sitting in the dock */
