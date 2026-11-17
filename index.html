@@ -2,6 +2,7 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
+  <meta name="theme-color" content="#171715" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />   <!-- fill the whole phone screen, under the notch and home bar; the UI keeps clear with env(safe-area-inset-*) -->
   <title>ryan was here — nav</title>
   <meta name="description" content="Scroll-driven subway arrival hero — a live 3D R142 pulls into the station." />
@@ -619,6 +620,7 @@
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
     .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
+    .about-full { display: none; }   /* About is 'coming soon': keep its full-screen cream layer out of the page entirely (iOS Safari was tinting the bottom bar from it) */
     .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
     /* the Next Train card floats at the centre of the screen instead of sitting in the dock */
     .dock > .train { position: fixed; top: 50%; left: 50%; right: auto; bottom: auto; flex: none; width: min(300px, calc(100% - 32px)); transform: translate(-50%, -50%); }
@@ -652,7 +654,7 @@
     .tg-x { display: none; } .tg-x svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; }
     .train-go.is-x { min-width: 0; width: 40px; height: 40px; padding: 0; align-self: center; }
     .train-go.is-x .tg-m { display: none; } .train-go.is-x .tg-x { display: grid; place-items: center; }
-    .fade { position: fixed; inset: 0; z-index: 80; background: #000; opacity: 0; pointer-events: none; transition: opacity .4s ease; } .fade.on { opacity: 1; pointer-events: auto; }
+    .fade { position: fixed; inset: 0; z-index: 80; background: #000; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .4s ease, visibility 0s linear .4s; } .fade.on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .4s ease; }   /* hidden when off, so iOS Safari can't pick its black as the colour of the browser bars */
     .train-bullet { transition: background .5s ease, box-shadow .5s ease, width .7s cubic-bezier(.2,.8,.2,1), height .7s cubic-bezier(.2,.8,.2,1); } .train-bullet > * { grid-area: 1 / 1; } .train-bullet span, .train-bullet .np { transition: opacity .5s ease; }
     .train-bullet .np { display: block; opacity: 0; width: 21px; height: 21px; }
     body.at-platform .train-bullet { width: 40px; height: 40px; background: transparent; box-shadow: inset 0 0 0 1.5px #111; color: #111; cursor: pointer; } body.at-platform .train-bullet:hover { background: rgba(17,17,17,0.08); }   /* outlined, the same size as the X */ body.at-platform .train-bullet span { opacity: 0; } body.at-platform .train-bullet .np { opacity: 1; }   /* at the platform the 5 becomes a newspaper */
@@ -805,6 +807,7 @@ THREE.ColorManagement.enabled = false;
   const canvas = document.getElementById('trainCanvas');
   const host = document.getElementById('stage');
   const vw = ()=>host.clientWidth||innerWidth, vh = ()=>host.clientHeight||innerHeight;
+  const lowPower = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth,innerHeight) < 600;   // phones and tablets: lighter shadows, reflection and post
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(vw(), vh(), false);
@@ -885,7 +888,8 @@ THREE.ColorManagement.enabled = false;
   // the shadow map is a long strip laid down the shot (oriented each frame below): ~30 m behind the camera to ~200 m ahead,
   // ±45 m across, so buildings and the el keep their shadows out into the haze. Same memory as a 4096² square.
   const SH={ ahead:200, behind:30, side:45 };
-  key.shadow.mapSize.set(2048, renderer.capabilities.maxTextureSize>=8192 ? 8192 : 4096);
+  if (lowPower) key.shadow.mapSize.set(1024, 4096);   // a quarter of the texels on a phone: the single biggest per-frame cost
+  else key.shadow.mapSize.set(2048, renderer.capabilities.maxTextureSize>=8192 ? 8192 : 4096);
   key.shadow.bias = -0.0001; key.shadow.normalBias = 0.03; key.shadow.radius = 3;
   { const c=key.shadow.camera; c.left=-SH.side; c.right=SH.side; c.top=SH.ahead; c.bottom=-SH.behind; c.near=1; c.far=700; c.updateProjectionMatrix(); }
   scene.add(key);
@@ -1809,11 +1813,11 @@ THREE.ColorManagement.enabled = false;
         }`
     };
     const reflector = new Reflector(new THREE.PlaneGeometry(CUT0+1200, 260), {
-      textureWidth: 1024, textureHeight: 1024, clipBias: 0.003, shader: reflShader
+      textureWidth: lowPower?512:1024, textureHeight: lowPower?512:1024, clipBias: 0.003, shader: reflShader
     });
     reflector.rotation.x = -Math.PI/2; reflector.position.set((CUT0-1200)/2, floorY+STREET, 0); scene.add(reflector); floorRef=reflector;
     { const before=reflector.onBeforeRender; let last=-1;
-      reflector.onBeforeRender=function(r,sc,cam){ if (last===FRAME.n || FRAME.lite) return; last=FRAME.n; before.call(this,r,sc,cam); }; }   // lite: keep last reflection
+      reflector.onBeforeRender=function(r,sc,cam){ if (last===FRAME.n || FRAME.lite || (lowPower && (FRAME.n&1))) return; last=FRAME.n; before.call(this,r,sc,cam); }; }   // lite: keep last reflection
     const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(CUT0+1200, 200), new THREE.ShadowMaterial({ opacity:0.3 })); shadowRef=shadowPlane;
     shadowPlane.rotation.x = -Math.PI/2; shadowPlane.position.set((CUT0-1200)/2, floorY+STREET+0.002, 0); shadowPlane.receiveShadow = true;
     scene.add(shadowPlane);
@@ -2603,9 +2607,8 @@ THREE.ColorManagement.enabled = false;
       key.target.position.set(pos.x, PY-1, pos.z*0.3); key.position.copy(key.target.position).add(keyOff); }
   }
   /* ---------- post: AO → bloom → depth of field → tone map → film finish ---------- */
-  const lowPower = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth,innerHeight) < 600;
   renderer.setPixelRatio(Math.min(devicePixelRatio, lowPower ? 1.5 : 2));
-  const rt = new THREE.WebGLRenderTarget(1,1,{ type:THREE.HalfFloatType, samples: lowPower?0:4 });
+  const rt = new THREE.WebGLRenderTarget(1,1,{ type:THREE.HalfFloatType, samples: lowPower?2:4 });   // 2x MSAA on phones: cheap on Apple GPUs and it calms the shimmer on the road lines
   const composer = new EffectComposer(renderer, rt);
   composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(vw(), vh());
   composer.addPass(new RenderPass(scene, camera));
@@ -2685,6 +2688,9 @@ THREE.ColorManagement.enabled = false;
   addEventListener('resize', ()=>{ composer.setSize(vw(),vh()); finish.uniforms.res.value.set(vw(),vh()); sizeVel(); });
 
   const clock = new THREE.Clock(), perf={ t:0, n:0, step:0 };
+  // add ?perf to the address to see the frame rate, render scale and quality step on screen
+  let fpsEl=null, fpsN=0, fpsT=0;
+  if (/[?&]perf\b/.test(location.search)){ fpsEl=document.createElement('div'); fpsEl.style.cssText='position:fixed;z-index:9999;left:10px;top:calc(env(safe-area-inset-top,0px) + 70px);padding:4px 8px;border-radius:8px;background:rgba(0,0,0,.6);color:#fff;font:600 11px/1.2 ui-monospace,Menlo,monospace;pointer-events:none'; document.body.appendChild(fpsEl); }
   let heroOn=true; new IntersectionObserver(e=>{ heroOn=e[0].isIntersecting; }).observe(sceneEl);
   // frame timing: step the motion by the display's own frame clock (rAF's vsync-aligned timestamp, not the moment this
   // code happens to run) and smooth out small wobbles, so trains glide at an even speed; a real hitch still catches up
@@ -2756,6 +2762,7 @@ THREE.ColorManagement.enabled = false;
           else if (perf.step===2 && gtao) gtao.enabled=false;
           else if (perf.step===4 && bokeh) bokeh.enabled=false;
           window.__perfStep=perf.step; } } }
+    if (fpsEl){ fpsN++; fpsT+=fdt; if (fpsT>0.5){ fpsEl.textContent=Math.round(fpsN/fpsT)+' fps · '+renderer.getPixelRatio().toFixed(2)+'x · step '+perf.step; fpsN=fpsT=0; } }
     if (heroOn && window.__ready && !behindLoader) composer.render();
     requestAnimationFrame(tick);
   }
