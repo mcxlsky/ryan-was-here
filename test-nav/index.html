@@ -2699,9 +2699,9 @@ THREE.ColorManagement.enabled = false;
   const edgeTop=document.getElementById('edgeT'), edgeBot=document.getElementById('edgeB'), edgeDebug=/[?&]tint=debug/.test(location.search);
   const edgeCv=document.createElement('canvas'); edgeCv.width=edgeCv.height=1; const edgeCx=edgeCv.getContext('2d',{ willReadFrequently:true }); let edgeAcc=1.5;
   if (edgeDebug){ edgeTop.style.cssText='height:40px;background:#e11;-webkit-mask-image:none;mask-image:none'; edgeBot.style.cssText='height:40px;background:#1a1;-webkit-mask-image:none;mask-image:none'; }
-  function sampleEdges(){ try{ const w=canvas.width, h=canvas.height, band=Math.max(2,Math.round(h*0.02)); edgeCx.imageSmoothingQuality='high';
-    edgeCx.drawImage(canvas,0,0,w,band,0,0,1,1); let p=edgeCx.getImageData(0,0,1,1).data; edgeTop.style.backgroundColor='rgb('+p[0]+','+p[1]+','+p[2]+')';
-    edgeCx.drawImage(canvas,0,h-band,w,band,0,0,1,1); p=edgeCx.getImageData(0,0,1,1).data; edgeBot.style.backgroundColor='rgb('+p[0]+','+p[1]+','+p[2]+')'; }catch(e){} }
+  function sampleEdges(){ try{ const w=canvas.width, h=canvas.height, band=Math.max(2,Math.round(h*0.02)), yT=Math.round(h*0.12), yB=Math.round(h*0.86); edgeCx.imageSmoothingQuality='high';   // a little way in from each edge: the vignette darkens the very rim, and Safari fades the bar colour into the page from there
+    edgeCx.drawImage(canvas,0,yT,w,band,0,0,1,1); let p=edgeCx.getImageData(0,0,1,1).data; edgeTop.style.backgroundColor='rgb('+p[0]+','+p[1]+','+p[2]+')';
+    edgeCx.drawImage(canvas,0,yB,w,band,0,0,1,1); p=edgeCx.getImageData(0,0,1,1).data; edgeBot.style.backgroundColor='rgb('+p[0]+','+p[1]+','+p[2]+')'; }catch(e){} }
   if (/[?&]perf\b/.test(location.search)){ fpsEl=document.createElement('div'); fpsEl.style.cssText='position:fixed;z-index:9999;left:10px;top:calc(env(safe-area-inset-top,0px) + 70px);padding:4px 8px;border-radius:8px;background:rgba(0,0,0,.6);color:#fff;font:600 11px/1.2 ui-monospace,Menlo,monospace;pointer-events:none'; document.body.appendChild(fpsEl); }
   let heroOn=true; new IntersectionObserver(e=>{ heroOn=e[0].isIntersecting; }).observe(sceneEl);
   // frame timing: step the motion by the display's own frame clock (rAF's vsync-aligned timestamp, not the moment this
