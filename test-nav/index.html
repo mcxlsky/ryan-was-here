@@ -33,7 +33,7 @@
   <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/shaders/LuminosityHighPassShader.js" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Caveat:wght@600;700&display=swap" rel="stylesheet" />
 
   <style>
     :root {
@@ -172,8 +172,20 @@
       opacity: 0; transition: opacity .6s ease; }
     .wx.on { opacity: 1; }
     .wx[hidden] { display: none; }
-    .veil { position: absolute; inset: 0; z-index: 7; display: grid; place-items: center; background: #000; transition: opacity .6s ease; }
-    .veil.hide { opacity: 0; pointer-events: none; }
+    .veil { display: none; }   /* replaced by the .loader below */
+    /* the loader: the landmasses of the real map (a deeper tint of the work page's cream) with its subway lines drawing themselves across them in the map's own colours; over everything until the street is ready */
+    .loader { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; }
+    .loader::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); transition: opacity 1s ease; }
+    .loader.bg-out { pointer-events: none; } .loader.bg-out::before { opacity: 0; }
+    .loader svg { position: relative; transition: opacity 1s ease; }
+    .loader.hide svg { opacity: 0; }
+    .loader svg { width: min(25vw, 127px, 19vh); height: auto; overflow: visible; }
+    .loader .land { fill: #f3f1ea; stroke: none; opacity: 0; animation: ldLand .9s cubic-bezier(.2,.8,.2,1) forwards; animation-delay: calc(var(--i) * .14s); }
+    .loader .ln { fill: none; stroke-width: 9.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1 2; stroke-dashoffset: 1.02;
+                  animation: ldDraw 5s cubic-bezier(.45,0,.25,1) infinite; animation-delay: calc(.6s + var(--i) * .05s); }
+    @keyframes ldLand { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    @keyframes ldDraw { 0% { stroke-dashoffset: 1.02; } 32% { stroke-dashoffset: 0; } 80% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -1.02; } }
+    @media (prefers-reduced-motion: reduce) { .loader .land { animation: none; opacity: 1; } .loader .ln { animation: none; stroke-dashoffset: 0; } }
     .spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.18); border-top-color: var(--accent); animation: spin .9s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -423,11 +435,7 @@
       .wfav svg { width: 28px; height: 28px; }
     }
     @media (prefers-reduced-motion: reduce) { .chev, .drop { animation: none; } }
-    /* the frame: an 8px white border round the whole site, drawn over everything; edge-anchored tiles sit just inside it */
-    :root { --frame: 8px; --frame-r: 12px; }
-    /* drawn as a rounded window with a white spread round it, so the inside corners are rounded (and round off any tile sitting in a corner) */
-    body::after { content: ''; position: fixed; inset: var(--frame); z-index: 1000; pointer-events: none; border-radius: var(--frame-r);
-                  box-shadow: 0 0 0 100px #fff; }
+    :root { --frame: 0px; --frame-r: 0px; }
     .rhome { top: var(--frame); left: var(--frame); }
     .rnav { top: var(--frame); right: var(--frame); }
     .widgets { top: var(--frame); right: calc(80px + var(--frame)); }
@@ -470,22 +478,35 @@
       .tab { --tab-h: 50px; --tab-r: 12px; }
       .tab-links { display: none; } .tab-cta { display: none; } .tab-menu { display: grid; }
     }
-    @media (max-width: 380px){ .tab-name { display: none; } }
+    /* header split in two, no backgrounds: wordmark top left, hamburger top right; every link lives in the menu */
+    .tab { left: 0; right: 0; top: 0; transform: none; max-width: none; height: auto; padding: 14px 20px; justify-content: center; background: none; border-radius: 0; pointer-events: none; }
+    .tab::before, .tab::after { display: none; }
+    .tab > * { pointer-events: auto; }
+    .tab-brand { height: auto; }
+    .tab-name { display: block; font-size: 17px; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,0.35); transition: color .3s; }
+    .tab-name { font-family: "Caveat", "Segoe Script", "Bradley Hand", "Snell Roundhand", cursive; font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: 0; }   /* handwritten */
+    .tab-links, .tab-cta { display: none; }
+    .tab-menu { display: grid; background: none; width: 40px; height: 40px; margin-right: -10px; }
+    .tab-menu i, .tab-menu i::before, .tab-menu i::after { background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,0.3); }
+    .tab.open .tab-menu i { background: transparent; box-shadow: none; }
+    .tab a:focus-visible, .tab button:focus-visible { outline-color: #fff; }
+    .tab-drop { top: calc(100% - 6px); right: 20px; }
+    body.full-open .tab { opacity: 0; visibility: hidden; }   /* the open About shows just its X, where the hamburger was */
+    .tab { transition: opacity .25s ease, visibility 0s; }
     /* the countdown board drops out under the brand on hover */
     .tab-brand .rsign { left: 0; top: calc(100% + 8px); height: 60px; border-radius: 12px; }
     .tab-brand:hover .rsign, .tab-brand:focus-visible .rsign { clip-path: inset(0 0 0 0); }
     /* ---------- the About, in brief: a liquid-glass card bottom left, over the scene ---------- */
-    .dock { position: fixed; z-index: 4; left: calc(var(--frame) + 12px); right: calc(var(--frame) + 12px); bottom: calc(var(--frame) + 10px);
+    .dock { position: fixed; z-index: 4; left: calc(var(--frame) + 16px); right: calc(var(--frame) + 16px); bottom: calc(var(--frame) + 12px);
             display: flex; align-items: flex-end; gap: 10px; pointer-events: none; }
     .dock > * { pointer-events: auto; transition: opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1); }
     .dock > .away { opacity: 0; transform: translateY(10px); pointer-events: none; }
-    .glass { position: relative; flex: none; width: min(430px, 100%); display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px 16px 16px;
+    .glass { position: relative; flex: 1 1 0; min-width: 0; display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px 16px 16px;
              border-radius: 22px; color: #fff; isolation: isolate;
              background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.12) 100%);
              -webkit-backdrop-filter: blur(28px) saturate(2.0) brightness(1.08); backdrop-filter: blur(28px) saturate(2.0) brightness(1.08);
-             border: 1px solid rgba(255,255,255,0.12);
-             box-shadow: inset 0 1px 0 rgba(255,255,255,0.20), inset 0 -1px 0 rgba(255,255,255,0.04), inset 1px 0 0 rgba(255,255,255,0.06), inset -1px 0 0 rgba(255,255,255,0.04),
-                         0 20px 44px -18px rgba(0,0,0,0.55); }
+             border: 1px solid transparent;
+             box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
     /* specular sheen: the highlight along the top-left that sells the liquid glass curvature */
     .glass::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
              background: radial-gradient(140% 70% at 15% -15%, rgba(255,255,255,0.20), rgba(255,255,255,0) 55%); mix-blend-mode: overlay; }
@@ -506,35 +527,26 @@
     .glass-a svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: square; }
     .glass-a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     @media (max-width: 720px){ .glass { padding: 14px; gap: 12px; border-radius: 18px; }
-      .glass-av { width: 34px; height: 34px; font-size: 13px; } .glass-p { font-size: 13px; } }
+      .glass-p { font-size: 13px; } }
     /* the train card: the next southbound, and a button to board it (or, at the platform, to go back up) */
     .train { width: 272px; flex-direction: column; gap: 10px; padding: 14px 14px 14px 16px; }
-    .train-bullet { width: 64px; height: 64px; aspect-ratio: 1; flex-shrink: 0; border-radius: 50%; background: #FCCC0A; display: grid; place-items: center; margin: auto 0; }
-    .train-bullet span { font: 700 36px/1 var(--font-ui); color: #111; letter-spacing: -0.02em; }
-    .train-k { font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.78); text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+    .train-bullet { width: 64px; height: 64px; aspect-ratio: 1; flex-shrink: 0; border-radius: 50%; background: #00933C; display: grid; place-items: center; margin: auto 0; }
+    .train-bullet span { font: 700 36px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; color: #fff; letter-spacing: 0; }
+    .train-k { font: 600 10px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.78); text-shadow: 0 1px 2px rgba(0,0,0,0.25);
                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .train-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-    .train-m { display: flex; align-items: baseline; gap: 5px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.25); min-height: 34px; }
-    .train-m b { font: 600 34px/1 var(--font-ui); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
-    .train-m span { font: 500 13px/1 var(--font-ui); color: rgba(255,255,255,0.75); }
-    .train.now .train-m b { color: #ffd23a; }
     .train-go { -webkit-appearance: none; appearance: none; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px;
                 border-radius: 999px; background: #fff; color: #111; font: 600 13.5px/1 var(--font-ui); white-space: nowrap; transition: background .2s, opacity .2s; }
     .train-go:hover { background: #f0efe9; }
-    .train-go svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: square; }
     .train-go:disabled { opacity: 0.55; cursor: default; }
     .train-go:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     @media (max-width: 760px){
-      .dock { left: calc(var(--frame) + 12px); right: calc(var(--frame) + 12px); flex-direction: column-reverse; align-items: stretch; gap: 10px; }
+      .dock { left: calc(var(--frame) + 12px); right: calc(var(--frame) + 12px); flex-direction: column; align-items: stretch; gap: 10px; }
       .glass, .train { width: auto; }
       .train { flex-direction: row; align-items: center; justify-content: space-between; padding: 12px 12px 12px 14px; border-radius: 18px; }
       .train-k { white-space: normal; display: grid; gap: 4px; } .train-sep { display: none; } #tD { font-size: 13px; letter-spacing: 0; text-transform: none; color: #fff; }
-      .train-m b { font-size: 26px; } .train-m { min-height: 0; }
-      .train-row { gap: 10px; }
       .train-bullet { width: 40px; height: 40px; margin: 0; } .train-bullet span { font-size: 22px; }
     }
     /* the expanded About panel stays white; card button grows it full-screen */
-    .glass-about { padding-right: 48px; }
     .about-full .glass-a { background: #111; color: #fff; border-color: #111; }
     .about-full .glass-a:hover { background: #2a2a2a; }
     .about-full .glass-a:focus-visible { outline-color: #111; }
@@ -561,52 +573,100 @@
     .full-in > p { font: 400 clamp(16px, 2.1vh, 19px)/1.55 var(--font-ui); color: rgba(17,17,17,0.72); text-wrap: pretty; }
     .full-in > .full-lead { font: 500 clamp(22px, min(3vw, 3.6vh), 34px)/1.25 var(--font-ui); letter-spacing: -0.02em; color: #111; text-wrap: balance; }
     .full-cta { margin-top: 10px; } .full-cta .glass-a { font-size: 14px; padding: 10px 16px; }
-    .full-x { position: fixed; top: calc(var(--frame) + 70px); right: calc(var(--frame) + 20px); width: 40px; height: 40px; }
+    .full-x { position: fixed; top: calc(var(--frame) + 14px); right: calc(var(--frame) + 10px); width: 40px; height: 40px; z-index: 2; }
     .full-x svg { width: 16px; height: 16px; }
     .full-x { background: rgba(17,17,17,0.08); color: #111; }
     .full-x:hover { background: rgba(17,17,17,0.14); }
-    @media (max-width: 720px){ .full-in { padding: 104px 22px 48px; } .full-x { top: calc(var(--frame) + 66px); right: calc(var(--frame) + 12px); } }
+    @media (max-width: 720px){ .full-in { padding: 104px 22px 48px; } }
     @media (prefers-reduced-motion: reduce){ .about-full, .full-in { transition: none; } }
     .homebase { display: none; }
-    .train.now .train-m b { color: #ffd23a; }
-    /* About card: avatar stacked above the copy; the expand button sits bottom right */
-    .glass-about { flex-direction: column; gap: 12px; width: min(360px, 100%); padding: 18px 18px 18px 18px; }
-    .glass-about .card-x { top: auto; bottom: 14px; right: 14px; }
-    .glass-about .glass-t { padding-right: 0; }
-    .glass-now { flex-direction: column; gap: 8px; width: 250px; padding: 14px; }
-    .now-k { display: flex; align-items: center; gap: 7px; font: 600 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.65); text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
-    .now-k i { width: 7px; height: 7px; border-radius: 50%; background: #2fb35a; box-shadow: 0 0 0 0 rgba(47,179,90,0.5); animation: nowPulse 2s ease-out infinite; }
-    @keyframes nowPulse { 0% { box-shadow: 0 0 0 0 rgba(47,179,90,0.5); } 70%,100% { box-shadow: 0 0 0 7px rgba(47,179,90,0); } }
-    .now-art { align-self: stretch; height: 72px; border-radius: 10px; background: repeating-linear-gradient(135deg, rgba(255,255,255,0.08) 0 8px, rgba(255,255,255,0.14) 8px 16px); }
-    .now-t { font: 600 15px/1.25 var(--font-ui); letter-spacing: -0.01em; margin-top: 2px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
-    .now-p { font: 400 13px/1.45 var(--font-ui); color: rgba(255,255,255,0.72); text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
-    .dock { flex-wrap: wrap; }
-    @media (max-width: 1100px) and (min-width: 761px){ .glass-now { display: none; } }   /* not enough width for three */
-    @media (max-width: 760px){
-      .glass-about, .glass-now { width: auto; }
-      .glass-now { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 12px 14px; border-radius: 18px; }
-      .glass-now .now-art { display: none; } .glass-now .now-k { width: 100%; } .glass-now .now-p { display: none; }
-      .glass-about { flex-direction: row; align-items: flex-start; } .glass-about .card-x { bottom: 12px; right: 12px; }
-    }
-    @media (prefers-reduced-motion: reduce){ .now-k i { animation: none; } }
+    .soon-toast { position: fixed; z-index: 70; left: 50%; bottom: 84px; transform: translate(-50%, 8px); padding: 11px 18px; border-radius: 999px; background: rgba(22,22,25,0.9); color: #fff; font: 600 13.5px/1 var(--font-ui, system-ui, sans-serif); letter-spacing: 0.01em; white-space: nowrap; pointer-events: none; opacity: 0; box-shadow: 0 14px 32px -14px rgba(0,0,0,0.5); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: opacity .25s ease, transform .3s cubic-bezier(.2,.8,.2,1); }
+    .soon-toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (prefers-reduced-motion: reduce) { .soon-toast { transition: opacity .2s ease; transform: translate(-50%, 0); } }
+    /* bottom nav: your photo on the left (opens a mini bio), Home / Work / About centred */
+    .bnav { position: fixed; z-index: 5; left: 50%; bottom: 12px; transform: translateX(-50%); width: fit-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 6px; padding: 8px;
+            border-radius: 999px; color: #fff; isolation: isolate; border: 1px solid transparent; background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.12) 100%); -webkit-backdrop-filter: blur(28px) saturate(2.0) brightness(1.08); backdrop-filter: blur(28px) saturate(2.0) brightness(1.08);
+            box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
+    .bn-me { flex: none; -webkit-appearance: none; appearance: none; border: 0; padding: 0; background: none; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; transition: transform .2s; }
+    .bn-me:hover { transform: scale(1.06); }
+    .bn-me .glass-av, .bn-me img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: grid; box-shadow: none; }
+    .bn-sep { flex: none; width: 1px; height: 24px; margin: 0 8px; background: rgba(255,255,255,0.22); }
+    .bn-links { display: flex; gap: 4px; }
+    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(255,255,255,0.72); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; transition: color .15s, background .15s; }
+    .bn-links a:hover { color: #fff; background: rgba(255,255,255,0.12); }
+    .bn-links a[aria-current="page"] { color: #fff; background: rgba(255,255,255,0.16); }
+    .bnav a:focus-visible, .bnav button:focus-visible, .bio-pop a:focus-visible, .bio-pop button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    @media (max-width: 420px) { .bn-links a { padding: 0 11px; } }
+    .bio-pop { position: fixed; z-index: 5; left: 50%; top: 50%; width: min(340px, calc(100% - 32px)); padding: 18px; border-radius: 22px; color: #fff; isolation: isolate; border: 1px solid transparent; background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.12) 100%); -webkit-backdrop-filter: blur(28px) saturate(2.0) brightness(1.08); backdrop-filter: blur(28px) saturate(2.0) brightness(1.08);
+            box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); opacity: 0; visibility: hidden; transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
+            transition: opacity .2s ease, transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s linear .3s; }
+    body.bio-open .dock > .train { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, visibility 0s linear .2s; }   /* the bio takes the train card's place */
+    .bio-pop.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%); transition: opacity .2s ease, transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+    .bio-top { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
+    .bio-top .glass-av { width: 56px; height: 56px; font-size: 19px; }
+    .bio-top p { display: grid; gap: 3px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
+    .bio-top b { font: 600 17px/1.2 var(--font-ui); letter-spacing: -0.01em; }
+    .bio-top span { font: 500 13.5px/1.25 var(--font-ui); color: rgba(255,255,255,0.78); }
+    .bio-rule { height: 1px; margin: 16px 0; background: rgba(255,255,255,0.16); }
+    .bio-icons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .bio-ic { -webkit-appearance: none; appearance: none; border: 0; cursor: pointer; flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 15px 0 13px; border-radius: 999px; background: rgba(255,255,255,0.14); color: #fff; text-decoration: none; font: inherit; transition: background .2s, transform .2s; }
+    .bio-ic:hover { background: rgba(255,255,255,0.26); transform: translateY(-1px); }
+    .bio-ic .ic { display: grid; place-items: center; }
+    .bio-ic .lb { font: 600 13px/1 var(--font-ui); color: #fff; white-space: nowrap; }
+    .bio-ic svg { width: 16px; height: 16px; fill: currentColor; }
+    .bio-ic.stroke svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+    .bio-ic .ok { display: none; } .bio-ic.done .ok { display: block; } .bio-ic.done .mail { display: none; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
     .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
     .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
-    /* the three cards share one height (the tallest sets it): the train card's countdown sits at its foot, the placeholder art takes up the slack */
-    @media (min-width: 761px){
-      .dock { align-items: stretch; }
-      .train { justify-content: space-between; }
-      .glass-now .now-art { flex: 1 1 auto; height: auto; min-height: 48px; }
-    }
+    /* the Next Train card floats at the centre of the screen instead of sitting in the dock */
+    .dock > .train { position: fixed; top: 50%; left: 50%; right: auto; bottom: auto; flex: none; width: min(300px, calc(100% - 32px)); transform: translate(-50%, -50%); }
+    /* the card's layout at every width: the R on the left; to its right, Next train / Flatbush Av / the countdown with the Board button */
+    .dock > .train { width: min(288px, calc(100% - 32px)); display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "b k g"; column-gap: 12px; align-items: center; align-content: center; justify-content: stretch; padding: 14px; border-radius: 22px; }
+    .train-bullet { grid-area: b; width: 50px; height: 50px; margin: 0; } .train-bullet span { font-size: 27px; }
+    .train-k { grid-area: k; white-space: normal; display: grid; gap: 4px; overflow: visible; } .train-sep { display: none; }
+    #tD { font: 600 15px/1.2 var(--font-ui); letter-spacing: -0.01em; text-transform: none; color: #fff; }
+    .train-go { grid-area: g; align-self: stretch; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: auto; min-width: 88px; padding: 0 12px 0 14px; border-radius: 999px; white-space: normal; text-align: center; }
+    .tg-box { order: 2; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #111; display: grid; place-items: center; transition: background .15s, border-color .15s; }
+    .tg-box svg { width: 10px; height: 10px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(0.6); transition: opacity .15s, transform .15s; }
+    .train-go[aria-checked="true"] .tg-box { background: #00933C; border-color: #00933C; }
+    .train-go[aria-checked="true"] .tg-box svg { opacity: 1; transform: none; }
+    .tg-m { display: flex; align-items: baseline; gap: 4px; }
+    .tg-m b, .tg-m span { font: 600 14px/1 var(--font-ui); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+    .tg-m span { color: inherit; }
+    .train.now .train-go { background: transparent; box-shadow: inset 0 0 0 1.5px #111; color: #111; } .train.now .tg-m b, .train.now .tg-m span { color: #111; }   /* arriving (and riding): an outlined pill, to match the hint button */
+    /* arriving at the platform: the card eases up from the middle of the screen and shrinks to a small pill (the hint button + the X); the text unfolds later */
+    .dock > .train { transition: opacity 1.2s cubic-bezier(.3,0,.3,1), top .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1), width .7s cubic-bezier(.2,.8,.2,1); }
+    body.at-platform .dock > .train { top: 18px; transform: translate(-50%, 0); width: 132px; }
+    body.at-platform.hint-open .dock > .train { width: min(280px, calc(100% - 32px)); }
+    body.at-platform .train-k { min-width: 0; overflow: hidden; text-align: center; opacity: 0; transition: opacity .3s ease; }
+    body.at-platform.hint-open .train-k { opacity: 1; transition: opacity .5s ease .3s; }
+    body.at-platform #tD { white-space: nowrap; }
+    .dock > .train.fadeout { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .6s ease, visibility 0s linear .6s, top .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1), width .7s cubic-bezier(.2,.8,.2,1); }
+    body.snap .dock > .train, body.snap .train-bullet, body.snap .train-k { transition: none !important; }   /* while the screen is black the card jumps to its new place; the fade does the revealing */
+    #newsLink:focus-visible { position: fixed; z-index: 6; left: 50%; bottom: 88px; transform: translateX(-50%); width: auto; height: auto; clip-path: none; padding: 12px 18px; border-radius: 999px; background: #fff; color: #111; font: 600 14px/1 var(--font-ui); text-decoration: none; outline: 2px solid #111; }
+    .train-go[aria-checked="true"]:disabled { opacity: 1; }   /* booked or riding: committed, not frozen */
+    .train-go.is-text .tg-box { display: none; } .train-go.is-text .tg-m b { font-size: 15px; line-height: 1.15; }
+    .tg-x { display: none; } .tg-x svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; }
+    .train-go.is-x { min-width: 0; width: 40px; height: 40px; padding: 0; align-self: center; }
+    .train-go.is-x .tg-m { display: none; } .train-go.is-x .tg-x { display: grid; place-items: center; }
+    .fade { position: fixed; inset: 0; z-index: 80; background: #000; opacity: 0; pointer-events: none; transition: opacity .4s ease; } .fade.on { opacity: 1; pointer-events: auto; }
+    .train-bullet { transition: background .5s ease, box-shadow .5s ease, width .7s cubic-bezier(.2,.8,.2,1), height .7s cubic-bezier(.2,.8,.2,1); } .train-bullet > * { grid-area: 1 / 1; } .train-bullet span, .train-bullet .np { transition: opacity .5s ease; }
+    .train-bullet .np { display: block; opacity: 0; width: 21px; height: 21px; }
+    body.at-platform .train-bullet { width: 40px; height: 40px; background: transparent; box-shadow: inset 0 0 0 1.5px #111; color: #111; cursor: pointer; } body.at-platform .train-bullet:hover { background: rgba(17,17,17,0.08); }   /* outlined, the same size as the X */ body.at-platform .train-bullet span { opacity: 0; } body.at-platform .train-bullet .np { opacity: 1; }   /* at the platform the 5 becomes a newspaper */
+    body.at-platform #tK, body.at-platform .train-sep { display: none; }
+    body.at-platform .tab { opacity: 0; visibility: hidden; }   /* the wordmark steps away at the platform: the card is the hint now */
+    .train-go.is-text:disabled { opacity: 1; } .train-go:disabled { pointer-events: none; }
   </style>
 </head>
 <body>
+  <div class="loader" id="loader" role="status" aria-label="Loading">
+    <svg viewBox="-64 0 714 850" aria-hidden="true" focusable="false"><defs><mask id="ldRiv" maskUnits="userSpaceOnUse" x="0" y="0" width="760" height="850"><rect x="0" y="0" width="760" height="850" fill="#fff"/><g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M32 97L92 101L95 133L128 168L176 212L214 226L243 229" stroke-width="8"/><path d="M243 224L247 300L246 380L250 440L262 470L285 490L283 520L278 560L252 598" stroke-width="10"/></g></mask></defs><g mask="url(#ldRiv)"><path class="land" style="--i:0" d="M30 0L398 0L399 49L434 88L435 135L345 225L346 232L401 232L441 193L445 193L446 205L733 205L733 575L724 575L640 659L620 659L622 615L680 557L681 463L673 462L660 475L660 482L653 482L651 488L641 494L641 503L632 503L598 537L597 718L514 804L514 808L507 810L492 826L471 826L470 840L439 840L409 814L300 812L297 808L297 727L256 681L255 610L252 609L251 594L239 593L234 598L234 609L221 611L221 626L206 626L193 638L160 638L123 601L117 600L110 588L97 588L97 575L32 510L30 445L21 443L21 415L30 413Z"/><path class="land" style="--i:1" d="M90 679L184 679L190 686L190 739L92 839L34 840L30 836L30 814L55 785L55 714Z"/></g><g><path class="ln" pathLength="1" style="--i:0;stroke:#D43046" d="M64 48L64.0 290.0Q64 304 73.9 313.9L102.1 342.1Q112 352 112.0 366.0L112.0 562.0Q112 576 121.9 585.9L170.3 634.3Q176 640 184.0 640.0L192 640"/><path class="ln" pathLength="1" style="--i:1;stroke:#D43046" d="M272 32L272.0 180.7Q272 192 264.0 200.0L264.0 200.0Q256 208 244.7 208.0L158.0 208.0Q144 208 144.0 222.0L144.0 258.0Q144 272 130.0 272.0L80 272"/><path class="ln" pathLength="1" style="--i:2;stroke:#D43046" d="M112 544L226.0 544.0Q240 544 240.0 558.0L240.0 584.0Q240 592 248.0 592.0L248.0 592.0Q256 592 256.0 600.0L256.0 600.0Q256 608 261.7 613.7L278.1 630.1Q288 640 302.0 640.0L356.7 640.0Q368 640 376.0 648.0L376.0 648.0Q384 656 395.3 656.0L434.0 656.0Q448 656 457.9 646.1L576 528"/><path class="ln" pathLength="1" style="--i:3;stroke:#D43046" d="M432 640L512 720"/><path class="ln" pathLength="1" style="--i:4;stroke:#439767" d="M176 48L176.0 196.7Q176 208 184.0 216.0L184.0 216.0Q192 224 192.0 235.3L192.0 596.7Q192 608 200.0 616.0L200.0 616.0Q208 624 219.3 624.0L356.7 624.0Q368 624 376.0 632.0L376.0 632.0Q384 640 395.3 640.0L450.0 640.0Q464 640 473.9 630.1L496 608"/><path class="ln" pathLength="1" style="--i:5;stroke:#439767" d="M448 624L448.0 642.0Q448 656 457.9 665.9L512 720"/><path class="ln" pathLength="1" style="--i:6;stroke:#439767" d="M384 80L384.0 88.0Q384 96 378.3 101.7L329.9 150.1Q320 160 320.0 174.0L320.0 194.0Q320 208 306.0 208.0L208 208"/><path class="ln" pathLength="1" style="--i:7;stroke:#439767" d="M304 48L304.0 98.0Q304 112 294.1 121.9L281.9 134.1Q272 144 272.0 158.0L272 192"/><path class="ln" pathLength="1" style="--i:8;stroke:#367CC0" d="M32 112L32.0 146.0Q32 160 41.9 169.9L70.1 198.1Q80 208 80.0 222.0L80.0 436.7Q80 448 88.0 456.0L88.0 456.0Q96 464 107.3 464.0L116.7 464.0Q128 464 136.0 472.0L136.0 472.0Q144 480 144.0 491.3L144.0 548.7Q144 560 152.0 568.0L152.0 568.0Q160 576 171.3 576.0L274.0 576.0Q288 576 288.0 590.0L288.0 642.0Q288 656 302.0 656.0L306.0 656.0Q320 656 329.9 646.1L362.3 613.7Q368 608 368.0 600.0L368.0 600.0Q368 592 376.0 592.0L386.0 592.0Q400 592 409.9 582.1L502.1 489.9Q512 480 526.0 480.0L530.0 480.0Q544 480 553.9 470.1L608 416"/><path class="ln" pathLength="1" style="--i:9;stroke:#367CC0" d="M80 352L290.0 352.0Q304 352 313.9 342.1L342.1 313.9Q352 304 366.0 304.0L562.0 304.0Q576 304 585.9 313.9L602.3 330.3Q608 336 608.0 344.0L608 352"/><path class="ln" pathLength="1" style="--i:10;stroke:#E28932" d="M192 80L192.0 162.0Q192 176 178.0 176.0L107.3 176.0Q96 176 88.0 184.0L88.0 184.0Q80 192 80.0 203.3L80.0 324.7Q80 336 88.0 344.0L88.0 344.0Q96 352 107.3 352.0L146.0 352.0Q160 352 160.0 366.0L160.0 466.0Q160 480 169.9 489.9L182.1 502.1Q192 512 206.0 512.0L226.0 512.0Q240 512 249.9 521.9L326.1 598.1Q336 608 336.0 622.0L336.0 706.0Q336 720 345.9 729.9L426.3 810.3Q432 816 440.0 816.0L448 816"/><path class="ln" pathLength="1" style="--i:11;stroke:#E28932" d="M368 624L512 768"/><path class="ln" pathLength="1" style="--i:12;stroke:#E28932" d="M304 320L312.0 320.0Q320 320 325.7 314.3L330.3 309.7Q336 304 336.0 296.0L336.0 296.0Q336 288 344.0 288.0L578.0 288.0Q592 288 601.9 278.1L624 256"/><path class="ln" pathLength="1" style="--i:13;stroke:#E28932" d="M432 368L432.0 450.0Q432 464 422.1 473.9L409.9 486.1Q400 496 386.0 496.0L256 496"/><path class="ln" pathLength="1" style="--i:14;stroke:#F8D447" d="M304 240L304.0 276.7Q304 288 312.0 296.0L314.3 298.3Q320 304 328.0 304.0L328.0 304.0Q336 304 330.3 309.7L328.0 312.0Q320 320 308.7 320.0L171.3 320.0Q160 320 152.0 312.0L149.7 309.7Q144 304 136.0 304.0L136.0 304.0Q128 304 128.0 312.0L128.0 354.0Q128 368 137.9 377.9L166.1 406.1Q176 416 176.0 430.0L176.0 594.0Q176 608 190.0 608.0L324.7 608.0Q336 608 344.0 616.0L344.0 616.0Q352 624 352.0 635.3L352.0 772.7Q352 784 344.0 792.0L336 800"/><path class="ln" pathLength="1" style="--i:15;stroke:#A14087" d="M48 416L48.0 382.0Q48 368 62.0 368.0L276.7 368.0Q288 368 296.0 360.0L298.3 357.7Q304 352 304.0 344.0L304.0 344.0Q304 336 309.7 330.3L406.1 233.9Q416 224 430.0 224.0L480 224"/><path class="ln" pathLength="1" style="--i:16;stroke:#80AE46" d="M272 352L272.0 402.0Q272 416 281.9 425.9L358.1 502.1Q368 512 368.0 526.0L368 592"/><path class="ln" pathLength="1" style="--i:17;stroke:#9F7739" d="M624 320L553.9 390.1Q544 400 544.0 414.0L544.0 434.0Q544 448 534.1 457.9L505.9 486.1Q496 496 482.0 496.0L235.3 496.0Q224 496 216.0 504.0L216.0 504.0Q208 512 208.0 523.3L208 592"/><path class="ln" pathLength="1" style="--i:18;stroke:#969798" d="M32 448L292.7 448.0Q304 448 312.0 440.0L312.0 440.0Q320 432 328.0 440.0L328.0 440.0Q336 448 347.3 448.0L434.0 448.0Q448 448 457.9 457.9L566.1 566.1Q576 576 576.0 590.0L576 608"/></g></svg>
+  </div>
+
   <header class="tab" id="rnav">
-    <a class="tab-brand" href="#" id="rhome" aria-label="ryan was here — home"><span class="tab-r" aria-hidden="true">R</span></a>
-    <nav class="tab-links" aria-label="Primary"><a href="work.html">Work</a><a href="resume.html">Resume</a><a href="#" id="aboutLink">About</a></nav>
-    <a class="tab-cta" href="hello.html"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2.2c-.6-.3-1.2.1-1.2.7v1.4c0 .3-.1.6-.4.8L7 7.5c-.4.4-.7.9-.7 1.4v1.9c0 1.3 1 2.4 2.4 2.4h3c1 0 1.8-.6 2.1-1.5l1-2.7c.3-.7-.1-1.4-.8-1.6-.4-.2-.9 0-1.2.3V4c0-.7-.5-1.2-1.2-1.2-.1 0-.3 0-.4.1V2.2zM5.8 7.6c-.5 0-1 .4-1 1v2.5c0 .5.4 1 1 1"/></svg>Say hello</a>
-    <button class="tab-menu" id="rnavToggle" type="button" aria-expanded="false" aria-controls="tabDrop" aria-label="Menu"><i></i></button>
-    <div class="tab-drop" id="tabDrop"><a href="work.html">Work</a><a href="resume.html">Resume</a><a href="#" class="about-drop-link">About</a><a href="hello.html">Say hello</a></div>
+    <a class="tab-brand" href="#" id="rhome" aria-label="ryan was here — home"><span class="tab-name">ryan was here</span></a>
   </header>
   <main class="scene" id="scene">
     <div class="sticky">
@@ -624,68 +684,102 @@
   <section class="about-full" id="aboutFull" aria-label="About Ryan" aria-modal="true" role="dialog" hidden>
     <button class="card-x full-x" id="aboutClose" type="button" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button>
     <div class="full-in">
-      <div class="full-by"><div class="glass-av" aria-hidden="true">RM</div><p><b>Ryan McCaulsky</b><span>Design Engineer · The Bronx, NY</span></p></div>
-      <p class="full-lead">I’m Ryan McCaulsky, a Design Engineer with over 8 years of experience in human‑computer interaction, design systems, and software design for consumer and SaaS products.</p>
-      <p>I’ve spent considerable time in high-maturity design orgs and scrappy startups. That experience has turned into an obsession for simplifying the path at early stage companies and cutting through red tape keeping larger teams agile.</p>
-      <p>A recent career pivot has given me the space to fully own my process, allowing me to bridge the gap from theoretical and static systems to live, interactive code tested by real users.</p>
-      <p>This pivot has also given me the space to experiment with modern, tactile interfaces—specifically using WebGL and GSAP to bring skeuomorphic and 3D elements to life.</p>
-      <div class="full-cta"><a class="glass-a" href="work.html">View work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></a></div>
+      <div class="full-by"><div class="glass-av" aria-hidden="true">RM</div><p><b>Ryan McCaulsky</b><span>Product Designer · The Bronx, NY</span></p></div>
+      <p class="full-lead">Hey, I’m Ryan! I’m a Product Designer with over nine years of experience building in Healthcare, Transportation Logistics, and Digital Media.</p>
+      <div class="full-cta"><a class="glass-a" href="#" data-soon>View work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></a></div>
     </div>
   </section>
   <div class="dock">
-  <aside class="glass glass-about" id="aboutCard" aria-label="About Ryan">
-    <button class="card-x" id="aboutOpen" type="button" aria-label="Open the full About" aria-controls="aboutFull" aria-expanded="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 2.5h4v4M13.5 2.5 9 7M6.5 13.5h-4v-4M2.5 13.5 7 9"/></svg></button>
-    <div class="glass-av" aria-hidden="true">RM</div>   <!-- placeholder: swap in a photo -->
-    <div class="glass-t">
-      <p class="glass-h"><b>Ryan McCaulsky</b></p>
-      <p class="glass-p">8+ years across human‑computer interaction, design systems and product design for consumer and SaaS. Lately: tactile, 3D interfaces in WebGL.</p>
-    </div>
-  </aside>
-  <section class="glass glass-now" aria-label="Currently working on">   <!-- placeholder: fill in the current project -->
-    <p class="now-k"><i aria-hidden="true"></i>Currently working on…</p>
-    <div class="now-art" aria-hidden="true"></div>
-    <p class="now-t">Placeholder project</p>
-    <p class="now-p">A line about what's being built right now and why.</p>
-  </section>
-  <section class="glass train" id="trainCard" aria-label="Next train">
+  <section class="glass train fadeout" id="trainCard" aria-label="Next train">
     <p class="train-k"><span id="tK">Next train</span><span class="train-sep"> · </span><span id="tD">Flatbush Av</span></p>
-    <div class="train-bullet" aria-label="R train"><span>R</span></div>
-    <div class="train-row">
-      <p class="train-m" aria-live="polite"><b id="tM">–</b><span id="tU">min</span></p>
-      <button class="train-go" id="tGo" type="button">Board<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></button>
-    </div>
+    <div class="train-bullet" id="tBul" aria-label="5 train"><span>5</span><svg class="np" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5a6 6 0 0 0-12 0c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 21.5h4"/></svg></div>
+    <button class="train-go" id="tGo" type="button" role="checkbox" aria-checked="false" aria-label="Get on the next train">
+      <span class="tg-box" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"/></svg></span>
+      <span class="tg-m" aria-live="polite"><b id="tM">–</b><span id="tU">min</span></span>
+      <span class="tg-x" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></span>
+    </button>
   </section>
   </div>
+  <div class="bio-pop" id="bioPop" role="dialog" aria-label="About Ryan">
+    <div class="bio-top">
+      <div class="glass-av" aria-hidden="true">RM</div>   <!-- placeholder: swap in a photo -->
+      <p><b>Ryan McCaulsky</b><span>Product Designer</span><span>The Bronx, NY</span></p>
+    </div>
+    <div class="bio-rule" aria-hidden="true"></div>
+    <div class="bio-icons">
+      <button class="bio-ic" id="bioCopy" type="button" aria-label="Copy email" title="Copy email"><span class="ic"><svg class="mail" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" style="fill:none;stroke:currentColor"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg><svg class="ok" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="fill:none;stroke:currentColor"><path d="M3.5 8.5l3 3 6-7"/></svg></span><span class="lb">Email</span></button>
+      <a class="bio-ic" href="https://www.linkedin.com/in/ryanmccaulsky/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 2H3.6C2.7 2 2 2.7 2 3.6v16.8c0 .9.7 1.6 1.6 1.6h16.8c.9 0 1.6-.7 1.6-1.6V3.6c0-.9-.7-1.6-1.6-1.6zM8 19H5V9.5h3V19zM6.5 8.2a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5zM19 19h-3v-4.6c0-1.1 0-2.5-1.5-2.5S12.8 13 12.8 14.3V19h-3V9.5h2.9v1.3c.4-.8 1.4-1.5 2.8-1.5 3 0 3.6 2 3.6 4.6V19z"/></svg></span><span class="lb">LinkedIn</span></a>
+      <a class="bio-ic" href="https://www.threads.com/@ryanchristof" target="_blank" rel="noopener" aria-label="Threads" title="Threads"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/></svg></span><span class="lb">Threads</span></a>
+      <a class="bio-ic" href="https://www.instagram.com/ryanchristof/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2c2.9 0 3.2 0 4.3.1 1 0 1.6.2 2 .4.5.2.8.4 1.2.8.4.4.6.7.8 1.2.1.4.3 1 .4 2 .1 1.1.1 1.4.1 4.3s0 3.2-.1 4.3c0 1-.2 1.6-.4 2-.2.5-.4.8-.8 1.2-.4.4-.7.6-1.2.8-.4.1-1 .3-2 .4-1.1.1-1.4.1-4.3.1s-3.2 0-4.3-.1c-1 0-1.6-.2-2-.4a3.3 3.3 0 0 1-1.2-.8c-.4-.4-.6-.7-.8-1.2-.1-.4-.3-1-.4-2-.1-1.1-.1-1.4-.1-4.3s0-3.2.1-4.3c0-1 .2-1.6.4-2 .2-.5.4-.8.8-1.2.4-.4.7-.6 1.2-.8.4-.1 1-.3 2-.4 1.1-.1 1.4-.1 4.3-.1M12 1.3c-2.9 0-3.3 0-4.4.1-1.1 0-1.9.2-2.6.5-.7.3-1.3.6-1.9 1.2S2.2 4.3 1.9 5C1.6 5.7 1.4 6.5 1.4 7.6 1.3 8.7 1.3 9.1 1.3 12s0 3.3.1 4.4c0 1.1.2 1.9.5 2.6.3.7.6 1.3 1.2 1.9.6.6 1.2.9 1.9 1.2.7.3 1.5.4 2.6.5 1.1.1 1.5.1 4.4.1s3.3 0 4.4-.1c1.1 0 1.9-.2 2.6-.5.7-.3 1.3-.6 1.9-1.2.6-.6.9-1.2 1.2-1.9.3-.7.4-1.5.5-2.6.1-1.1.1-1.5.1-4.4s0-3.3-.1-4.4c0-1.1-.2-1.9-.5-2.6-.3-.7-.6-1.3-1.2-1.9-.6-.6-1.2-.9-1.9-1.2-.7-.3-1.5-.4-2.6-.5-1.1-.1-1.5-.1-4.4-.1zm0 5.2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zm0 9.1a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2zm5.7-10.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg></span><span class="lb">Instagram</span></a>
+      <a class="bio-ic stroke" href="#" data-soon aria-label="Resume" title="Resume"><span class="ic"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.8h5.3L12.5 5v9.2H4zM9.3 1.8V5h3.2M6.2 8.4h4.1M6.2 10.9h4.1"/></svg></span><span class="lb">Resume</span></a>
+    </div>
+    <span class="sr" id="bioLive" aria-live="polite"></span>
+  </div>
+  <div class="fade" id="fade" aria-hidden="true"></div>
+  <a class="sr" id="newsLink" href="writing.html" hidden>Read Ryan’s writing</a>
+  <nav class="bnav" aria-label="Main">
+    <button class="bn-me" id="bnMe" type="button" aria-label="About me" aria-haspopup="dialog" aria-expanded="false" aria-controls="bioPop"><span class="glass-av" aria-hidden="true">RM</span></button>
+    <span class="bn-sep" aria-hidden="true"></span>
+    <div class="bn-links"><a href="#" class="bn-home" aria-current="page">Home</a><a href="#" class="bn-work" data-soon>Work</a><a href="#" class="bn-about" data-soon>About</a></div>
+  </nav>
   <div class="homebase" id="homebase">
   </div>
 
   <script>
 
     /* the R: hover shows when the next train is due (1 board minute ≈ 8 s here — the line runs far more often than the real one);
-       click it and you ride the whole way to 3 Av–149 St; click again at the platform to go back up to the street */
+       tick the countdown to get on that train and ride to 3 Av–149 St; at the platform the button takes you back up to the street */
     (function(){
       var r=function(){ return window.__ride; }, el=document.getElementById('rhome');
       var card=document.getElementById('trainCard'), K=document.getElementById('tK'), Dd=document.getElementById('tD'), Mm=document.getElementById('tM'),
-          Uu=document.getElementById('tU'), go=document.getElementById('tGo'), about=document.getElementById('aboutCard'), lbl=go.firstChild;
-      var set=function(t,d,m,u,now,btn,dis){ K.textContent=t; Dd.textContent=d; Mm.textContent=m; Uu.textContent=u; card.classList.toggle('now',now); lbl.nodeValue=btn; go.disabled=dis; };
+          Uu=document.getElementById('tU'), go=document.getElementById('tGo');
+      var set=function(t,d,m,u,now,chk,dis,txt){ K.textContent=t; Dd.textContent=d; Mm.textContent=m; Uu.textContent=u; card.classList.toggle('now',now);
+        go.setAttribute('aria-checked',chk); go.disabled=dis; go.classList.toggle('is-text',!!txt); go.setAttribute('role',(txt==='street'||txt==='info')?'button':'checkbox'); go.classList.toggle('is-x',txt==='street'); go.setAttribute('aria-label',txt==='street'?'Back to the street':'Get on the next train'); };
+      // the card waits for the first train to pass (either direction) before it fades in
+      var firstPass=matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function passed(){ if (firstPass) return true; var A=window.__AMB; if (!A) return false;
+        if (A.nb.wait>0 || A.nb.x<-170 || A.sb.wait>0 || A.sb.x>190) firstPass=true; return firstPass; }
+      var nl=document.getElementById('newsLink'), bul=document.getElementById('tBul'), wasAt=false, hintT=null, HINT_MS=15000;
+      // at the platform the newspaper icon is a hint button; left alone for 15 s it unfolds to say what to do (any tap, key or scroll restarts the wait)
+      function openHint(on){ clearTimeout(hintT); document.body.classList.toggle('hint-open',on); bul.setAttribute('aria-expanded',on); }
+      function armHint(){ clearTimeout(hintT); hintT=setTimeout(function(){ openHint(true); },HINT_MS); }
+      function setBullet(on){ if (on){ bul.setAttribute('role','button'); bul.tabIndex=0; bul.setAttribute('aria-label','Show hint'); bul.setAttribute('aria-expanded','false'); }
+        else { bul.removeAttribute('role'); bul.removeAttribute('tabindex'); bul.removeAttribute('aria-expanded'); bul.setAttribute('aria-label','5 train'); } }
+      bul.addEventListener('click', function(){ if (wasAt) openHint(!document.body.classList.contains('hint-open')); });
+      bul.addEventListener('keydown', function(e){ if (wasAt && (e.key==='Enter' || e.key===' ')){ e.preventDefault(); openHint(!document.body.classList.contains('hint-open')); } });
+      ['pointerdown','keydown','wheel','touchstart'].forEach(function(t){ document.addEventListener(t, function(e){ if (wasAt && !document.body.classList.contains('hint-open') && e.target!==bul) armHint(); }, { passive:true }); });
       function board(){ var R=r(); if (!R || !window.__nextTrain) return;
-        if (R.target>0.999) return set('3 Av–149 St','Doors open','','',false,'Back to street',false);
-        if (R.target>0.0005) return set('Now riding','Next stop 3 Av–149 St','','',true,'Riding…',true);
-        var sec=window.__nextTrain(), m=sec==null?null:(sec<=8?0:Math.ceil((sec-8)/8));
-        set('Next train','Flatbush Av', m==null?'–':(m===0?'Now':m), m===0?'':'min', m===0, 'Board', false); }
+        var at=R.target>0.999; document.body.classList.toggle('at-platform',at); nl.hidden=!at;
+        if (at && !wasAt){ wasAt=true; openHint(false); armHint(); setBullet(true); } else if (!at && wasAt){ wasAt=false; openHint(false); setBullet(false); }
+        if (R.target>0.999) return set('3 Av–149 St','Tap the paper to read','','',false,false,false,'street');
+        if (R.target>=R.T0) return set('Now riding','Next stop 3 Av–149 St','Riding','',true,true,true,'on');
+        var sec=window.__nextTrain(), m=sec==null?null:(sec<=8?0:Math.ceil((sec-8)/8)), committed=!!R.seq || R.target>0.0005,
+            frozen=!R.booked && !committed && !window.__boardable(), arriving=m===0 || frozen;
+        set('Next train','Flatbush Av', arriving?'Arriving':(m==null?'–':m), arriving?'':'min', arriving, R.booked||committed, committed||frozen, frozen?'info':'');
+        card.classList.toggle('fadeout', frozen || !passed()); }   // hidden while a train is in view and not yours to catch, and until the first train has gone by
       setInterval(board, 400); board();
-      // board: ride the whole way to 3 Av–149 St; at the platform the same action takes you back up to the street
-      function act(){ var R=r(); if (!R) return; if (R.target>0.999) R.go(0,true); else if (!R.anim) R.go(1); board(); }
+      // the countdown button is a checkbox: tick it to get on the next train (only while none is in view; it freezes as one passes). That train carries you to 3 Av–149 St on its own schedule, and at the platform the button takes you back up to the street
+      function act(){ var R=r(); if (!R) return; if (R.target>0.999) window.__goHome(); else if (R.booked && !R.seq) R.cancel(); else if (window.__boardable()) R.book(); board(); }
       el.addEventListener('click', function(e){ e.preventDefault(); if (window.__goHome) window.__goHome(); });   // the brand: back to the street
       go.addEventListener('click', act);
-      window.__goHome=function(){ var R=r(); if (R && R.target>0.0005){ R.anim=null; R.go(0,true); } };
-      var lastS=-1; window.__rideUI=function(s){ if (s===lastS) return; lastS=s; about.classList.toggle('away', s>0.004); };   // the About card steps aside while you ride
+      function snap(fn){ var b=document.body; b.classList.add('snap'); fn(); void b.offsetWidth; requestAnimationFrame(function(){ requestAnimationFrame(function(){ b.classList.remove('snap'); }); }); }
+      window.__goHome=function(){ var R=r(); if (!R) return;
+        if (R.target>0.999){ var fd=document.getElementById('fade'); fd.classList.add('on'); setTimeout(function(){ snap(function(){ R.go(0); board(); }); fd.classList.remove('on'); },420); }   // from the platform: fade out, cut to the street, fade back in
+        else if (R.target>0.0005 || R.booked) R.go(0); };
+      window.__rideUI=function(){};
+      if (location.hash==='#platform'){ var fd0=document.getElementById('fade'); fd0.style.transition='none'; fd0.classList.add('on'); void fd0.offsetWidth; fd0.style.transition='';
+        var iv=setInterval(function(){ var R=r(); if (window.__ready && R){ clearInterval(iv); snap(function(){ R.go(1); board(); }); try { history.replaceState(null,'',location.pathname); } catch(e){}
+          setTimeout(function(){ fd0.classList.remove('on'); },350); } },120); }
     })();
   </script>
 
 
   <script>
     (function () {
+      var loader = document.getElementById('loader'), t0 = performance.now();
+      var holdLoader = /[?&]loader=hold/.test(location.search);   // preview: keep the loader up
+      (function waitLoader(){ var dt = performance.now()-t0; if (holdLoader) return;
+        if ((window.__ready && window.__warm && dt>2400) || dt>25000){ window.__loaderMs=Math.round(dt); window.__loaderUp=false; loader.classList.add('bg-out'); setTimeout(function(){ loader.classList.add('hide'); setTimeout(function(){ loader.remove(); }, 1100); }, 0); } else requestAnimationFrame(waitLoader); })();
       var veil = document.getElementById('veil');
       (function wait(){ if (window.__ready && window.__warm) veil.classList.add('hide'); else requestAnimationFrame(wait); })();   // loading veil fades once the train is built
     })();
@@ -840,6 +934,7 @@ THREE.ColorManagement.enabled = false;
   const wxFromCode=c=> c<=1?'clear': c===2?'partly': c===3?'overcast': (c===45||c===48)?'fog': (c>=51&&c<=57)?'drizzle':
     ((c>=61&&c<=67)||(c>=80&&c<=82))?'rain': ((c>=71&&c<=77)||c===85||c===86)?'snow': c>=95?'storm':'clear';
   const WX = { kind: QS.get('wx') in WX_LABEL ? QS.get('wx') : 'clear', cloud:0, precip:0, windKmh:8, windDir:270, tempF:null, live:false };
+  if (QS.has('cloud')) WX.cloudPct=Math.min(1,Math.max(0,parseFloat(QS.get('cloud'))||0));
   const CLOUD={ clear:0.05, partly:0.4, overcast:0.92, fog:0.85, drizzle:0.88, rain:0.95, snow:0.92, storm:1.0 };
   const DENS ={ drizzle:0.35, rain:0.8, storm:1.0, snow:0.75 };
 
@@ -847,13 +942,29 @@ THREE.ColorManagement.enabled = false;
   const sky = new THREE.Mesh(new THREE.SphereGeometry(450,48,24), new THREE.ShaderMaterial({
     side:THREE.BackSide, depthWrite:false, fog:false,
     uniforms:{ zen:{value:new THREE.Color()}, hor:{value:new THREE.Color()}, gnd:{value:new THREE.Color()},
-               sunDir:{value:new THREE.Vector3(0,1,0)}, sunCol:{value:new THREE.Color()}, sunAmt:{value:0}, flash:{value:0} },
+               sunDir:{value:new THREE.Vector3(0,1,0)}, sunCol:{value:new THREE.Color()}, sunAmt:{value:0}, flash:{value:0},
+               cover:{value:0}, time:{value:0}, wind:{value:new THREE.Vector2(0.004,0)}, cloudLit:{value:new THREE.Color(1,1,1)}, cloudShade:{value:new THREE.Color(0.5,0.5,0.55)} },
     vertexShader:`varying vec3 vDir; void main(){ vDir=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
-    fragmentShader:`uniform vec3 zen,hor,gnd,sunCol,sunDir; uniform float sunAmt,flash; varying vec3 vDir;
+    fragmentShader:`uniform vec3 zen,hor,gnd,sunCol,sunDir,cloudLit,cloudShade; uniform float sunAmt,flash,cover,time; uniform vec2 wind; varying vec3 vDir;
+      float hash(vec2 p){ p=fract(p*vec2(123.34,456.21)); p+=dot(p,p+45.32); return fract(p.x*p.y); }
+      float vnoise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f);
+        return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),f.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),f.x), f.y); }
+      float fbm(vec2 p){ float a=0.5, s=0.0; for (int i=0;i<5;i++){ s+=a*vnoise(p); p=p*2.03+vec2(17.1,9.2); a*=0.5; } return s; }
       void main(){ vec3 d=normalize(vDir); float h=d.y;
         vec3 c = h>0.0 ? mix(hor,zen,pow(clamp(h,0.0,1.0),0.55)) : mix(hor,gnd,clamp(-h*6.0,0.0,1.0));
         float s=max(dot(d,normalize(sunDir)),0.0);
         c += sunCol*sunAmt*(pow(s,900.0)*6.0 + pow(s,24.0)*0.35 + pow(s,4.0)*0.12);
+        if (h>0.0 && cover>0.01){                                   // clouds: a drifting noise layer seen in perspective, lit from the sun's side
+          vec2 uv = d.xz/(h+0.3)*1.15 + wind*time;
+          float n = fbm(uv);
+          float thr = mix(0.78,0.28,cover);
+          float dens = smoothstep(thr, thr+0.16, n);
+          vec2 toSun = normalize(sunDir.xz+vec2(1e-4))*0.07;
+          float lit = clamp(0.5+(n-fbm(uv+toSun))*6.0, 0.0, 1.0);
+          vec3 cc = mix(cloudShade, cloudLit, lit);
+          cc = mix(cc, cloudShade, smoothstep(0.62,1.0,n)*0.35*cover);
+          c = mix(c, cc, dens*smoothstep(0.0,0.09,h)*0.96);
+        }
         c += vec3(0.75,0.8,1.0)*flash*(0.35+0.65*smoothstep(-0.1,0.5,h));
         gl_FragColor=vec4(c,1.0); }`
   }));
@@ -893,7 +1004,9 @@ THREE.ColorManagement.enabled = false;
   const GREYDAY='#8b9096', GREYNIGHT='#15171b';
   function applyAtmosphere(){
     const date=bronxDate(), sun=sunPos(date), el=sun.el;
-    const dayF=Math.min(1,Math.max(0,(el+4)/14)), cloud=CLOUD[WX.kind];
+    const dayF=Math.min(1,Math.max(0,(el+4)/14));
+    // one cloud-cover number drives the sky, the sun's strength and the shadows: the real cloud % when we have it (else the weather category), and a full deck in rain, snow or fog
+    const wetKind=['overcast','drizzle','rain','snow','storm','fog'].includes(WX.kind), cloud=Math.min(1,Math.max(wetKind?CLOUD[WX.kind]:0, WX.cloudPct!=null?WX.cloudPct:CLOUD[WX.kind]));
     // sky colours: sun-elevation gradient, desaturated toward grey by cloud cover, darker in rain
     const grey=mixC(C(GREYNIGHT),C(GREYDAY),dayF), wetDim=(WX.kind==='rain'||WX.kind==='storm')?0.72:WX.kind==='drizzle'?0.85:1;
     const zen=mixC(lerpStops(ZEN,el),grey,cloud*0.9).multiplyScalar(wetDim), hor=mixC(lerpStops(HOR,el),grey.clone().multiplyScalar(1.08),cloud*0.85).multiplyScalar(wetDim);
@@ -902,6 +1015,11 @@ THREE.ColorManagement.enabled = false;
     const toVec=(azDeg,elDeg)=>{ const a=azDeg*Math.PI/180, e=elDeg*Math.PI/180; return new THREE.Vector3(-Math.cos(a)*Math.cos(e), Math.sin(e), Math.sin(a)*Math.cos(e)); };
     const sunUp=el>-2, dir=sunUp?toVec(sun.az,Math.max(el,2)):toVec((sun.az+180)%360,38);
     U.sunDir.value.copy(toVec(sun.az,el)); U.sunAmt.value=Math.max(0,1-cloud*1.05)*Math.min(1,Math.max(0,(el+3)/6));
+    // the clouds, from the same number that lights the scene
+    { U.cover.value=Math.max(cloud, 0.12);                       // never fewer than a few faint wisps
+      U.cloudLit.value.copy(mixC(hor,C('#ffffff'),0.85*dayF)).multiplyScalar(wetDim);
+      U.cloudShade.value.copy(mixC(zen,grey,0.5)).multiplyScalar(0.62*wetDim);
+      const wk=(WX.windDir+180)*Math.PI/180, sp=0.004+0.0006*Math.min(40,WX.windKmh); U.wind.value.set(Math.sin(wk)*sp, Math.cos(wk)*sp); }
     U.sunCol.value.copy(lerpStops([[0,'#ff8a3c'],[8,'#ffd2a0'],[25,'#fff4e6']],el));
     ATM.keyDir.copy(dir);
     key.color.copy(sunUp? lerpStops([[0,'#ff9a5a'],[6,'#ffcf9e'],[20,'#fff6ea']],el) : C('#9fb3d9'));
@@ -940,12 +1058,12 @@ THREE.ColorManagement.enabled = false;
     if (QS.has('wx')||QS.has('hour')) parts.push('preview');
     const el2=document.getElementById('wx'); el2.textContent=parts.join(' · '); el2.classList.add('on');
     // hand the readout to the hero's time & temperature widget
-    window.__wxInfo={ offset:date.getTime()-Date.now(), tempF:WX.tempF, kind:WX.kind, label:WX_LABEL[WX.kind], night:dayF<0.3, tz:BRONX.tz,
+    window.__wxInfo={ cloud, key:ATM.key, shadowRadius:key.shadow.radius, offset:date.getTime()-Date.now(), tempF:WX.tempF, kind:WX.kind, label:WX_LABEL[WX.kind], night:dayF<0.3, tz:BRONX.tz,
                       known:WX.live||QS.has('wx') };
     window.dispatchEvent(new Event('wxinfo'));
   }
   // ground under the open sky: dry asphalt by day, black mirror at night, wet sheen in rain, white in snow
-  let shadowRef=null, floorRef=null, groundRef=null, poleRefs=[], poleLampM=null, facadeMats=[];
+  let shadowRef=null, floorRef=null, groundRef=null, lineRef=null, poleRefs=[], poleLampM=null, facadeMats=[];
   // environment for reflections: this sky + the sun + a ring of city on the horizon (lit windows at night)
   const envScene=new THREE.Scene(), pmremGen=new THREE.PMREMGenerator(renderer); let envRT=null;
   envScene.add(new THREE.Mesh(new THREE.SphereGeometry(100,32,16), sky.material));
@@ -976,6 +1094,7 @@ THREE.ColorManagement.enabled = false;
     else { col=mixC(C('#111113'),C('#3c3d40'),dayF); refl=0.46-0.42*dayF; }
     floorRef.material.uniforms.floorColor.value.copy(col); floorRef.material.uniforms.reflectivity.value=refl;
     if (shadowRef){ const sunF=Math.min(1,ATM.key/2.5); shadowRef.material.opacity = ATM.wet||ATM.snowGround ? 0.3+0.3*sunF : 0.3+0.45*sunF; }
+    if (lineRef) lineRef.visible=!ATM.snowGround;                         // the paint disappears under snow
     if (groundRef) groundRef.color.copy(col.clone().multiplyScalar(ATM.snowGround?0.9:0.75));   // sunlit asphalt stays mid-dark
   }
   async function fetchWeather(){
@@ -986,7 +1105,7 @@ THREE.ColorManagement.enabled = false;
         '&current=temperature_2m,weather_code,cloud_cover,precipitation,wind_speed_10m,wind_direction_10m&temperature_unit=fahrenheit&wind_speed_unit=kmh&timezone=America%2FNew_York';
       const r=await fetch(url,{signal:ctl.signal}); clearTimeout(to); if (!r.ok) throw new Error(r.status);
       const c=(await r.json()).current;
-      WX.kind=wxFromCode(c.weather_code); WX.tempF=c.temperature_2m; WX.windKmh=c.wind_speed_10m; WX.windDir=c.wind_direction_10m; WX.live=true;
+      WX.kind=wxFromCode(c.weather_code); if (!QS.has('cloud')) WX.cloudPct=c.cloud_cover/100; WX.tempF=c.temperature_2m; WX.windKmh=c.wind_speed_10m; WX.windDir=c.wind_direction_10m; WX.live=true;
     } catch(e){ /* offline or blocked: time of day only */ }
     applyAtmosphere();
   }
@@ -1963,6 +2082,25 @@ THREE.ColorManagement.enabled = false;
               let k=0; for (const dx of [-0.34,0.34]) for (const dz of [-0.8,0.8]){
                 M4.compose(P.set(x+dx*len*0.92*Math.cos(yaw)+dz*Math.sin(yaw), y0+0.33, z+dz*Math.cos(yaw)-dx*len*0.92*Math.sin(yaw)),Q,S.set(1,1,1)); whl.setMatrixAt(i*4+k++,M4); } });
             for (const m of [body,cab,roof,whl]){ m.castShadow=true; m.receiveShadow=true; scene.add(m); } }
+          // road markings, true to life: a double solid yellow line down the median (under the steel), three lanes each way split by worn white dashes
+          // (10 ft dash, 30 ft gap, the US standard), and faint tyre tracks in every lane; hidden under snow
+          { const grp=new THREE.Group(), L=xb-xa, y=G+0.02, ZC=-2.1, LW=0.13;
+            const po={ polygonOffset:true, polygonOffsetFactor:-4, polygonOffsetUnits:-4 };
+            const dashT=(()=>{ const cv=document.createElement('canvas'); cv.width=256; cv.height=16; const c=cv.getContext('2d');
+              c.fillStyle='#ecebe4'; c.fillRect(0,0,64,16);                                                       // dash = a quarter of the 12.2 m cycle
+              for (let k=0;k<110;k++){ c.clearRect(rr()*64, rr()*16, 1+rr()*5, 1+rr()*3); }                      // worn, chipped paint
+              const t=new THREE.CanvasTexture(cv); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(L/12.2,1); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=8; return t; })();
+            const dashM=new THREE.MeshStandardMaterial(Object.assign({ map:dashT, transparent:true, alphaTest:0.35, roughness:0.75, emissive:0xece9e0, emissiveIntensity:0.05, envMapIntensity:0.3 },po));
+            const yelM =new THREE.MeshStandardMaterial(Object.assign({ color:0xd8a71a, roughness:0.72, emissive:0xd8a71a, emissiveIntensity:0.06, envMapIntensity:0.3 },po));
+            const wearM=new THREE.MeshStandardMaterial(Object.assign({ color:0x000000, transparent:true, opacity:0.075, depthWrite:false, roughness:1 },po));
+            const strip=(w,z,m,order)=>{ const q=new THREE.Mesh(new THREE.PlaneGeometry(L,w),m); q.rotation.x=-Math.PI/2; q.position.set((xa+xb)/2,y+(order||0),z); q.receiveShadow=true; grp.add(q); return q; };
+            for (const k of [-1,1]) strip(LW, ZC+k*0.16, yelM);                                                    // the double yellow
+            for (const [a,b] of [[9.0,ZC+0.32],[-13.0,ZC-0.32]]){ const w=(b-a)/3;                              // each side: parking lane at the curb, then three travel lanes
+              for (let i=1;i<3;i++) strip(LW, a+w*i, dashM);                                                     // white dashes between the lanes
+              for (let i=0;i<3;i++){ const zc=a+w*(i+0.5); for (const k of [-1,1]) strip(0.62, zc+k*0.78, wearM, -0.008); } }   // tyre tracks
+            // a solid white edge where the parking lane meets the first travel lane
+            for (const z of [9.0,-13.0]) { const e=strip(0.1, z, new THREE.MeshStandardMaterial(Object.assign({ color:0xe4e2da, roughness:0.75, emissive:0xe4e2da, emissiveIntensity:0.05, envMapIntensity:0.3 },po))); void e; }
+            scene.add(grp); lineRef=grp; }
         }
         // a few more street lamps along the at-grade stretch where the train waits
         for (const x of [-70,-40,-10]){ box(x-0.08,x+0.08, G+0.15, G+5.6, 11.75,11.91, plateM); box(x-0.08,x+0.08, G+5.5,G+5.62, 10.2,11.91, plateM,false);   // at the curb, arm over the road
@@ -2130,12 +2268,127 @@ THREE.ColorManagement.enabled = false;
           box(mx-BW/2,mx+BW/2, PT+0.41,PT+0.47, bz0,bz1, woodM);                                         // seat
           for (const dx of [-0.85,0.85]) box(mx+dx-0.07,mx+dx+0.07, PT,PT+0.41, bz0+0.08,bz1-0.04, woodM); // legs
           for (const dx of [-1.2,-0.4,0.4,1.2]) box(mx+dx-0.045,mx+dx+0.045, PT+0.47,PT+0.66, bz0+0.04,bz1-0.02, woodM);   // dividers
-          // a folded newspaper someone left behind
-          const newsT=tex(256,192,(c,w,h)=>{ c.fillStyle='#e8e4da'; c.fillRect(0,0,w,h); c.fillStyle='#1d1d1d'; c.font='bold 30px Georgia, serif'; c.fillText('DAILY',14,36);
-            for (let y=54;y<h-8;y+=9) c.fillRect(14+(y%2)*4, y, w-28-rnd()*40, 3); c.fillStyle='#c23a2e'; c.fillRect(150,60,80,52); });
-          newsT.userData.text=true;
-          const news=new THREE.Mesh(new THREE.BoxGeometry(0.42,0.02,0.32), [0,0,new THREE.MeshStandardMaterial({ map:newsT, roughness:0.9 }),0,0,0].map(m=>m||new THREE.MeshStandardMaterial({ color:0xdcd8ce, roughness:0.9 })));
-          news.position.set(mx+0.8,PT+0.48,(bz0+bz1)/2); news.rotation.y=0.25; news.castShadow=true; scene.add(news);
+          // Ryan, on the bench with the paper: a stylised figure posed from photos (knee over knee, paper held open, head up over the top)
+          { const seat=PT+0.47, hz=W-0.28, sx=mx, V3=(x,y,z)=>new THREE.Vector3(x,y,z);
+            const S=1.25, fy=y=>seat-(seat-y)/S;                  // the figure is scaled up about the seat; fy() pre-shrinks the lower legs so the shoes still land on the floor
+            const M=(c,r,m,o)=>new THREE.MeshStandardMaterial(Object.assign({ color:c, roughness:r, metalness:m||0, envMapIntensity:0.5 },o||{}));
+            const suit=new THREE.MeshPhysicalMaterial({ color:0x17181c, roughness:0.9, sheen:1, sheenRoughness:0.55, sheenColor:new THREE.Color(0x3a3d4a), envMapIntensity:0.5 });
+            const satin=M(0x26272d,0.45), shirt=M(0xf1f0ed,0.7), skin=M(0x86593b,0.55,0,{ emissive:0x1f0f07, emissiveIntensity:0.35 }), skinHead=M(0x8a5b3c,0.4,0,{ emissive:0x1f0f07, emissiveIntensity:0.3 }), beard=M(0x1b1512,0.92), tieM=M(0x0d0d0f,0.45),
+                  shoe=M(0x0b0b0c,0.2,0.12), sole=M(0x050506,0.7), shade=M(0x060607,0.35), lens=M(0x0a0b0f,0.06,0.75), silver=M(0xc9ccd1,0.25,0.85), dial=M(0xf3f1ea,0.4),
+                  strap=M(0x3b2416,0.6), teeth=M(0xf5f5f2,0.35), lip=M(0x3a1d17,0.6), sock=M(0x121214,0.95), trouser=suit;
+            const fig=new THREE.Group(); fig.userData.noMirror=true; scene.add(fig);
+            const P=(dx,y,z)=>V3(sx+dx, seat+y, z);                         // dx: + is his right (screen left); y up from the seat
+            const put=m=>{ m.castShadow=true; m.receiveShadow=true; fig.add(m); return m; };
+            const limb=(a,b,r,m)=>{ const d=b.clone().sub(a), len=d.length(), g=new THREE.Mesh(new THREE.CapsuleGeometry(r,Math.max(0.001,len-2*r),6,16),m);
+              g.position.copy(a).add(b).multiplyScalar(0.5); g.quaternion.setFromUnitVectors(V3(0,1,0),d.normalize()); return put(g); };
+            const taper=(a,b,ra,rb,m)=>{ const d=b.clone().sub(a), len=d.length(), g=new THREE.Mesh(new THREE.CylinderGeometry(rb,ra,len,18,1),m);     // ra at a, rb at b
+              g.position.copy(a).add(b).multiplyScalar(0.5); g.quaternion.setFromUnitVectors(V3(0,1,0),d.normalize()); return put(g); };
+            const blob=(p,rx,ry,rz,m,rot)=>{ const g=new THREE.Mesh(new THREE.SphereGeometry(1,28,18),m); g.scale.set(rx,ry,rz); g.position.copy(p); if (rot) g.rotation.set(rot[0],rot[1],rot[2]); return put(g); };
+            const rrect=(w,h,r)=>{ const q=new THREE.Shape(), x=-w/2, y=-h/2; q.moveTo(x+r,y); q.lineTo(x+w-r,y); q.quadraticCurveTo(x+w,y,x+w,y+r); q.lineTo(x+w,y+h-r); q.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+              q.lineTo(x+r,y+h); q.quadraticCurveTo(x,y+h,x,y+h-r); q.lineTo(x,y+r); q.quadraticCurveTo(x,y,x+r,y); return q; };
+            const poly=pts=>{ const q=new THREE.Shape(); pts.forEach((t,i)=>i?q.lineTo(t[0],t[1]):q.moveTo(t[0],t[1])); q.closePath(); return q; };
+            const flat=(shape,depth,m,p,rz)=>{ const g=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{ depth, bevelEnabled:false }),m); g.position.copy(p); if (rz) g.rotation.z=rz; return put(g); };
+            // ---- torso: slim-cut jacket, notch lapels, white shirt, slim black tie, white pocket square
+            blob(P(0,0.10,hz),0.185,0.12,0.14,suit); blob(P(0,0.27,hz+0.01),0.165,0.17,0.115,suit); blob(P(0,0.50,hz+0.04),0.205,0.20,0.125,suit);
+            for (const k of [-1,1]) blob(P(k*0.2,0.60,hz+0.065),0.07,0.07,0.075,suit);
+            flat(poly([[-0.05,0.12],[0.05,0.12],[0,-0.14]]),0.004,shirt,P(0,0.50,hz-0.094));
+            for (const k of [-1,1]){ const l=put(new THREE.Mesh(new THREE.BoxGeometry(0.05,0.27,0.012),satin)); l.position.copy(P(k*0.078,0.50,hz-0.092)); l.rotation.z=k*0.26; }
+            flat(poly([[-0.017,0.1],[0.017,0.1],[0.026,-0.09],[0,-0.118],[-0.026,-0.09]]),0.006,tieM,P(0,0.455,hz-0.1));
+            blob(P(0,0.585,hz-0.099),0.02,0.017,0.012,tieM);
+            flat(poly([[-0.03,0],[0.03,0],[0.03,0.03],[0.012,0.022],[0,0.042],[-0.012,0.022],[-0.03,0.03]]),0.005,shirt,P(-0.115,0.43,hz-0.104),0.12);
+            for (const y of [0.30,0.22]) { const bt=put(new THREE.Mesh(new THREE.CylinderGeometry(0.013,0.013,0.006,14),satin)); bt.position.copy(P(0,y,hz-0.108)); bt.rotation.x=Math.PI/2; }
+            // ---- head: its own group (a touch larger, chin up, a small tilt) so it carries the likeness from across the platform
+            limb(P(0,0.64,hz+0.07),P(0,0.73,hz+0.08),0.052,skin);
+            const head=new THREE.Group(); head.position.copy(P(0,0.83,hz+0.085)); head.scale.setScalar(1.16); head.rotation.set(-0.06,0.0,0.05); fig.add(head);
+            const hb=(x,y,z,rx,ry,rz,m,rot)=>{ const g=new THREE.Mesh(new THREE.SphereGeometry(1,30,20),m); g.scale.set(rx,ry,rz); g.position.set(x,y,z); if (rot) g.rotation.set(rot[0],rot[1],rot[2]); g.castShadow=true; g.receiveShadow=true; head.add(g); return g; };
+            const hx=(geo,m,x,y,z,ry)=>{ const g=new THREE.Mesh(geo,m); g.position.set(x,y,z); if (ry) g.rotation.y=ry; g.castShadow=true; head.add(g); return g; };
+            hb(0,0,0,0.09,0.113,0.105,skinHead);                                   // glossy bald cranium
+            hb(0,-0.05,-0.008,0.085,0.082,0.095,skin);                             // strong jaw
+            hb(0,-0.1,-0.045,0.052,0.04,0.05,skin);                                // chin
+            for (const k of [-1,1]){ hb(k*0.096,-0.004,0.012,0.013,0.034,0.022,skin,[0,k*0.35,0]);     // ears
+              hb(k*0.058,-0.026,-0.06,0.031,0.028,0.031,skin); }                                       // cheekbones, lifted by the grin
+            hb(0,-0.005,-0.097,0.014,0.032,0.018,skin); hb(0,-0.03,-0.111,0.02,0.016,0.019,skin);       // nose
+            for (const k of [-1,1]) hb(k*0.015,-0.034,-0.104,0.009,0.009,0.01,skin);
+            hb(0,-0.068,-0.016,0.088,0.068,0.097,beard);                           // beard: full along the jaw, clean line up the cheek
+            hb(0,-0.103,-0.047,0.055,0.04,0.055,beard); hb(0,-0.1,-0.01,0.072,0.036,0.075,beard);
+            for (const k of [-1,1]){ hb(k*0.079,-0.028,-0.03,0.016,0.048,0.043,beard);                  // sideburns
+              hb(k*0.019,-0.031,-0.1068,0.026,0.0095,0.012,beard,[0,0,-k*0.2]); }                       // moustache
+            hb(0,-0.0505,-0.1085,0.036,0.0135,0.008,lip); hb(0,-0.0498,-0.1115,0.031,0.0085,0.006,teeth);   // the grin
+            for (const k of [-1,1]){
+              hx(new THREE.ExtrudeGeometry(rrect(0.094,0.058,0.015),{ depth:0.016, bevelEnabled:false }),shade,k*0.052,0.012,-0.107,Math.PI);     // wayfarer frames
+              hx(new THREE.ExtrudeGeometry(rrect(0.078,0.044,0.011),{ depth:0.004, bevelEnabled:false }),lens,k*0.052,0.012,-0.1225,Math.PI);   // glossy lenses
+              const gl=new THREE.Mesh(new THREE.PlaneGeometry(0.026,0.007),new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.32, depthWrite:false }));
+              gl.position.set(k*0.052+0.012,0.026,-0.1232); gl.rotation.set(0,Math.PI,0.5); head.add(gl);
+              hx(new THREE.CylinderGeometry(0.0075,0.0075,0.19,8),shade,k*0.1,0.016,-0.012).rotation.x=Math.PI/2; }                           // temples
+            hx(new THREE.BoxGeometry(0.036,0.012,0.014),shade,0,0.026,-0.113);
+            hx(new THREE.BoxGeometry(0.192,0.014,0.016),shade,0,0.04,-0.113);
+            // ---- arms: elbows in, forearms up, fingers wrapped round the paper's edges; watch on a brown strap, left wrist
+            for (const k of [-1,1]){ const sh=P(k*0.215,0.62,hz+0.07), el=P(k*0.32,0.29,hz-0.01), hd=P(k*0.45,0.44,hz-0.07);
+              taper(sh,el,0.056,0.047,suit); blob(el,0.047,0.047,0.047,suit); taper(el,hd.clone().lerp(el,0.12),0.047,0.039,suit);
+              taper(hd.clone().lerp(el,0.13),hd.clone().lerp(el,0.02),0.036,0.035,shirt);
+              blob(hd.clone().add(V3(0,0,0.004)),0.032,0.04,0.02,skin);
+              for (const i of [-1.5,-0.5,0.5,1.5]) limb(V3(hd.x,hd.y+i*0.0195,hd.z-0.004),V3(hd.x-k*0.035,hd.y+i*0.0195-0.002,hz-0.125),0.0105,skin);
+              limb(V3(hd.x,hd.y-0.036,hd.z+0.004),V3(hd.x-k*0.025,hd.y-0.02,hz-0.03),0.011,skin);
+              if (k<0){ const w=hd.clone().lerp(el,0.2); taper(w.clone().lerp(el,-0.1),w.clone().lerp(el,0.12),0.0385,0.0385,strap);
+                const c=put(new THREE.Mesh(new THREE.CylinderGeometry(0.031,0.031,0.012,28),silver)); c.position.copy(w).add(V3(-0.034,0.012,-0.012)); c.rotation.z=Math.PI/2.1; c.rotation.x=-0.25;
+                const d=put(new THREE.Mesh(new THREE.CylinderGeometry(0.026,0.026,0.004,28),dial)); d.position.copy(c.position).add(V3(-0.006,0.0015,-0.001)); d.rotation.copy(c.rotation); } }
+            // ---- legs: relaxed, both feet flat on the platform, knees a little apart
+            const derby=(base,pitch,yaw)=>{ const g=new THREE.Group(); g.position.copy(base); g.rotation.set(pitch,yaw,0,'YXZ'); fig.add(g);
+              const add=(m,x,y,z)=>{ m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; g.add(m); return m; };
+              const bl=(rx,ry,rz,m,x,y,z)=>{ const o=new THREE.Mesh(new THREE.SphereGeometry(1,22,14),m); o.scale.set(rx,ry,rz); return add(o,x,y,z); };
+              bl(0.047,0.042,0.125,shoe,0,0.047,-0.045);                           // upper
+              bl(0.045,0.032,0.065,shoe,0,0.034,-0.135);                           // toe cap
+              bl(0.04,0.05,0.045,shoe,0,0.07,0.05);                                // heel counter / ankle collar
+              add(new THREE.Mesh(new THREE.BoxGeometry(0.098,0.016,0.275),sole),0,0.008,-0.045);    // sole
+              add(new THREE.Mesh(new THREE.BoxGeometry(0.066,0.024,0.058),sole),0,0.012,0.062);     // heel
+              for (const z of [-0.07,-0.045,-0.02]) add(new THREE.Mesh(new THREE.BoxGeometry(0.058,0.006,0.008),sole),0,0.088-Math.abs(z+0.045)*0.4,z);   // laces
+              const sk=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.038,0.07,16),sock); add(sk,0,0.115,0.05); return g; };
+            const hjR=P(0.10,0.09,hz-0.04), hjL=P(-0.10,0.09,hz-0.04);
+            const kR=P(0.17,0.08,hz-0.44), aR=V3(sx+0.19,fy(PT+0.115),hz-0.55), kL=P(-0.16,0.08,hz-0.42), aL=V3(sx-0.18,fy(PT+0.115),hz-0.50);
+            taper(hjL,kL,0.088,0.07,trouser); blob(kL,0.07,0.07,0.07,trouser); taper(kL,aL,0.064,0.056,trouser);
+            taper(hjR,kR,0.088,0.07,trouser); blob(kR,0.07,0.07,0.07,trouser); taper(kR,aR,0.064,0.056,trouser);
+            derby(V3(aL.x,fy(PT),aL.z+0.045),0,0.12); derby(V3(aR.x,fy(PT),aR.z+0.045),0,-0.1);
+            // the paper: a big broadsheet held open and folded in half, the top leaning back toward him so it covers his face. Only this group is clickable.
+            const news=new THREE.Group(); news.userData.noMerge=true; fig.add(news);
+            const newsT=tex(1024,819,(c,W)=>{ const k=W/640, w=640, h=512; c.scale(k,k);        // two pages side by side: wider than tall, like a real open broadsheet
+              const ink='#161616', G='Georgia, "Times New Roman", serif';
+              c.fillStyle='#e9e4d6'; c.fillRect(0,0,w,h); const pg=c.createLinearGradient(0,0,0,h); pg.addColorStop(0,'rgba(255,255,255,0.18)'); pg.addColorStop(1,'rgba(120,100,60,0.10)'); c.fillStyle=pg; c.fillRect(0,0,w,h);
+              const halftone=(x,y,cw,ch,c0,c1)=>{ const gr=c.createLinearGradient(0,y,0,y+ch); gr.addColorStop(0,c0); gr.addColorStop(1,c1); c.fillStyle=gr; c.fillRect(x,y,cw,ch);
+                c.fillStyle='rgba(233,228,214,0.33)'; for (let yy=y+3;yy<y+ch;yy+=6) for (let xx=x+3;xx<x+cw;xx+=6) c.fillRect(xx,yy,2,2); };
+              const lines=(x,y0,y1,cw,cols,seed)=>{ c.fillStyle=ink; const gw=cw/cols; for (let col=0;col<cols;col++){ const x0=x+col*gw; for (let y=y0;y<y1;y+=11) c.fillRect(x0,y,gw-12-((y*7+col*13+seed)%22),2.6); } };
+              // ---- the front page (right half): the masthead, and a front-page story
+              { const x0=320+22, x1=w-22, cw=x1-x0, cx=(x0+x1)/2;
+                c.fillStyle=ink; c.textAlign='center'; c.font='bold 37px '+G; c.fillText('Ryan Was Here',cx,54);
+                c.fillRect(x0,64,cw,3.5); c.fillRect(x0,70,cw,1.5); c.font='italic 13px '+G; c.fillText('Essays, notes & dispatches',cx,88); c.fillRect(x0,96,cw,1.5);
+                c.textAlign='left'; c.font='bold 25px '+G; c.fillText('Notes from',x0,128); c.fillText('the platform',x0,156);
+                halftone(x0,166,cw,52,'#3a3a3a','#bdb8aa'); c.fillStyle=ink; c.font='italic 11px '+G; c.fillText('Waiting on the 5, somewhere in the Bronx',x0,236);
+                c.font='bold 22px '+G; c.fillText('Dispatches from',x0,288); c.fillText('the Bronx',x0,313); lines(x0,328,h-18,cw,2,5); }
+              // ---- the back page (left half): the sports page
+              { const x0=22, x1=320-22, cw=x1-x0, cx=(x0+x1)/2;
+                c.fillStyle='#006bb6'; c.fillRect(x0,14,cw,24); c.fillStyle='#fff'; c.textAlign='left'; c.font='bold 12px '+G; c.fillText('SPORTS',x0+10,31); c.fillStyle='#f58426'; c.fillRect(x0,38,cw,4);
+                c.fillStyle=ink; c.textAlign='center'; c.font='bold 38px '+G; c.fillText('KNICKS',cx,84); c.font='bold 64px '+G; c.fillText('WIN!',cx,138);
+                c.fillRect(x0,148,cw,3); c.font='italic 12px '+G; c.fillText('The Garden erupts, the city sings along',cx,166);
+                halftone(x0,176,cw,62,'#f58426','#006bb6'); c.fillStyle='#fff'; c.beginPath(); c.arc(cx,207,19,0,Math.PI*2); c.fill(); c.strokeStyle=ink; c.lineWidth=1.6; c.stroke();
+                c.beginPath(); c.moveTo(cx-19,207); c.lineTo(cx+19,207); c.moveTo(cx,188); c.lineTo(cx,226); c.stroke();
+                c.fillStyle=ink; c.textAlign='left'; c.font='italic 11px '+G; c.fillText('Madison Square Garden, on its feet',x0,252);
+                c.font='bold 22px '+G; c.fillText('Blue and orange',x0,288); c.fillText('all night long',x0,313); lines(x0,328,h-18,cw,2,9); }
+              c.fillStyle='rgba(0,0,0,0.13)'; c.fillRect(0,h/2-1.5,w,3); c.fillStyle='rgba(255,255,255,0.12)'; c.fillRect(0,h/2-8,w,6);   // the horizontal fold
+              c.fillStyle='rgba(0,0,0,0.13)'; c.fillRect(w/2-1.5,0,3,h); c.fillStyle='rgba(0,0,0,0.09)'; c.fillRect(w*0.18-1.5,0,3,h); c.fillRect(w*0.82-1.5,0,3,h); });   // centre fold + the two side folds
+            const newsM=lit(newsT,0.3,{ roughness:0.92, side:THREE.DoubleSide });
+            const PW=0.52, PH=0.80;
+            const panel=(u0,u1,creaseRight)=>{ const g=new THREE.PlaneGeometry(PW,PH,25,40), uv=g.attributes.uv, pos=g.attributes.position;
+              for (let i=0;i<uv.count;i++){ uv.setX(i,u0+uv.getX(i)*(u1-u0));
+                const x=pos.getX(i), y=pos.getY(i), t=creaseRight?(PW/2-x)/PW:(x+PW/2)/PW;         // t: 0 at the centre crease, 1 at the outer edge
+                pos.setZ(i, -0.035*t*t - Math.max(0,t-0.64)*0.18 - Math.max(0,y)*0.27 - 0.012*Math.max(0,y)*Math.max(0,y)*8); }  // edges curl, the outer flaps fold in, the top half folds back
+              g.computeVertexNormals(); return g; };
+            const z0=hz-0.40, psi=0.42, py=seat+0.62;
+            const pL=new THREE.Mesh(panel(0,0.5,true),newsM), pR=new THREE.Mesh(panel(0.5,1,false),newsM);
+            pL.position.set(sx+(PW/2)*Math.cos(psi),py,z0+(PW/2)*Math.sin(psi)); pL.rotation.y=Math.PI-psi;
+            pR.position.set(sx-(PW/2)*Math.cos(psi),py,z0+(PW/2)*Math.sin(psi)); pR.rotation.y=Math.PI+psi;
+            for (const m of [pL,pR]){ m.castShadow=true; m.receiveShadow=true; news.add(m); }
+            const hit=new THREE.Mesh(new THREE.PlaneGeometry(1.3,1.0),new THREE.MeshBasicMaterial({ visible:false })); hit.position.set(sx,py,z0-0.03); hit.rotation.y=Math.PI; news.add(hit);
+            news.userData.hit=hit; window.__news=news;
+            fig.scale.setScalar(S); fig.position.set(sx*(1-S),seat*(1-S),hz*(1-S)); }
           // a waste basket by the far column
           const bin=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.22,0.78,18,1,true), new THREE.MeshStandardMaterial({ color:0x1d1e1f, roughness:0.6, metalness:0.4, side:THREE.DoubleSide }));
           bin.position.set(STOP_X+5.6,PT+0.39,W-0.45); bin.castShadow=true; scene.add(bin);
@@ -2188,7 +2441,7 @@ THREE.ColorManagement.enabled = false;
     { scene.updateMatrixWorld(true);
       const skip=new Set([train, ambient.sb, ambient.nb, sky, floorRef, shadowRef]);
       const by=new Map(), kill=[];
-      const walk=o=>{ if (skip.has(o) || !o.visible) return;
+      const walk=o=>{ if (skip.has(o) || !o.visible || o.userData.noMerge) return;
         if (o.isMesh && !o.isInstancedMesh && !o.isSkinnedMesh && !o.onBeforeRender.length && o.geometry.attributes.position){
           const mats=Array.isArray(o.material)?o.material:[o.material];
           if (mats.every(m=>m && !m.transparent && !m.isShaderMaterial && !m.vertexColors)){
@@ -2226,11 +2479,17 @@ THREE.ColorManagement.enabled = false;
   const sceneEl = document.getElementById('scene');
   const smooth = (e0,e1,x)=>{ const t=Math.min(1,Math.max(0,(x-e0)/(e1-e0))); return t*t*(3-2*t); };
   let s=0;                                                  // eased ride position, 0..1 (0 = watching the traffic)
-  const RIDE = { target:0, anim:null };                    // the ride button calls go(); target glides there (ease in-out)
-  RIDE.go=(to,cut)=>{ if (cut){ RIDE.anim=null; RIDE.target=to; RIDE.cut=true; return; }
-    const from=RIDE.target; if (from<0.001 && to>0) AMB.clear=true;          // setting off: clear the line
-    RIDE.anim={ from, to, t:0, dur:Math.max(2.2, Math.abs(to-from)*18) }; };
+  const RIDE = { target:0, seq:null, booked:false };      // Board books the next train; when it comes, seq plays the ride at the train's own speed
+  RIDE.go=(to)=>{ RIDE.seq=null; RIDE.booked=false; RIDE.target=to; RIDE.cut=true; };   // jump (back to the street)
+  RIDE.book=()=>{ RIDE.booked=true; };
+  RIDE.cancel=()=>{ if (!RIDE.seq) RIDE.booked=false; };
   window.__ride = RIDE;
+  // the paper on the platform: pointer over it on the canvas, click to read the writing
+  { const ray=new THREE.Raycaster(), ndc=new THREE.Vector2(), cv=renderer.domElement;
+    const over=e=>{ if (!window.__news || RIDE.target<0.999 || e.target!==cv) return false; const r=cv.getBoundingClientRect();
+      ndc.set((e.clientX-r.left)/r.width*2-1, -((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ndc,camera); return ray.intersectObject(window.__news.userData.hit,false).length>0; };
+    document.addEventListener('pointermove', e=>{ cv.style.cursor=over(e)?'pointer':''; });
+    document.addEventListener('click', e=>{ if (over(e)) location.href='writing.html'; }); }
   // train speed vs scroll: pull away from rest, cruise, brake into the station (integrated into a position table)
   const BRAKE0=0.66, BRAKE1=0.84;
   const vel = t => t<0.08 ? t/0.08 : t<BRAKE0 ? 1 : t<BRAKE1 ? 1-(t-BRAKE0)/(BRAKE1-BRAKE0) : 0;
@@ -2239,8 +2498,10 @@ THREE.ColorManagement.enabled = false;
     return pStart + (STOP_X-pStart)*c/CUM[400]; };
   // our train now starts out of sight in the haze and runs in (fast, easing to cruise) by t = 0.20, then follows the old profile
   const XF=-600, T0=0.20;
-  const trainX = t => { if (t>=T0) return trainX0(t);
-    const D=trainX0(T0)-XF, m=T0*(STOP_X-pStart)/CUM[400], u=Math.max(0,t)/T0; return XF+(2*D-m)*u+(m-D)*u*u; };
+  const trainX = t => t>=T0 ? trainX0(t) : XF+(trainX0(T0)-XF)*Math.max(0,t)/T0;      // in from the haze at the ambient trains' constant speed
+  RIDE.T0=T0;
+  // ride speed in 't' per second: AV m/s on both sides of T0 (the two stretches have different metres-per-t)
+  const rideSpd = t => AV / (t<T0 ? (trainX0(T0)-XF)/T0 : (STOP_X-pStart)/CUM[400]);
   const placeTrain=(g,X,dir)=>{ g.position.x=X; for (const car of g.children){ const cx=X+dir*car.position.x, ya=gradeY(cx-6.5), yf=gradeY(cx+6.5);
     car.position.y=(ya+yf)/2; car.rotation.z=dir*Math.atan2(yf-ya,13); } };
   // ambient schedule: positions of each train's lead car; when one finishes it waits a few seconds out of sight, then runs again
@@ -2249,28 +2510,30 @@ THREE.ColorManagement.enabled = false;
   window.__AMB=AMB;
   // seconds until the next southbound cab passes the hero camera (for the R's countdown board)
   window.__nextTrain=()=>{ if (!homePos) return null; const sb=AMB.sb, camX=homePos.x, SB0=-600, run=(camX-SB0)/AV;
+    if (RIDE.seq && s<T0) return Math.max(0,(trainX0(T0)-train.position.x)/AV);              // your train, still running in
     if (sb.wait>0) return sb.wait+run;
     if (sb.x<camX) return (camX-sb.x)/AV;
     const TLEN=NCARS*(carLen+gap); return Math.max(0,(TUNNEL.x0+TLEN+15-sb.x)/AV)+10+run; };   // just passed: the next one is a while off
+  // Board is only live while the next train is still out in the haze (or not yet out): once one is in view or passing it freezes
+  window.__boardable=()=> !!homePos && !RIDE.booked && !RIDE.seq && s<=0.0005 && (AMB.sb.wait>0 || AMB.sb.x<-300);
+  // a booked train: the ambient one in the haze (or the next to spawn) becomes yours, at the same place and speed
+  function startRide(X0){ RIDE.booked=false; AMB.sb.wait=3; ambient.sb.visible=false;
+    RIDE.seq=true; RIDE.target=Math.min(T0,Math.max(0,(X0-XF)/(trainX0(T0)-XF)*T0)); s=RIDE.target; choreo(s); }
   window.__info=()=>{ let n=0; for (const g of [train,ambient.sb,ambient.nb]) g.traverse(o=>{ if (o.isMesh||o.isSprite) n++; }); return n; };
   function runAmbient(dt, X){
     const TLEN=NCARS*(carLen+gap), sb=AMB.sb, nb=AMB.nb, SB0=-600, SB1=TUNNEL.x0+TLEN+15, NB0=TUNNEL.x0+20, NB1=-800, riding=s>0.0005;
     const camX=homePos?homePos.x:16, GAP=7;
     const passIn=(t,dir,x0)=>t.wait>0 ? t.wait+dir*(camX-x0)/AV : (dir*(camX-t.x)>0 ? dir*(camX-t.x)/AV : -1);   // seconds until its cab passes the camera
     const stagger=(t,dir,x0,o,odir,ox0)=>{ const q=passIn(o,odir,ox0), p=passIn(t,dir,x0); if (q>0 && Math.abs(p-q)<GAP) t.wait+=q+GAP-p; };
-    // pressing play clears the line: a train still in view speeds up and runs out of the shot; one already lost in the
-    // haze just goes; nothing new comes through until our train is under the street
-    if (AMB.clear){ AMB.clear=false;
-      if (sb.wait<=0){ if (sb.x<-300) sb.wait=4; else sb.boost=true; }
-      if (nb.wait<=0){ if (nb.x+TLEN<-250) nb.wait=4; else nb.boost=true; } }
-    const hold=riding && s<0.5, spd=t=>{ t.mult=t.boost?Math.min(5,(t.mult||1)+dt*4):1; return AV*t.mult; };
+    if (RIDE.booked && !RIDE.seq && !riding && sb.wait<=0){ startRide(sb.x); return; }   // the train in the haze is the one you booked
+    const hold=riding && s<0.5, spd=()=>AV;
     // northbound: out of the portal, past the camera, off into the haze
     if (nb.wait>0){ if (!hold){ nb.wait-=dt; if (nb.wait<=0) nb.x=NB0; } }
-    else { nb.x-=spd(nb)*dt; if (nb.x<NB1){ nb.boost=false; nb.wait=3+Math.random()*9; stagger(nb,-1,NB0, sb,1,SB0); } }
+    else { nb.x-=spd(nb)*dt; if (nb.x<NB1){ nb.wait=3+Math.random()*9; stagger(nb,-1,NB0, sb,1,SB0); } }
     ambient.nb.visible=nb.wait<=0; if (ambient.nb.visible) placeTrain(ambient.nb, nb.x, -1);
     // southbound: in from the haze, past the camera, down the ramp and into the tunnel; while you ride it keeps clear ahead of you
-    if (sb.wait>0){ if (!riding){ sb.wait-=dt; if (sb.wait<=0) sb.x=SB0; } }
-    else { sb.x+=spd(sb)*dt; if (riding){ if (sb.x<X+60) { sb.wait=3; } else sb.x=Math.max(sb.x, X+TLEN+40); } if (sb.x>SB1){ sb.boost=false; sb.wait=5+Math.random()*10; stagger(sb,1,SB0, nb,-1,NB0); } }
+    if (sb.wait>0){ if (!riding){ sb.wait-=dt; if (sb.wait<=0){ if (RIDE.booked){ startRide(SB0); return; } sb.x=SB0; } } }
+    else { sb.x+=spd(sb)*dt; if (riding){ if (sb.x<X+60) { sb.wait=3; } else sb.x=Math.max(sb.x, X+TLEN+40); } if (sb.x>SB1){ sb.wait=5+Math.random()*10; stagger(sb,1,SB0, nb,-1,NB0); } }
     ambient.sb.visible=sb.wait<=0; if (ambient.sb.visible) placeTrain(ambient.sb, sb.x, 1);
   }
   function setDoors(f){ for (const car of train.children) for (const leaf of (car.userData.leaves||[])) leaf.position.x=leaf.userData.dir*0.79*f; }
@@ -2439,13 +2702,13 @@ THREE.ColorManagement.enabled = false;
     sdt += (fdt-sdt)*0.2;
     const dt = Math.abs(fdt-sdt) < sdt*0.5 ? sdt : fdt;
     if (train && window.__ready){                 // nothing moves or draws until the shaders are ready
-      if (RIDE.anim){ const a=RIDE.anim; a.t=Math.min(1,a.t+dt/a.dur); const e=a.t<0.5?4*a.t*a.t*a.t:1-Math.pow(-2*a.t+2,3)/2;
-        RIDE.target=a.from+(a.to-a.from)*e; if (a.t>=1) RIDE.anim=null; }
-      if (RIDE.cut){ s=RIDE.target; RIDE.cut=false; }
-      if (reduce) s=RIDE.target; else s += (RIDE.target-s)*Math.min(1,dt*5);   // ease toward the scrubber
-      if (Math.abs(s-RIDE.target)<1e-4) s=RIDE.target;
+      if (reduce && RIDE.booked && !RIDE.seq) startRide(AMB.sb.x);
+      if (RIDE.seq){ RIDE.target=Math.min(1, RIDE.target+dt*rideSpd(RIDE.target)); s=RIDE.target; if (s>=1) RIDE.seq=null; }
+      else { if (RIDE.cut){ s=RIDE.target; RIDE.cut=false; }
+        if (reduce) s=RIDE.target; else s += (RIDE.target-s)*Math.min(1,dt*5);
+        if (Math.abs(s-RIDE.target)<1e-4) s=RIDE.target; }
       choreo(s);
-      if (!reduce) runAmbient(dt, train.position.x); else { ambient.sb.visible=ambient.nb.visible=false; }
+      if (!reduce) runAmbient((window.__loaderUp && window.__warm) ? 0 : dt, train.position.x); else { ambient.sb.visible=ambient.nb.visible=false; }
       // warm-up: on the first frame, draw both passing trains right by the camera (still behind the loading veil) so
       // every shader they need (materials, shadows, motion blur) compiles now rather than the first time one comes past
       if (!FRAME.warm && !reduce){ FRAME.warm=1; const cx=camera.position.x;
@@ -2455,6 +2718,7 @@ THREE.ColorManagement.enabled = false;
     }
     finish.uniforms.time.value = clock.elapsedTime;
     rain.material.uniforms.time.value = snow.material.uniforms.time.value = clock.elapsedTime;
+    sky.material.uniforms.time.value = reduce ? 0 : clock.elapsedTime;
     sky.position.copy(camera.position);
     // lightning in thunderstorms: a double flicker every 6–14 s
     if (WX.kind==='storm' && !reduce){ if (ATM.flashT<0 && Math.random()<dt/9) ATM.flashT=0;
@@ -2483,33 +2747,24 @@ THREE.ColorManagement.enabled = false;
       prevVP.copy(curVP);
     }
     // quality governor: if frames run slow for ~2 s, step down one notch (resolution, then AO, then depth of field)
-    if (heroOn && !lite && FRAME.n>90){ perf.t+=fdt; perf.n++;
+    const behindLoader = window.__loaderUp && window.__warm;
+    if (heroOn && !lite && FRAME.n>90 && !behindLoader){ perf.t+=fdt; perf.n++;
       if (perf.t>2){ const avg=perf.t/perf.n; perf.t=perf.n=0;
         if (avg>1/42 && perf.step<4){ perf.step++;
           if (perf.step===1||perf.step===3){ const pr=Math.max(1, renderer.getPixelRatio()*0.8); renderer.setPixelRatio(pr); composer.setPixelRatio(pr); composer.setSize(vw(),vh()); }
           else if (perf.step===2 && gtao) gtao.enabled=false;
           else if (perf.step===4 && bokeh) bokeh.enabled=false;
           window.__perfStep=perf.step; } } }
-    if (heroOn && window.__ready) composer.render();
+    if (heroOn && window.__ready && !behindLoader) composer.render();
     requestAnimationFrame(tick);
   }
   tick();
 })();
   </script>
   <script>
-    /* header: the phone menu (opens under the tab; Escape or a tap elsewhere closes it) */
-    (function(){ var t=document.getElementById('rnav'), b=document.getElementById('rnavToggle');
-      function set(o){ t.classList.toggle('open',o); b.setAttribute('aria-expanded',o); b.setAttribute('aria-label',o?'Close menu':'Menu'); }
-      b.addEventListener('click', function(){ set(!t.classList.contains('open')); });
-      document.addEventListener('keydown', function(e){ if (e.key==='Escape' && t.classList.contains('open')){ set(false); b.focus(); } });
-      document.addEventListener('pointerdown', function(e){ if (t.classList.contains('open') && !t.contains(e.target)) set(false); });
-      t.querySelectorAll('.tab-drop a').forEach(function(a){ a.addEventListener('click', function(){ set(false); }); });
-    })();
-  </script>
-  <script>
-    /* the About card's expand button: the full About opens out of the card and closes back into it (Esc or the close button) */
+    /* the nav's About button: the full About opens out of the button and closes back into it (Esc or the close button) */
     (function(){
-      var card=document.getElementById('aboutCard'), full=document.getElementById('aboutFull'), openB=document.getElementById('aboutOpen'), closeB=document.getElementById('aboutClose');
+      var card=document.querySelector('.bn-about'), full=document.getElementById('aboutFull'), openB=card, closeB=document.getElementById('aboutClose');
       // clip the full page down to the card's box, in the page's own coordinates
       function toCard(){ var c=card.getBoundingClientRect(), f=full.getBoundingClientRect();
         full.style.setProperty('--ct',(c.top-f.top)+'px'); full.style.setProperty('--cl',(c.left-f.left)+'px');
@@ -2521,11 +2776,33 @@ THREE.ColorManagement.enabled = false;
       function close(){ if (full.hidden) return; full.classList.remove('open'); toCard(); openB.setAttribute('aria-expanded','false'); window.__aboutP=0; document.body.classList.remove('full-open');
         var done=function(){ full.hidden=true; full.removeEventListener('transitionend',done); }; full.addEventListener('transitionend',done);
         setTimeout(done, 700); openB.focus({ preventScroll:true }); }
-      openB.addEventListener('click', open); closeB.addEventListener('click', close);
+      openB.addEventListener('click', function(e){ e.preventDefault(); open(); }); closeB.addEventListener('click', close);
+      if (location.hash==='#about') setTimeout(open, 700);   // arriving from the nav on another page
       addEventListener('keydown', function(e){ if (e.key==='Escape' && !full.hidden) close(); });
-      document.getElementById('aboutLink').addEventListener('click', function(e){ e.preventDefault(); open(); });
-      var dl=document.querySelector('.about-drop-link'); if(dl) dl.addEventListener('click', function(e){ e.preventDefault(); open(); });
     })();
+  </script>
+  <script>
+    /* bottom nav: the photo toggles the mini bio (Esc or a tap elsewhere closes it); the email icon copies; Home goes back up to the street */
+    (function(){
+      var me=document.getElementById('bnMe'), pop=document.getElementById('bioPop'), cp=document.getElementById('bioCopy'), live=document.getElementById('bioLive'), home=document.querySelector('.bn-home'), t;
+      function set(o){ pop.classList.toggle('open',o); document.body.classList.toggle('bio-open',o); me.setAttribute('aria-expanded',o); }
+      me.addEventListener('click', function(){ set(!pop.classList.contains('open')); });
+      document.addEventListener('pointerdown', function(e){ if (pop.classList.contains('open') && !pop.contains(e.target) && !me.contains(e.target)) set(false); });
+      document.addEventListener('keydown', function(e){ if (e.key==='Escape' && pop.classList.contains('open')){ set(false); me.focus(); } });
+      cp.addEventListener('click', function(){ var em='ryan.mccaulsky@gmail.com';
+        var lb=cp.querySelector('.lb'); var ok=function(){ cp.classList.add('done'); lb.textContent='Copied'; live.textContent='Email copied'; clearTimeout(t); t=setTimeout(function(){ cp.classList.remove('done'); lb.textContent='Email'; live.textContent=''; },1800); };
+        var legacy=function(){ var ta=document.createElement('textarea'); ta.value=em; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+          document.body.appendChild(ta); ta.select(); var good=false; try { good=document.execCommand('copy'); } catch(x){} ta.remove(); if (good) ok(); };
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(em).then(ok, legacy); else legacy(); });
+      document.querySelector('.bn-about').addEventListener('click', function(){ set(false); });
+      home.addEventListener('click', function(e){ e.preventDefault(); set(false); if (window.__goHome) window.__goHome(); });
+    })();
+  </script>
+  <script>
+    /* 'Coming soon' for the links that aren't live yet: anything marked data-soon shows a small toast instead of navigating */
+    (function(){ var el=document.createElement('div'), t; el.className='soon-toast'; el.setAttribute('role','status'); document.body.appendChild(el);
+        document.addEventListener('click', function(e){ var a=e.target.closest && e.target.closest('[data-soon]'); if (!a) return; e.preventDefault(); e.stopPropagation();
+          el.textContent='Coming soon'; el.classList.add('show'); clearTimeout(t); t=setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ if (!el.classList.contains('show')) el.textContent=''; },300); },1800); }, true); })();
   </script>
 </body>
 </html>
