@@ -620,8 +620,8 @@
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
     .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
-    /* iOS 26 Safari tints its top and bottom bars from fixed layers at the screen edges. Two hairline strips sit there and are painted with the colour of the scene's own top and bottom rows (sampled every couple of seconds), so the bars read as part of the street and sky. ?tint=debug makes them big and red/green to see what Safari does with them */
-    .edge { position: fixed; left: 0; right: 0; height: 4px; z-index: 3; pointer-events: none; background: #171715; transition: background-color 1.5s ease; }
+    /* iOS 26 Safari tints its top and bottom bars from fixed layers at the screen edges (the strips sit above the transparent header so they are what it finds at the top edge). Two hairline strips sit there and are painted with the colour of the scene's own top and bottom rows (sampled every couple of seconds), so the bars read as part of the street and sky. ?tint=debug makes them big and red/green to see what Safari does with them */
+    .edge { position: fixed; left: 0; right: 0; height: 4px; z-index: 2000; pointer-events: none; background: #171715; transition: background-color 1.5s ease; }
     .edge-t { top: 0; } .edge-b { bottom: 0; }
     .about-full { display: none; }   /* About is 'coming soon': keep its full-screen cream layer out of the page entirely (iOS Safari was tinting the bottom bar from it) */
     .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
