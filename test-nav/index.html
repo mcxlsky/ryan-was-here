@@ -452,10 +452,26 @@
              transition: color .15s, background .15s; white-space: nowrap; }
     .tab-links a:hover, .tab-drop a:hover { color: #111; background: rgba(17,17,17,0.05); }
     .tab-links a[aria-current="page"], .tab-drop a[aria-current="page"] { color: #111; }
-    .tab-cta { margin-left: 14px; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px; background: #111; color: #fff !important;
-               font: 600 14px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; white-space: nowrap; transition: background .15s; }
+    .tab-cta { position: relative; margin-left: 14px; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px; background: #111; color: #fff !important;
+               font: 600 14px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; white-space: nowrap; transition: background .15s; cursor: pointer; border: 0; text-decoration: none; }
     .tab-cta:hover { background: #2a2a2a; }
     .tab-cta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+    .hello-pop { position: absolute; top: calc(100% + 10px); right: 0; min-width: 220px; padding: 8px; border-radius: 16px; isolation: isolate;
+                 background: linear-gradient(160deg, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.68) 40%, rgba(255,255,255,0.75) 100%);
+                 -webkit-backdrop-filter: blur(28px) saturate(2.0) brightness(1.08); backdrop-filter: blur(28px) saturate(2.0) brightness(1.08);
+                 border: 1px solid rgba(255,255,255,0.50);
+                 box-shadow: 0 16px 48px -12px rgba(0,0,0,0.30), 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.70);
+                 opacity: 0; visibility: hidden; transform: translateY(-6px) scale(0.97); transform-origin: top right;
+                 transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s linear .25s; }
+    .tab-cta.open .hello-pop { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+    .hello-pop::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
+                         background: radial-gradient(140% 70% at 15% -15%, rgba(255,255,255,0.50), rgba(255,255,255,0) 55%); }
+    .hello-pop a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: #111; text-decoration: none;
+                   font: 500 14px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; transition: background .15s; }
+    .hello-pop a:hover { background: rgba(17,17,17,0.06); }
+    .hello-pop a:focus-visible { outline: 2px solid #111; outline-offset: -2px; }
+    .hello-pop svg { width: 18px; height: 18px; flex-shrink: 0; fill: #111; opacity: 0.72; }
+    .hello-pop .hello-sep { height: 1px; margin: 4px 12px; background: rgba(17,17,17,0.08); }
     .tab a:focus-visible, .tab button:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
     .tab-menu { display: none; -webkit-appearance: none; appearance: none; width: 36px; height: 36px; border: 0; border-radius: 9px; background: rgba(17,17,17,0.06); cursor: pointer; place-items: center; }
     .tab-menu i, .tab-menu i::before, .tab-menu i::after { display: block; width: 16px; height: 1.6px; background: #111; border-radius: 1px; position: relative; transition: transform .25s, top .25s, background .2s; }
@@ -609,14 +625,7 @@
     .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
     .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
     .full-gh { background: #fff; }
-    /* social icons: back on the page, stacked bottom right just inside the frame; the copyright sits alone, centred, in the white band */
     .foot-base { justify-content: center !important; }
-    .foot-social { position: fixed; z-index: 6; right: calc(var(--frame) + 18px); bottom: calc(var(--frame) + var(--foot-h) + 18px);
-                   flex-direction: column; gap: 14px !important; }
-    .foot-social svg { fill: #fff !important; opacity: 0.82; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35)); }
-    .foot-social a:hover svg { opacity: 1; }
-    .dock { right: calc(var(--frame) + 64px); }                                  /* leave the icon stack its corner */
-    body.full-open .foot-social svg { fill: #111 !important; filter: none; }         /* over the expanded About they turn dark */
     /* the three cards share one height (the tallest sets it): the train card's countdown sits at its foot, the placeholder art takes up the slack */
     @media (min-width: 761px){
       .dock { align-items: stretch; }
@@ -630,7 +639,16 @@
   <header class="tab" id="rnav">
     <a class="tab-brand" href="#" id="rhome" aria-label="ryan was here — home"><span class="tab-r" aria-hidden="true">R</span><span class="tab-name">ryan was here</span></a>
     <nav class="tab-links" aria-label="Primary"><a href="work.html">Work</a><a href="weather.html">Weather</a></nav>
-    <a class="tab-cta" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg>Say hello</a>   <!-- placeholder: point at an email or contact page -->
+    <button class="tab-cta" id="helloCta" type="button" aria-expanded="false" aria-controls="helloPop"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg>Say hello
+      <div class="hello-pop" id="helloPop" role="menu">
+        <a href="mailto:ryan.mccaulsky@gmail.com" role="menuitem"><svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M2.8 5.2 12 12.8l9.2-7.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Email</a>
+        <div class="hello-sep"></div>
+        <a href="https://github.com/mcxlsky" target="_blank" rel="noopener" role="menuitem"><svg viewBox="0 0 24 24"><path d="M12 1.6a10.4 10.4 0 0 0-3.3 20.3c.5.1.7-.2.7-.5v-1.8c-2.9.6-3.5-1.4-3.5-1.4-.5-1.2-1.2-1.5-1.2-1.5-.9-.6.1-.6.1-.6 1 .1 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.7-1.2-4.7-5.1 0-1.1.4-2 1.1-2.7-.1-.3-.5-1.3.1-2.8 0 0 .9-.3 2.9 1.1a9.8 9.8 0 0 1 5.2 0c2-1.4 2.9-1.1 2.9-1.1.6 1.5.2 2.5.1 2.8.7.7 1.1 1.6 1.1 2.7 0 3.9-2.4 4.8-4.7 5.1.4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A10.4 10.4 0 0 0 12 1.6z"/></svg>GitHub</a>
+        <a href="#" target="_blank" rel="noopener" role="menuitem"><svg viewBox="0 0 24 24"><path d="M20.4 2H3.6C2.7 2 2 2.7 2 3.6v16.8c0 .9.7 1.6 1.6 1.6h16.8c.9 0 1.6-.7 1.6-1.6V3.6c0-.9-.7-1.6-1.6-1.6zM8 19H5V9.5h3V19zM6.5 8.2a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5zM19 19h-3v-4.6c0-1.1 0-2.5-1.5-2.5S12.8 13 12.8 14.3V19h-3V9.5h2.9v1.3c.4-.8 1.4-1.5 2.8-1.5 3 0 3.6 2 3.6 4.6V19z"/></svg>LinkedIn</a>
+        <a href="#" target="_blank" rel="noopener" role="menuitem"><svg viewBox="0 0 24 24"><path d="M17.8 2.5h3.1l-6.8 7.8 8 10.6h-6.3l-4.9-6.4-5.6 6.4H2.2l7.3-8.3L1.8 2.5h6.4l4.4 5.9 5.2-5.9zm-1.1 16.5h1.7L7.3 4.3H5.5L16.7 19z"/></svg>X</a>
+        <a href="#" target="_blank" rel="noopener" role="menuitem"><svg viewBox="0 0 24 24"><path d="M12 3.2c2.9 0 3.2 0 4.3.1 1 0 1.6.2 2 .4.5.2.8.4 1.2.8.4.4.6.7.8 1.2.1.4.3 1 .4 2 .1 1.1.1 1.4.1 4.3s0 3.2-.1 4.3c0 1-.2 1.6-.4 2-.2.5-.4.8-.8 1.2-.4.4-.7.6-1.2.8-.4.1-1 .3-2 .4-1.1.1-1.4.1-4.3.1s-3.2 0-4.3-.1c-1 0-1.6-.2-2-.4a3.3 3.3 0 0 1-1.2-.8c-.4-.4-.6-.7-.8-1.2-.1-.4-.3-1-.4-2-.1-1.1-.1-1.4-.1-4.3s0-3.2.1-4.3c0-1 .2-1.6.4-2 .2-.5.4-.8.8-1.2.4-.4.7-.6 1.2-.8.4-.1 1-.3 2-.4 1.1-.1 1.4-.1 4.3-.1M12 1.3c-2.9 0-3.3 0-4.4.1-1.1 0-1.9.2-2.6.5-.7.3-1.3.6-1.9 1.2S2.2 4.3 1.9 5C1.6 5.7 1.4 6.5 1.4 7.6 1.3 8.7 1.3 9.1 1.3 12s0 3.3.1 4.4c0 1.1.2 1.9.5 2.6.3.7.6 1.3 1.2 1.9.6.6 1.2.9 1.9 1.2.7.3 1.5.4 2.6.5 1.1.1 1.5.1 4.4.1s3.3 0 4.4-.1c1.1 0 1.9-.2 2.6-.5.7-.3 1.3-.6 1.9-1.2.6-.6.9-1.2 1.2-1.9.3-.7.4-1.5.5-2.6.1-1.1.1-1.5.1-4.4s0-3.3-.1-4.4c0-1.1-.2-1.9-.5-2.6-.3-.7-.6-1.3-1.2-1.9-.6-.6-1.2-.9-1.9-1.2-.7-.3-1.5-.4-2.6-.5-1.1-.1-1.5-.1-4.4-.1zm0 5.2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zm0 9.1a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2zm5.7-10.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg>Instagram</a>
+      </div>
+    </button>
     <button class="tab-menu" id="rnavToggle" type="button" aria-expanded="false" aria-controls="tabDrop" aria-label="Menu"><i></i></button>
     <div class="tab-drop" id="tabDrop"><a href="work.html">Work</a><a href="weather.html">Weather</a></div>
   </header>
@@ -688,12 +706,7 @@
   </section>
   </div>
   <div class="homebase" id="homebase">
-    <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span><span class="foot-social">
-        <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 1.6a10.4 10.4 0 0 0-3.3 20.3c.5.1.7-.2.7-.5v-1.8c-2.9.6-3.5-1.4-3.5-1.4-.5-1.2-1.2-1.5-1.2-1.5-.9-.6.1-.6.1-.6 1 .1 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.7-1.2-4.7-5.1 0-1.1.4-2 1.1-2.7-.1-.3-.5-1.3.1-2.8 0 0 .9-.3 2.9 1.1a9.8 9.8 0 0 1 5.2 0c2-1.4 2.9-1.1 2.9-1.1.6 1.5.2 2.5.1 2.8.7.7 1.1 1.6 1.1 2.7 0 3.9-2.4 4.8-4.7 5.1.4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A10.4 10.4 0 0 0 12 1.6z"/></svg></a>
-        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.4 2H3.6C2.7 2 2 2.7 2 3.6v16.8c0 .9.7 1.6 1.6 1.6h16.8c.9 0 1.6-.7 1.6-1.6V3.6c0-.9-.7-1.6-1.6-1.6zM8 19H5V9.5h3V19zM6.5 8.2a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5zM19 19h-3v-4.6c0-1.1 0-2.5-1.5-2.5S12.8 13 12.8 14.3V19h-3V9.5h2.9v1.3c.4-.8 1.4-1.5 2.8-1.5 3 0 3.6 2 3.6 4.6V19z"/></svg></a>
-        <a href="#" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.8 2.5h3.1l-6.8 7.8 8 10.6h-6.3l-4.9-6.4-5.6 6.4H2.2l7.3-8.3L1.8 2.5h6.4l4.4 5.9 5.2-5.9zm-1.1 16.5h1.7L7.3 4.3H5.5L16.7 19z"/></svg></a>
-        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 3.2c2.9 0 3.2 0 4.3.1 1 0 1.6.2 2 .4.5.2.8.4 1.2.8.4.4.6.7.8 1.2.1.4.3 1 .4 2 .1 1.1.1 1.4.1 4.3s0 3.2-.1 4.3c0 1-.2 1.6-.4 2-.2.5-.4.8-.8 1.2-.4.4-.7.6-1.2.8-.4.1-1 .3-2 .4-1.1.1-1.4.1-4.3.1s-3.2 0-4.3-.1c-1 0-1.6-.2-2-.4a3.3 3.3 0 0 1-1.2-.8c-.4-.4-.6-.7-.8-1.2-.1-.4-.3-1-.4-2-.1-1.1-.1-1.4-.1-4.3s0-3.2.1-4.3c0-1 .2-1.6.4-2 .2-.5.4-.8.8-1.2.4-.4.7-.6 1.2-.8.4-.1 1-.3 2-.4 1.1-.1 1.4-.1 4.3-.1M12 1.3c-2.9 0-3.3 0-4.4.1-1.1 0-1.9.2-2.6.5-.7.3-1.3.6-1.9 1.2S2.2 4.3 1.9 5C1.6 5.7 1.4 6.5 1.4 7.6 1.3 8.7 1.3 9.1 1.3 12s0 3.3.1 4.4c0 1.1.2 1.9.5 2.6.3.7.6 1.3 1.2 1.9.6.6 1.2.9 1.9 1.2.7.3 1.5.4 2.6.5 1.1.1 1.5.1 4.4.1s3.3 0 4.4-.1c1.1 0 1.9-.2 2.6-.5.7-.3 1.3-.6 1.9-1.2.6-.6.9-1.2 1.2-1.9.3-.7.4-1.5.5-2.6.1-1.1.1-1.5.1-4.4s0-3.3-.1-4.4c0-1.1-.2-1.9-.5-2.6-.3-.7-.6-1.3-1.2-1.9-.6-.6-1.2-.9-1.9-1.2-.7-.3-1.5-.4-2.6-.5-1.1-.1-1.5-.1-4.4-.1zm0 5.2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zm0 9.1a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2zm5.7-10.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg></a>
-      </span></div>
+    <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span></div>
   </div>
 
   <script>
@@ -2545,6 +2558,13 @@ THREE.ColorManagement.enabled = false;
       document.addEventListener('keydown', function(e){ if (e.key==='Escape' && t.classList.contains('open')){ set(false); b.focus(); } });
       document.addEventListener('pointerdown', function(e){ if (t.classList.contains('open') && !t.contains(e.target)) set(false); });
       t.querySelectorAll('.tab-drop a').forEach(function(a){ a.addEventListener('click', function(){ set(false); }); });
+    })();
+    (function(){
+      var btn=document.getElementById('helloCta');
+      function toggle(open){ btn.classList.toggle('open',open); btn.setAttribute('aria-expanded',open); }
+      btn.addEventListener('click', function(e){ if(e.target.closest('.hello-pop')) return; toggle(!btn.classList.contains('open')); });
+      document.addEventListener('pointerdown', function(e){ if(btn.classList.contains('open') && !btn.contains(e.target)) toggle(false); });
+      document.addEventListener('keydown', function(e){ if(e.key==='Escape' && btn.classList.contains('open')){ toggle(false); btn.focus(); } });
     })();
   </script>
   <script>
