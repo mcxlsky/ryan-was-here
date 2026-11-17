@@ -621,8 +621,9 @@
     /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
     .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
     /* iOS 26 Safari tints its top and bottom bars from fixed layers at the screen edges (the strips sit above the transparent header so they are what it finds at the top edge). Two hairline strips sit there and are painted with the colour of the scene's own top and bottom rows (sampled every couple of seconds), so the bars read as part of the street and sky. ?tint=debug makes them big and red/green to see what Safari does with them */
-    .edge { position: fixed; left: 0; right: 0; height: 4px; z-index: 2000; pointer-events: none; background: #171715; transition: background-color 1.5s ease; }
-    .edge-t { top: 0; } .edge-b { bottom: 0; }
+    .edge { position: fixed; left: 0; right: 0; height: 44px; z-index: 2000; pointer-events: none; background: #171715; transition: background-color 1.5s ease; }   /* Safari only honours a strip this tall (4px was ignored); the mask fades it into the scene so only its colour, not a band, shows */
+    .edge-t { top: 0; -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 20%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0, #000 20%, transparent 100%); }
+    .edge-b { bottom: 0; -webkit-mask-image: linear-gradient(to top, #000 0, #000 20%, transparent 100%); mask-image: linear-gradient(to top, #000 0, #000 20%, transparent 100%); }
     .about-full { display: none; }   /* About is 'coming soon': keep its full-screen cream layer out of the page entirely (iOS Safari was tinting the bottom bar from it) */
     .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
     /* the Next Train card floats at the centre of the screen instead of sitting in the dock */
@@ -2697,7 +2698,7 @@ THREE.ColorManagement.enabled = false;
   // the browser-bar tint strips: paint them with the colour of the scene's top and bottom rows
   const edgeTop=document.getElementById('edgeT'), edgeBot=document.getElementById('edgeB'), edgeDebug=/[?&]tint=debug/.test(location.search);
   const edgeCv=document.createElement('canvas'); edgeCv.width=edgeCv.height=1; const edgeCx=edgeCv.getContext('2d',{ willReadFrequently:true }); let edgeAcc=1.5;
-  if (edgeDebug){ edgeTop.style.cssText='height:40px;background:#e11'; edgeBot.style.cssText='height:40px;background:#1a1'; }
+  if (edgeDebug){ edgeTop.style.cssText='height:40px;background:#e11;-webkit-mask-image:none;mask-image:none'; edgeBot.style.cssText='height:40px;background:#1a1;-webkit-mask-image:none;mask-image:none'; }
   function sampleEdges(){ try{ const w=canvas.width, h=canvas.height, band=Math.max(2,Math.round(h*0.02)); edgeCx.imageSmoothingQuality='high';
     edgeCx.drawImage(canvas,0,0,w,band,0,0,1,1); let p=edgeCx.getImageData(0,0,1,1).data; edgeTop.style.backgroundColor='rgb('+p[0]+','+p[1]+','+p[2]+')';
     edgeCx.drawImage(canvas,0,h-band,w,band,0,0,1,1); p=edgeCx.getImageData(0,0,1,1).data; edgeBot.style.backgroundColor='rgb('+p[0]+','+p[1]+','+p[2]+')'; }catch(e){} }
