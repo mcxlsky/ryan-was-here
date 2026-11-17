@@ -620,6 +620,9 @@
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
     .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
+    /* iOS 26 Safari tints its top and bottom bars from fixed layers at the screen edges. Two hairline strips sit there and are painted with the colour of the scene's own top and bottom rows (sampled every couple of seconds), so the bars read as part of the street and sky. ?tint=debug makes them big and red/green to see what Safari does with them */
+    .edge { position: fixed; left: 0; right: 0; height: 4px; z-index: 3; pointer-events: none; background: #171715; transition: background-color 1.5s ease; }
+    .edge-t { top: 0; } .edge-b { bottom: 0; }
     .about-full { display: none; }   /* About is 'coming soon': keep its full-screen cream layer out of the page entirely (iOS Safari was tinting the bottom bar from it) */
     .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
     /* the Next Train card floats at the centre of the screen instead of sitting in the dock */
@@ -718,6 +721,7 @@
     </div>
     <span class="sr" id="bioLive" aria-live="polite"></span>
   </div>
+  <div class="edge edge-t" id="edgeT" aria-hidden="true"></div><div class="edge edge-b" id="edgeB" aria-hidden="true"></div>
   <div class="fade" id="fade" aria-hidden="true"></div>
   <a class="sr" id="newsLink" href="writing.html" hidden>Read Ryan’s writing</a>
   <nav class="bnav" aria-label="Main">
@@ -2690,6 +2694,13 @@ THREE.ColorManagement.enabled = false;
   const clock = new THREE.Clock(), perf={ t:0, n:0, step:0 };
   // add ?perf to the address to see the frame rate, render scale and quality step on screen
   let fpsEl=null, fpsN=0, fpsT=0;
+  // the browser-bar tint strips: paint them with the colour of the scene's top and bottom rows
+  const edgeTop=document.getElementById('edgeT'), edgeBot=document.getElementById('edgeB'), edgeDebug=/[?&]tint=debug/.test(location.search);
+  const edgeCv=document.createElement('canvas'); edgeCv.width=edgeCv.height=1; const edgeCx=edgeCv.getContext('2d',{ willReadFrequently:true }); let edgeAcc=1.5;
+  if (edgeDebug){ edgeTop.style.cssText='height:40px;background:#e11'; edgeBot.style.cssText='height:40px;background:#1a1'; }
+  function sampleEdges(){ try{ const w=canvas.width, h=canvas.height, band=Math.max(2,Math.round(h*0.02)); edgeCx.imageSmoothingQuality='high';
+    edgeCx.drawImage(canvas,0,0,w,band,0,0,1,1); let p=edgeCx.getImageData(0,0,1,1).data; edgeTop.style.backgroundColor='rgb('+p[0]+','+p[1]+','+p[2]+')';
+    edgeCx.drawImage(canvas,0,h-band,w,band,0,0,1,1); p=edgeCx.getImageData(0,0,1,1).data; edgeBot.style.backgroundColor='rgb('+p[0]+','+p[1]+','+p[2]+')'; }catch(e){} }
   if (/[?&]perf\b/.test(location.search)){ fpsEl=document.createElement('div'); fpsEl.style.cssText='position:fixed;z-index:9999;left:10px;top:calc(env(safe-area-inset-top,0px) + 70px);padding:4px 8px;border-radius:8px;background:rgba(0,0,0,.6);color:#fff;font:600 11px/1.2 ui-monospace,Menlo,monospace;pointer-events:none'; document.body.appendChild(fpsEl); }
   let heroOn=true; new IntersectionObserver(e=>{ heroOn=e[0].isIntersecting; }).observe(sceneEl);
   // frame timing: step the motion by the display's own frame clock (rAF's vsync-aligned timestamp, not the moment this
@@ -2763,7 +2774,8 @@ THREE.ColorManagement.enabled = false;
           else if (perf.step===4 && bokeh) bokeh.enabled=false;
           window.__perfStep=perf.step; } } }
     if (fpsEl){ fpsN++; fpsT+=fdt; if (fpsT>0.5){ fpsEl.textContent=Math.round(fpsN/fpsT)+' fps · '+renderer.getPixelRatio().toFixed(2)+'x · step '+perf.step; fpsN=fpsT=0; } }
-    if (heroOn && window.__ready && !behindLoader) composer.render();
+    if (heroOn && window.__ready && !behindLoader){ composer.render();
+      if (!edgeDebug){ edgeAcc+=fdt; if (edgeAcc>2){ edgeAcc=0; sampleEdges(); } } }   // read the frame in the same task it was drawn
     requestAnimationFrame(tick);
   }
   tick();
