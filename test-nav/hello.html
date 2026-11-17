@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Say hello — ryan was here</title>
+  <style>
+    :root { --font-ui: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+           background: #fff; color: #111; font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible { outline: 2px solid #111; outline-offset: 3px; }
+
+    .nav-menu { display: flex; flex-direction: column; flex: 1; padding: 0; }
+
+    .nav-top { display: flex; align-items: center; justify-content: space-between; padding: 28px 40px; }
+    .nav-close { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%;
+                 background: rgba(0,0,0,0.06); color: #111; transition: background .15s; margin-left: auto; }
+    .nav-close:hover { background: rgba(0,0,0,0.12); }
+    .nav-close svg { width: 16px; height: 16px; }
+
+    .nav-links { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 40px; }
+
+    .nav-link { display: flex; align-items: center; padding: 28px 0; border-bottom: 1px solid rgba(0,0,0,0.08); transition: opacity .15s; }
+    .nav-link:first-child { border-top: 1px solid rgba(0,0,0,0.08); }
+    .nav-links:hover .nav-link { opacity: 0.3; }
+    .nav-links:hover .nav-link:hover { opacity: 1; }
+
+    .nav-link-name { font: 600 clamp(36px, 7vw, 72px)/1.05 var(--font-ui); letter-spacing: -0.03em; flex: 1; }
+
+    .nav-link-meta { font: 400 13px/1.4 var(--font-ui); color: rgba(0,0,0,0.35); text-align: right; max-width: 160px; }
+
+    .nav-link-arrow { margin-left: 24px; color: rgba(0,0,0,0.2); transition: color .2s, transform .2s; }
+    .nav-link:hover .nav-link-arrow { color: rgba(0,0,0,0.5); transform: translateX(4px); }
+    .nav-link-arrow svg { width: 24px; height: 24px; }
+
+
+    @media (max-width: 600px) {
+      .nav-top { padding: 20px 24px; }
+      .nav-links { padding: 0 24px; }
+      .nav-link { padding: 22px 0; }
+      .nav-link-meta { display: none; }
+      .nav-link-arrow svg { width: 20px; height: 20px; }
+      .nav-bottom { padding: 20px 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav-menu">
+    <div class="nav-top">
+      <a class="nav-close" href="index.html" aria-label="Close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l8 8M12 4l-8 8"/></svg></a>
+    </div>
+
+    <nav class="nav-links">
+      <a class="nav-link" href="mailto:ryan.mccaulsky@gmail.com">
+        <span class="nav-link-name">Email</span>
+        <span class="nav-link-meta">The quickest way to reach me</span>
+        <span class="nav-link-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </a>
+      <a class="nav-link" href="https://www.linkedin.com/in/ryanmccaulsky" target="_blank" rel="noopener">
+        <span class="nav-link-name">LinkedIn</span>
+        <span class="nav-link-meta">Connect professionally</span>
+        <span class="nav-link-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </a>
+      <a class="nav-link" href="https://www.instagram.com/mcxlsky" target="_blank" rel="noopener">
+        <span class="nav-link-name">Instagram</span>
+        <span class="nav-link-meta">What I'm up to day-to-day</span>
+        <span class="nav-link-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </a>
+    </nav>
+
+  </div>
+</body>
+</html>

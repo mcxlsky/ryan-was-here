@@ -1,157 +1,63 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Work — ryan was here</title>
+  <script type="importmap">
+    { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.min.js",
+                   "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+  </script>
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/build/three.module.min.js" />
+  <link rel="modulepreload" href="https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    :root { --gold: #e5ab00; --ink: #ffffff; --line: rgba(255,255,255,0.2);
-            --font: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; color-scheme: dark; }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    /* one screen: nothing scrolls past the viewport; on a very short screen only the middle scrolls (no bar), the footer stays */
-    html { height: 100%; overflow: hidden; background: #0f0f10; }
-    body { height: 100vh; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; color: var(--ink); font-family: var(--font);
-           -webkit-font-smoothing: antialiased; background: #0f0f10; transition: background-color .6s ease; }   /* body colour: the project's (darker) brand colour */
-    a { color: inherit; text-decoration: none; }
-    a:focus-visible, button:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
-
-    /* the gold R tile, same as the home page: back to the street */
-    .rhome { position: fixed; top: 0; left: 0; z-index: 10; width: 74px; height: 74px; display: grid; place-items: center;
-             background: var(--gold); color: #111; font: 700 46px/1 var(--font); letter-spacing: -0.03em; padding-top: 2px; }
-
-    main { flex: 1 1 auto; min-height: 0; width: 100%; overflow-y: auto; scrollbar-width: none; display: flex; flex-direction: column;
-           padding: clamp(84px, 11vh, 130px) max(110px, calc((100vw - 1180px) / 2)) clamp(24px, 5vh, 48px); }
-    main::-webkit-scrollbar { display: none; }
-
-    /* ---------- header: breadcrumbs, then the project's logo as the page title ---------- */
-    .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
-    .head-l { min-width: 0; flex: 1; }
-    .crumbs { display: flex; align-items: center; gap: 8px; list-style: none; font: 500 12px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase;
-              color: rgba(255,255,255,0.62); margin-bottom: clamp(16px, 3vh, 28px); }
-    .crumbs li { display: flex; align-items: center; gap: 8px; }
-    .crumbs li + li::before { content: '/'; opacity: 0.6; }
-    .crumbs a { transition: color .2s; } .crumbs a:hover { color: #fff; }
-    .crumbs [aria-current] { color: #fff; }
-    .titles { display: grid; }
-    .ttl { grid-area: 1 / 1; opacity: 0; visibility: hidden; transform: translateX(32px);
-           transition: opacity .3s ease, transform .5s cubic-bezier(.4,0,.2,1), visibility 0s linear .5s; }
-    .ttl.on { opacity: 1; visibility: visible; transform: none; transition: opacity .5s ease .06s, transform .7s cubic-bezier(.2,.8,.2,1) .02s, visibility 0s; }
-    .ttl h2 { line-height: 0; }
-    /* each wordmark has its own proportions; --s evens out how big they read (set per project in the list below) */
-    .ttl h2 img { display: block; height: calc(clamp(30px, 6vh, 58px) * var(--s, 1)); width: auto; max-width: 100%; }
-    .sum { font: 400 clamp(14px, 2vh, 17px)/1.5 var(--font); color: rgba(255,255,255,0.82); margin-top: clamp(14px, 2.4vh, 24px); max-width: 46em; }
-    .meta { display: flex; gap: 8px; margin-top: clamp(10px, 1.8vh, 16px); }
-    .meta i { font: 500 11px/1 var(--font); font-style: normal; letter-spacing: 0.04em; padding: 6px 9px; border: 1px solid var(--line); color: rgba(255,255,255,0.9); }
-
-    /* ---------- carousel: each slide is the project's three case studies, as cards side by side ---------- */
-    .stage { position: relative; overflow-x: clip; display: grid; flex: none; margin-top: auto; padding-top: clamp(20px, 4vh, 40px); touch-action: pan-y; }
-    .slide { grid-area: 1 / 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end;
-             opacity: 0; visibility: hidden; transform: translateX(48px); pointer-events: none;
-             transition: opacity .35s ease, transform .55s cubic-bezier(.4,0,.2,1), visibility 0s linear .55s; }
-    .slide.on { opacity: 1; visibility: visible; transform: none; pointer-events: auto;
-             transition: opacity .5s ease .08s, transform .7s cubic-bezier(.2,.8,.2,1) .04s, visibility 0s; }
-    /* the project's line and tags sit right above its cards */
-    .blurb { margin-bottom: clamp(16px, 3vh, 26px); }
-    .blurb .meta { margin-top: 0; } .blurb .sum { margin-top: clamp(10px, 1.6vh, 14px); }
-    .cards { display: grid; grid-template-columns: repeat(3, clamp(200px, 21vw, 290px)); justify-content: start; gap: 14px; list-style: none; }
-    .cards > li { min-height: 0; display: flex; }
-    .card { flex: 1; min-height: 0; display: flex; flex-direction: column; background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.14);
-            transition: border-color .2s, transform .3s cubic-bezier(.2,.8,.2,1); }
-    .card:hover { border-color: rgba(255,255,255,0.4); transform: translateY(-3px); }
-    /* cover: the full brand colour (the page is the darker one) — a placeholder until there are real images */
-    .cover { position: relative; flex: none; aspect-ratio: 16 / 9; display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 16px; }
-    .cover .k2 { font: 500 11px/1 var(--font); letter-spacing: 0.06em; text-transform: uppercase; color: rgba(255,255,255,0.85); }
-    .body { flex: none; display: grid; gap: 5px; padding: 12px 14px 14px; }
-    .body b { font: 600 15px/1.25 var(--font); letter-spacing: -0.01em; }
-    .body em { font: 400 12.5px/1.45 var(--font); font-style: normal; color: rgba(255,255,255,0.72); }
-    .body .read { display: flex; align-items: center; gap: 8px; margin-top: 6px; font: 600 12px/1 var(--font); letter-spacing: 0.02em; }
-    .body .read svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: square; transition: transform .2s; }
-    .card:hover .read svg { transform: translateX(3px); }
-    /* the cards land one after another */
-    .blurb, .cards > li { opacity: 0; transform: translateX(16px); transition: opacity .3s ease, transform .3s ease; }
-    .slide.on .blurb, .slide.on .cards > li { opacity: 1; transform: none; transition: opacity .5s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
-    .slide.on .cards > li:nth-child(1) { transition-delay: .05s; } .slide.on .cards > li:nth-child(2) { transition-delay: .1s; } .slide.on .cards > li:nth-child(3) { transition-delay: .15s; }
-
-    /* pager: one short bar per project */
-    .pager { flex: none; display: flex; justify-content: flex-end; gap: 8px; }
-    .pager button { -webkit-appearance: none; appearance: none; border: 0; background: none; padding: 10px 0; cursor: pointer; }
-    .pager button i { display: block; width: 28px; height: 3px; background: rgba(255,255,255,0.32); transition: background .25s, width .35s cubic-bezier(.2,.8,.2,1); }
-    .pager button[aria-current="true"] i { background: #fff; width: 44px; }
-    /* arrows: squares flush to each edge, like the home page's tiles */
-    .arrow { position: fixed; top: 50%; z-index: 10; width: 74px; height: 74px; margin-top: -37px; display: grid; place-items: center; border: 0; cursor: pointer;
-             background: rgba(0,0,0,0.24); transition: background .2s; }
-    .arrow:hover { background: rgba(0,0,0,0.4); }
-    .arrow:focus-visible { outline-offset: -6px; }
-    .arrow svg { width: 30px; height: 30px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: square; }
-    .arrow.prev { left: 0; } .arrow.next { right: 0; }
-
-    /* footer: the home page's line — copyright + social under a full-width hairline */
-    .foot { flex: none; padding: 0 40px; }
-    .foot-base { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 0 -40px; padding: 24px 40px 26px;
-                 font: 400 12px/1.4 var(--font); color: rgba(255,255,255,0.75); }
-    .foot-social { display: flex; gap: 18px; }
-    .foot-social a { display: grid; place-items: center; }
-    .foot-social svg { width: 18px; height: 18px; fill: #fff; opacity: 0.85; transition: opacity .2s; }
-    .foot-social a:hover svg { opacity: 1; }
-
-    @media (max-height: 640px) and (min-width: 721px){ .body em { display: none; } }
-    /* phones: the cards stack as slim rows, arrows sit either side of the pager */
-    @media (max-width: 720px){
-      main { padding: 90px 22px calc(52px + 24px); }
-      .ttl h2 img { height: calc(40px * var(--s, 1)); }
-      .sum { font-size: 14px; }
-      .cards { grid-template-columns: minmax(0, 1fr); grid-auto-rows: min-content; gap: 10px; }
-      .blurb { margin-bottom: 12px; }
-      .card { flex-direction: row; align-items: stretch; }
-      .cover { flex: none; width: 64px; aspect-ratio: auto; padding: 12px; justify-content: center; align-items: center; }
-      .cover .k2 { display: none; }
-      .body { flex: 1 1 auto; min-width: 0; padding: 10px 14px; gap: 3px; } .body b { font-size: 15px; } .body .read { display: none; }
-      .body em { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .arrow { top: auto; bottom: calc(var(--fh, 51px) + 12px); margin-top: 0; width: 52px; height: 52px; }
-      .arrow svg { width: 24px; height: 24px; }
-      .pager i { width: 18px !important; } .pager button[aria-current="true"] i { width: 28px !important; }
-      .foot { padding: 0 22px; }
-      .foot-base { margin: 0 -22px; padding: 18px 22px 20px; }
-      .foot-social { gap: 14px; }
+    :root {
+      --bg: #171715;
+      --ink: #f2f2f0;
+      --muted: rgba(242,242,240,0.6);
+      --font: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif;
+      --frame: 8px;
+      --frame-r: 12px;
+      --foot-h: 44px;
+      color-scheme: dark;
     }
-    @media (prefers-reduced-motion: reduce){ body, .ttl, .ttl.on, .slide, .slide.on, .blurb, .cards > li, .slide.on .blurb, .slide.on .cards > li { transition: none; transform: none; } }
-    /* the frame: an 8px white border round the whole site, drawn over everything; edge-anchored tiles sit just inside it */
-    :root { --frame: 8px; --frame-r: 12px; }
-    /* drawn as a rounded window with a white spread round it, so the inside corners are rounded (and round off any tile sitting in a corner) */
-    body::after { content: ''; position: fixed; inset: var(--frame); z-index: 1000; pointer-events: none; border-radius: var(--frame-r);
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; overscroll-behavior: none; }
+    body { background: var(--bg); color: var(--ink); font-family: var(--font);
+           -webkit-font-smoothing: antialiased; padding: var(--frame); display: flex; flex-direction: column; }
+
+    /* white frame */
+    body::after { content: ''; position: fixed; inset: var(--frame) var(--frame) calc(var(--frame) + var(--foot-h)) var(--frame);
+                  z-index: 1000; pointer-events: none; border-radius: var(--frame-r);
                   box-shadow: 0 0 0 100px #fff; }
-    .rhome { top: var(--frame); left: var(--frame); }
-    body { padding: var(--frame); box-sizing: border-box; }
-    .arrow.prev { left: var(--frame); } .arrow.next { right: var(--frame); }
-    @media (max-width: 720px){ .arrow { bottom: calc(var(--fh, 51px) + 12px + var(--frame)); } }
-    /* ---------- header: a white tab hanging from the top of the frame (after supaste.com's black one) ----------
-       rounded underneath, with curved fillets where it meets the frame; only as wide as what's in it, centred */
-    .tab { --tab-h: 52px; --tab-r: 14px; position: fixed; z-index: 1001; top: var(--frame, 8px); left: 50%; transform: translateX(-50%); max-width: calc(100% - 2 * var(--frame, 8px) - 36px);
-           height: var(--tab-h); display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px; background: #fff; color: #111;
-           border-radius: 0 0 var(--tab-r) var(--tab-r); font-family: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; }
-    /* the fillets overlap the tab and the frame by 1px: centring can land the tab on a half pixel, which left a hairline seam */
+
+    /* ---------- header tab ---------- */
+    .tab { --tab-h: 52px; --tab-r: 14px; position: fixed; z-index: 1001; top: var(--frame); left: 50%; transform: translateX(-50%);
+           max-width: calc(100% - 2 * var(--frame) - 36px);
+           height: var(--tab-h); display: flex; align-items: center; gap: 8px; padding: 0 8px 0 10px;
+           background: #fff; color: #111; border-radius: 0 0 var(--tab-r) var(--tab-r); font-family: var(--font); }
     .tab::before, .tab::after { content: ''; position: absolute; top: -1px; width: calc(var(--tab-r) + 1px); height: calc(var(--tab-r) + 1px); pointer-events: none; }
     .tab::before { right: calc(100% - 1px); background: radial-gradient(circle at 0 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
     .tab::after  { left: calc(100% - 1px);  background: radial-gradient(circle at 100% 100%, transparent calc(var(--tab-r) - 0.5px), #fff var(--tab-r)); }
     .tab a { color: inherit; text-decoration: none; }
-    .tab-brand { position: relative; display: flex; align-items: center; gap: 10px; height: 100%; flex: none; }
+    .tab-brand { display: flex; align-items: center; gap: 10px; height: 100%; flex: none; }
     .tab-r { width: 32px; height: 32px; border-radius: 50%; background: #e5ab00; color: #111; display: grid; place-items: center;
-             font: 700 20px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; letter-spacing: -0.03em; padding-top: 1px; }
-    .tab-name { font: 600 15px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; letter-spacing: -0.01em; white-space: nowrap; }
+             font: 700 20px/1 var(--font); letter-spacing: -0.03em; padding-top: 1px; }
+    .tab-name { font: 600 15px/1 var(--font); letter-spacing: -0.01em; white-space: nowrap; }
     .tab-links { display: flex; align-items: center; gap: 2px; margin-left: 16px; }
-    .tab-links a, .tab-drop a { font: 500 14.5px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; color: rgba(17,17,17,0.52); padding: 9px 10px; border-radius: 8px;
+    .tab-links a, .tab-drop a { font: 500 14.5px/1 var(--font); color: rgba(17,17,17,0.52); padding: 9px 10px; border-radius: 8px;
              transition: color .15s, background .15s; white-space: nowrap; }
     .tab-links a:hover, .tab-drop a:hover { color: #111; background: rgba(17,17,17,0.05); }
     .tab-links a[aria-current="page"], .tab-drop a[aria-current="page"] { color: #111; }
-    .tab-cta { margin-left: 14px; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px; background: #111; color: #fff !important;
-               font: 600 14px/1 -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; white-space: nowrap; transition: background .15s; }
+    .tab-cta { margin-left: 14px; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 9px;
+               background: #111; color: #fff !important; font: 600 14px/1 var(--font); white-space: nowrap; transition: background .15s; }
     .tab-cta:hover { background: #2a2a2a; }
     .tab-cta svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
-    .tab a:focus-visible, .tab button:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
-    .tab-menu { display: none; -webkit-appearance: none; appearance: none; width: 36px; height: 36px; border: 0; border-radius: 9px; background: rgba(17,17,17,0.06); cursor: pointer; place-items: center; }
+    .tab-menu { display: none; -webkit-appearance: none; appearance: none; width: 36px; height: 36px; border: 0; border-radius: 9px;
+                background: rgba(17,17,17,0.06); cursor: pointer; place-items: center; }
     .tab-menu i, .tab-menu i::before, .tab-menu i::after { display: block; width: 16px; height: 1.6px; background: #111; border-radius: 1px; position: relative; transition: transform .25s, top .25s, background .2s; }
     .tab-menu i::before, .tab-menu i::after { content: ''; position: absolute; left: 0; } .tab-menu i::before { top: -5px; } .tab-menu i::after { top: 5px; }
     .tab.open .tab-menu i { background: transparent; } .tab.open .tab-menu i::before { top: 0; transform: rotate(45deg); } .tab.open .tab-menu i::after { top: 0; transform: rotate(-45deg); }
@@ -160,139 +66,364 @@
                 transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s linear .25s; }
     .tab-drop a { padding: 12px 12px; font-size: 15px; }
     .tab.open .tab-drop { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .25s cubic-bezier(.2,.8,.2,1), visibility 0s; }
-    @media (max-width: 760px){
-      .tab { --tab-h: 50px; --tab-r: 12px; }
-      .tab-links { display: none; } .tab-menu { display: grid; } .tab-cta { margin-left: 12px; }
-    }
+    @media (max-width: 760px){ .tab { --tab-h: 50px; --tab-r: 12px; } .tab-links { display: none; } .tab-menu { display: grid; } .tab-cta { margin-left: 12px; } }
     @media (max-width: 380px){ .tab-name { display: none; } }
-    /* the footer lives in the frame: the frame's bottom edge widens into a white band that carries the copyright + social line */
-    :root { --foot-h: 44px; }
-    body::after { inset: var(--frame) var(--frame) calc(var(--frame) + var(--foot-h)) var(--frame); }
-    .foot-social svg { fill: #111; opacity: 0.7; } .foot-social a:hover svg { opacity: 1; }
-    .foot { position: relative; z-index: 1001; }
-    .foot .foot-base { height: var(--foot-h); padding-top: 0; padding-bottom: 0; color: rgba(17,17,17,0.6); }
-    /* social icons: back on the page, stacked bottom right just inside the frame; the copyright sits alone, centred, in the white band */
-    .foot-base { justify-content: center !important; }
+
+    /* ---------- orbital carousel ---------- */
+    .stage { flex: 1; position: relative; display: flex; flex-direction: column;
+             align-items: center; justify-content: center; overflow: hidden; }
+
+    .orbit-wrap { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+    .orbit-scene { width: 100%; height: clamp(240px, 38vh, 420px); position: relative; }
+
+    .orbit { position: absolute; width: 100%; height: 100%; }
+
+    .orbit-item { position: absolute; left: 50%; top: 50%;
+                  cursor: pointer;
+                  transition: transform 0.7s cubic-bezier(.4, 0, .15, 1),
+                              opacity 0.5s ease; }
+
+    .orbit-item img { width: 100%; height: 100%; object-fit: contain;
+                      filter: drop-shadow(0 8px 40px rgba(0,0,0,0.6));
+                      pointer-events: none; }
+
+    .orbit-item.active img { filter: drop-shadow(0 12px 48px rgba(0,0,0,0.5)) brightness(1.1); }
+
+    .orbit-item .item-glow { position: absolute; inset: -20%; border-radius: 50%;
+                             background: radial-gradient(circle, rgba(229,171,0,0.08) 0%, transparent 70%);
+                             opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
+    .orbit-item.active .item-glow { opacity: 1; }
+
+    /* info panel */
+    .info { text-align: center; margin-top: clamp(16px, 3vh, 32px); min-height: 100px; }
+
+    .info-inner { transition: opacity 0.35s ease, transform 0.45s cubic-bezier(.2,.8,.2,1); }
+    .info-inner.out { opacity: 0; transform: translateY(8px); }
+    .info-inner.in { opacity: 1; transform: none; }
+
+    .info-logo { height: 28px; width: auto; margin-bottom: 10px; }
+    .info-logo--hush { height: 22px; }
+    .info-logo--heatcheck { height: 30px; }
+    .info-logo--khealth { height: 28px; }
+    .info-logo--fleeting { height: 24px; }
+    .info-desc { font: 400 clamp(14px, 1.6vw, 17px)/1.5 var(--font); color: var(--muted); margin-top: 4px; }
+    .info-tags { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+    .info-tag { font: 500 11px/1 var(--font); letter-spacing: 0.04em; text-transform: uppercase;
+                padding: 5px 9px; border: 1px solid rgba(255,255,255,0.18); color: rgba(255,255,255,0.65); border-radius: 4px; }
+
+    /* arrows */
+    .arrow { position: fixed; top: 50%; z-index: 10; width: 56px; height: 56px; margin-top: -28px; display: grid; place-items: center;
+             border: 0; cursor: pointer; background: rgba(255,255,255,0.06); border-radius: 50%;
+             transition: background .2s, transform .2s; }
+    .arrow:hover { background: rgba(255,255,255,0.14); }
+    .arrow:active { transform: scale(0.92); }
+    .arrow svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .arrow.prev { left: calc(var(--frame) + 18px); }
+    .arrow.next { right: calc(var(--frame) + 18px); }
+    .arrow:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+    /* pager dots */
+    .pager { position: fixed; bottom: calc(var(--foot-h) + var(--frame) + 20px); left: 50%; transform: translateX(-50%);
+             z-index: 10; display: flex; gap: 10px; }
+    .dot { -webkit-appearance: none; appearance: none; border: 0; padding: 8px 0; cursor: pointer; background: none; }
+    .dot i { display: block; width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.25);
+             transition: background .3s, transform .3s cubic-bezier(.2,.8,.2,1); }
+    .dot[aria-current="true"] i { background: #fff; transform: scale(1.3); }
+
+    /* ---------- footer ---------- */
+    .foot { flex: none; position: relative; z-index: 1001; padding: 0 40px; }
+    .foot-base { display: flex; justify-content: center; align-items: center; gap: 16px; height: var(--foot-h);
+                 font: 400 12px/1.4 var(--font); color: rgba(17,17,17,0.6); }
     .foot-social { position: fixed; z-index: 6; right: calc(var(--frame) + 18px); bottom: calc(var(--frame) + var(--foot-h) + 18px);
-                   flex-direction: column; gap: 14px !important; }
-    .foot-social svg { fill: #fff !important; opacity: 0.82; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35)); }
+                   display: flex; flex-direction: column; gap: 14px; }
+    .foot-social svg { width: 18px; height: 18px; fill: #fff; opacity: 0.7; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.35)); transition: opacity .2s; }
     .foot-social a:hover svg { opacity: 1; }
-    @media (max-width: 720px){ .foot-social { bottom: calc(var(--fh, 44px) + var(--frame) + 76px); } main { padding-right: 56px; } }   /* clear of the bottom arrows; the cards leave the icons a gutter */
+
+    @media (max-width: 720px){
+      .orbit-scene { max-width: 400px; }
+      .arrow { width: 44px; height: 44px; margin-top: -22px; }
+      .arrow.prev { left: calc(var(--frame) + 8px); } .arrow.next { right: calc(var(--frame) + 8px); }
+      .arrow svg { width: 20px; height: 20px; }
+      .foot { padding: 0 22px; }
+      .foot-social { right: calc(var(--frame) + 12px); bottom: calc(var(--frame) + var(--foot-h) + 12px); }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .orbit, .info-inner, .orbit-item, .orbit-item img { transition: none; }
+    }
   </style>
 </head>
 <body>
   <header class="tab" id="rnav">
     <a class="tab-brand" href="index.html" aria-label="ryan was here — home"><span class="tab-r" aria-hidden="true">R</span><span class="tab-name">ryan was here</span></a>
     <nav class="tab-links" aria-label="Primary"><a href="work.html" aria-current="page">Work</a><a href="weather.html">Weather</a></nav>
-    <a class="tab-cta" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg>Say hello</a>   <!-- placeholder: point at an email or contact page -->
+    <a class="tab-cta" href="#"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg>Say hello</a>
     <button class="tab-menu" id="rnavToggle" type="button" aria-expanded="false" aria-controls="tabDrop" aria-label="Menu"><i></i></button>
     <div class="tab-drop" id="tabDrop"><a href="work.html" aria-current="page">Work</a><a href="weather.html">Weather</a></div>
   </header>
-  <button class="arrow prev" id="prev" aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4l-8 8 8 8"/></svg></button>
-  <button class="arrow next" id="next" aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4l8 8-8 8"/></svg></button>
-  <main>
-    <div class="head">
-      <div class="head-l">
-        <nav aria-label="Breadcrumb"><ol class="crumbs"><li><a href="work.html" id="crumbWork">Work</a></li><li><span aria-current="page" id="crumbHere"></span></li></ol></nav>
-        <div class="titles" id="titles" aria-live="polite"></div>
+
+  <button class="arrow prev" id="prev" aria-label="Previous project"><svg viewBox="0 0 24 24"><path d="M15 4l-8 8 8 8"/></svg></button>
+  <button class="arrow next" id="next" aria-label="Next project"><svg viewBox="0 0 24 24"><path d="M9 4l8 8-8 8"/></svg></button>
+
+  <div class="stage">
+    <div class="orbit-wrap">
+      <div class="orbit-scene">
+        <div class="orbit" id="orbit"></div>
       </div>
-      <nav class="pager" id="pager" aria-label="Choose a project"></nav>
+      <div class="info">
+        <div class="info-inner in" id="info"></div>
+      </div>
     </div>
-    <section class="stage" id="stage" aria-roledescription="carousel" aria-label="Projects"></section>
-  </main>
+  </div>
+
+  <nav class="pager" id="pager" aria-label="Choose a project"></nav>
+
   <footer class="foot">
-    <div class="foot-base"><span>© <span id="yr">2026</span> Ryan McCaulsky</span><span class="foot-social">
-        <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 1.6a10.4 10.4 0 0 0-3.3 20.3c.5.1.7-.2.7-.5v-1.8c-2.9.6-3.5-1.4-3.5-1.4-.5-1.2-1.2-1.5-1.2-1.5-.9-.6.1-.6.1-.6 1 .1 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.7-1.2-4.7-5.1 0-1.1.4-2 1.1-2.7-.1-.3-.5-1.3.1-2.8 0 0 .9-.3 2.9 1.1a9.8 9.8 0 0 1 5.2 0c2-1.4 2.9-1.1 2.9-1.1.6 1.5.2 2.5.1 2.8.7.7 1.1 1.6 1.1 2.7 0 3.9-2.4 4.8-4.7 5.1.4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A10.4 10.4 0 0 0 12 1.6z"/></svg></a>
-        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.4 2H3.6C2.7 2 2 2.7 2 3.6v16.8c0 .9.7 1.6 1.6 1.6h16.8c.9 0 1.6-.7 1.6-1.6V3.6c0-.9-.7-1.6-1.6-1.6zM8 19H5V9.5h3V19zM6.5 8.2a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5zM19 19h-3v-4.6c0-1.1 0-2.5-1.5-2.5S12.8 13 12.8 14.3V19h-3V9.5h2.9v1.3c.4-.8 1.4-1.5 2.8-1.5 3 0 3.6 2 3.6 4.6V19z"/></svg></a>
-        <a href="#" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.8 2.5h3.1l-6.8 7.8 8 10.6h-6.3l-4.9-6.4-5.6 6.4H2.2l7.3-8.3L1.8 2.5h6.4l4.4 5.9 5.2-5.9zm-1.1 16.5h1.7L7.3 4.3H5.5L16.7 19z"/></svg></a>
-        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 3.2c2.9 0 3.2 0 4.3.1 1 0 1.6.2 2 .4.5.2.8.4 1.2.8.4.4.6.7.8 1.2.1.4.3 1 .4 2 .1 1.1.1 1.4.1 4.3s0 3.2-.1 4.3c0 1-.2 1.6-.4 2-.2.5-.4.8-.8 1.2-.4.4-.7.6-1.2.8-.4.1-1 .3-2 .4-1.1.1-1.4.1-4.3.1s-3.2 0-4.3-.1c-1 0-1.6-.2-2-.4a3.3 3.3 0 0 1-1.2-.8c-.4-.4-.6-.7-.8-1.2-.1-.4-.3-1-.4-2-.1-1.1-.1-1.4-.1-4.3s0-3.2.1-4.3c0-1 .2-1.6.4-2 .2-.5.4-.8.8-1.2.4-.4.7-.6 1.2-.8.4-.1 1-.3 2-.4 1.1-.1 1.4-.1 4.3-.1M12 1.3c-2.9 0-3.3 0-4.4.1-1.1 0-1.9.2-2.6.5-.7.3-1.3.6-1.9 1.2S2.2 4.3 1.9 5C1.6 5.7 1.4 6.5 1.4 7.6 1.3 8.7 1.3 9.1 1.3 12s0 3.3.1 4.4c0 1.1.2 1.9.5 2.6.3.7.6 1.3 1.2 1.9.6.6 1.2.9 1.9 1.2.7.3 1.5.4 2.6.5 1.1.1 1.5.1 4.4.1s3.3 0 4.4-.1c1.1 0 1.9-.2 2.6-.5.7-.3 1.3-.6 1.9-1.2.6-.6.9-1.2 1.2-1.9.3-.7.4-1.5.5-2.6.1-1.1.1-1.5.1-4.4s0-3.3-.1-4.4c0-1.1-.2-1.9-.5-2.6-.3-.7-.6-1.3-1.2-1.9-.6-.6-1.2-.9-1.9-1.2-.7-.3-1.5-.4-2.6-.5-1.1-.1-1.5-.1-4.4-.1zm0 5.2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zm0 9.1a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2zm5.7-10.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg></a>
-      </span></div>
+    <div class="foot-base"><span>&copy; <span id="yr">2026</span> Ryan McCaulsky</span></div>
+    <span class="foot-social">
+      <a href="#" aria-label="GitHub"><svg viewBox="0 0 24 24"><path d="M12 1.6a10.4 10.4 0 0 0-3.3 20.3c.5.1.7-.2.7-.5v-1.8c-2.9.6-3.5-1.4-3.5-1.4-.5-1.2-1.2-1.5-1.2-1.5-.9-.6.1-.6.1-.6 1 .1 1.6 1.1 1.6 1.1.9 1.6 2.4 1.1 3 .9.1-.7.4-1.1.7-1.4-2.3-.3-4.7-1.2-4.7-5.1 0-1.1.4-2 1.1-2.7-.1-.3-.5-1.3.1-2.8 0 0 .9-.3 2.9 1.1a9.8 9.8 0 0 1 5.2 0c2-1.4 2.9-1.1 2.9-1.1.6 1.5.2 2.5.1 2.8.7.7 1.1 1.6 1.1 2.7 0 3.9-2.4 4.8-4.7 5.1.4.3.7 1 .7 1.9v2.8c0 .3.2.6.7.5A10.4 10.4 0 0 0 12 1.6z"/></svg></a>
+      <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.4 2H3.6C2.7 2 2 2.7 2 3.6v16.8c0 .9.7 1.6 1.6 1.6h16.8c.9 0 1.6-.7 1.6-1.6V3.6c0-.9-.7-1.6-1.6-1.6zM8 19H5V9.5h3V19zM6.5 8.2a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5zM19 19h-3v-4.6c0-1.1 0-2.5-1.5-2.5S12.8 13 12.8 14.3V19h-3V9.5h2.9v1.3c.4-.8 1.4-1.5 2.8-1.5 3 0 3.6 2 3.6 4.6V19z"/></svg></a>
+      <a href="#" aria-label="X"><svg viewBox="0 0 24 24"><path d="M17.8 2.5h3.1l-6.8 7.8 8 10.6h-6.3l-4.9-6.4-5.6 6.4H2.2l7.3-8.3L1.8 2.5h6.4l4.4 5.9 5.2-5.9zm-1.1 16.5h1.7L7.3 4.3H5.5L16.7 19z"/></svg></a>
+      <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 3.2c2.9 0 3.2 0 4.3.1 1 0 1.6.2 2 .4.5.2.8.4 1.2.8.4.4.6.7.8 1.2.1.4.3 1 .4 2 .1 1.1.1 1.4.1 4.3s0 3.2-.1 4.3c0 1-.2 1.6-.4 2-.2.5-.4.8-.8 1.2-.4.4-.7.6-1.2.8-.4.1-1 .3-2 .4-1.1.1-1.4.1-4.3.1s-3.2 0-4.3-.1c-1 0-1.6-.2-2-.4a3.3 3.3 0 0 1-1.2-.8c-.4-.4-.6-.7-.8-1.2-.1-.4-.3-1-.4-2-.1-1.1-.1-1.4-.1-4.3s0-3.2.1-4.3c0-1 .2-1.6.4-2 .2-.5.4-.8.8-1.2.4-.4.7-.6 1.2-.8.4-.1 1-.3 2-.4 1.1-.1 1.4-.1 4.3-.1M12 1.3c-2.9 0-3.3 0-4.4.1-1.1 0-1.9.2-2.6.5-.7.3-1.3.6-1.9 1.2S2.2 4.3 1.9 5C1.6 5.7 1.4 6.5 1.4 7.6 1.3 8.7 1.3 9.1 1.3 12s0 3.3.1 4.4c0 1.1.2 1.9.5 2.6.3.7.6 1.3 1.2 1.9.6.6 1.2.9 1.9 1.2.7.3 1.5.4 2.6.5 1.1.1 1.5.1 4.4.1s3.3 0 4.4-.1c1.1 0 1.9-.2 2.6-.5.7-.3 1.3-.6 1.9-1.2.6-.6.9-1.2 1.2-1.9.3-.7.4-1.5.5-2.6.1-1.1.1-1.5.1-4.4s0-3.3-.1-4.4c0-1.1-.2-1.9-.5-2.6-.3-.7-.6-1.3-1.2-1.9-.6-.6-1.2-.9-1.9-1.2-.7-.3-1.5-.4-2.6-.5-1.1-.1-1.5-.1-4.4-.1zm0 5.2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zm0 9.1a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2zm5.7-10.6a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z"/></svg></a>
+    </span>
   </footer>
+
   <script>
-    document.getElementById('yr').textContent=new Date().getFullYear();
-    /* projects: edit here. color is the brand colour (from each brand's own logo file): the case-study covers use it,
-       the page behind uses a darker shade of it. Case studies are placeholders until the real write-ups exist. */
-    var PROJECTS=[
-      { id:'the-hush',  name:'The Hush',  logo:'logos/hush-white.svg',      color:'#380B85', scale:0.82, tags:['Product design','2025'],
-        sum:"Placeholder: a line or two on what The Hush is and the part Ryan played in it.",
-        cases:[['Product','Placeholder case study','The problem, the approach and what shipped.'],
-               ['Brand','Placeholder case study','How the identity came together.'],
-               ['Launch','Placeholder case study','Getting it out the door and what we learned.']] },
-      { id:'fleeting',  name:'Fleeting',  logo:'logos/fleeting-white.svg',  color:'#2962D6', scale:0.9, tags:['Design systems','2025'],
-        sum:"Placeholder: a line or two on what Fleeting is and the part Ryan played in it.",
-        cases:[['Design system','Placeholder case study','The components, tokens and docs behind it.'],
-               ['Product','Placeholder case study','The problem, the approach and what shipped.'],
-               ['Engineering','Placeholder case study','From prototype to production code.']] },
-      { id:'heatcheck', name:'Heatcheck', logo:'logos/heatcheck-white.svg', color:'#E52E00', scale:1.2, tags:['Brand','2024'],
-        sum:"Placeholder: a line or two on what Heatcheck is and the part Ryan played in it.",
-        cases:[['Brand','Placeholder case study','How the identity came together.'],
-               ['Product','Placeholder case study','The problem, the approach and what shipped.'],
-               ['Growth','Placeholder case study','What moved the numbers, and what didn\u2019t.']] },
-      { id:'k-health',  name:'K Health',  logo:'logos/khealth-white.svg',   color:'#2C90FF', scale:1.08, tags:['Consumer health','2024'],
-        sum:"Placeholder: a line or two on what K Health is and the part Ryan played in it.",
-        cases:[['Research','Placeholder case study','What we heard from patients and clinicians.'],
-               ['Product','Placeholder case study','The problem, the approach and what shipped.'],
-               ['Design system','Placeholder case study','Scaling one system across the product.']] }
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    var PROJECTS = [
+      { id: 'the-hush',  name: 'The Hush',  logo: 'logos/hush-white.svg',      logoClass: 'hush',
+        desc: 'SaaS platform for finding local happy hours',
+        tags: ['Product design', 'Founder'], glb: '../preview images/martini-glass.glb', fallback: '../preview images/martini-glass.png' },
+      { id: 'heatcheck', name: 'Heatcheck', logo: 'logos/heatcheck-white.svg',  logoClass: 'heatcheck',
+        desc: 'Web player for discovering new music videos',
+        tags: ['Brand', 'Founder'], glb: '../preview images/retro-radio.glb', fallback: '../preview images/heatcheck.png' },
+      { id: 'k-health',  name: 'K Health',  logo: 'logos/khealth-white.svg',    logoClass: 'khealth',
+        desc: 'AI-powered primary care serving 2M+ patients',
+        tags: ['Senior Designer', '2022–2025'], glb: '../preview images/stethoscope.glb', fallback: '../preview images/khealth.png' },
+      { id: 'fleeting',  name: 'Fleeting',  logo: 'logos/fleeting-white.svg',   logoClass: 'fleeting',
+        desc: 'Freight logistics MVP for truck owners and drivers',
+        tags: ['Solo Designer', '2019–2022'], glb: '../preview images/cascadia-truck.glb', fallback: '../preview images/fleeting.png' },
     ];
-    (function(){
-      var titles=document.getElementById('titles'), stage=document.getElementById('stage'), pager=document.getElementById('pager'),
-          N=PROJECTS.length, i=0, ttls=[], slides=[], dots=[],
-          pad=function(n){ return (n<10?'0':'')+n; },
-          shade=function(hex,f){ var n=parseInt(hex.slice(1),16); return 'rgb('+[n>>16&255,n>>8&255,n&255].map(function(c){ return Math.round(c*f); }).join(',')+')'; },
-          arrow='<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg>';
-      PROJECTS.forEach(function(p,k){
-        p.dark=shade(p.color, 0.55);
-        var t=document.createElement('div'); t.className='ttl';
-        t.innerHTML='<h2><img style="--s:'+(p.scale||1)+'" src="'+p.logo+'" alt="'+p.name+'"></h2>';
-        titles.appendChild(t); ttls.push(t);
-        var el=document.createElement('div'); el.className='slide'; el.dataset.id=p.id;   // no id: a #project address must not make the browser scroll to it
-        el.setAttribute('aria-roledescription','slide'); el.setAttribute('aria-label',(k+1)+' of '+N+': '+p.name+' case studies');
-        el.innerHTML='<div class="blurb"><div class="meta">'+p.tags.map(function(x){ return '<i>'+x+'</i>'; }).join('')+'</div><p class="sum">'+p.sum+'</p></div>'+
-          '<ol class="cards">'+p.cases.map(function(c,j){
-          return '<li><a class="card" href="#"><span class="cover" style="background:'+p.color+'"><span class="k2">'+c[0]+'</span></span>'+
-                 '<span class="body"><b>'+c[1]+'</b><em>'+c[2]+'</em><span class="read">Read case study '+arrow+'</span></span></a></li>'; }).join('')+'</ol>';
-        stage.appendChild(el); slides.push(el);
-        var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label',p.name); b.innerHTML='<i></i>';
-        b.addEventListener('click', function(){ show(k, k>i?1:-1); }); pager.appendChild(b); dots.push(b);
+
+    var orbitEl = document.getElementById('orbit');
+    var infoEl = document.getElementById('info');
+    var pager = document.getElementById('pager');
+    var N = PROJECTS.length;
+    var cur = 0;
+    var SLICE = 360 / N;
+    var itemEls = [];
+    var dots = [];
+
+    var BASE_SIZE = 220;
+    var FRONT_SCALE = 1;
+    var SIDE_SCALE = 0.52;
+    var BACK_SCALE = 0.36;
+
+    PROJECTS.forEach(function(p, k) {
+      var el = document.createElement('div');
+      el.className = 'orbit-item' + (k === 0 ? ' active' : '');
+      el.setAttribute('data-index', k);
+      if (p.glb) el.setAttribute('data-glb', p.glb);
+
+      el.innerHTML =
+        '<div class="item-glow"></div>' +
+        '<img src="' + (p.fallback || '') + '" alt="' + p.name + '" />';
+
+      el.addEventListener('click', function() { go(k); });
+      orbitEl.appendChild(el);
+      itemEls.push(el);
+
+      var d = document.createElement('button');
+      d.className = 'dot'; d.type = 'button';
+      d.setAttribute('aria-label', p.name);
+      d.innerHTML = '<i></i>';
+      if (k === 0) d.setAttribute('aria-current', 'true');
+      d.addEventListener('click', function() { go(k); });
+      pager.appendChild(d);
+      dots.push(d);
+    });
+
+    function renderInfo(p) {
+      return '<img class="info-logo info-logo--' + p.logoClass + '" src="' + p.logo + '" alt="' + p.name + '" />' +
+        '<p class="info-desc">' + p.desc + '</p>' +
+        '<div class="info-tags">' + p.tags.map(function(t) { return '<span class="info-tag">' + t + '</span>'; }).join('') + '</div>';
+    }
+
+    function go(n) {
+      n = ((n % N) + N) % N;
+      if (n === cur) return;
+      cur = n;
+      paint();
+    }
+
+    function getRadius() {
+      var w = orbitEl.clientWidth || 600;
+      var isMobile = window.innerWidth < 720;
+      return isMobile ? Math.min(w * 0.42, 200) : Math.min(w * 0.38, 280);
+    }
+
+    function paint() {
+      var R = getRadius();
+      var isMobile = window.innerWidth < 720;
+      var sz = isMobile ? 160 : BASE_SIZE;
+
+      itemEls.forEach(function(el, k) {
+        var angleDeg = ((k - cur) * SLICE % 360 + 360) % 360;
+        var angleRad = angleDeg * Math.PI / 180;
+        var isActive = k === cur;
+
+        var x = Math.sin(angleRad) * R;
+        var depth = Math.cos(angleRad);
+        var y = -depth * 20;
+        var sideS = isMobile ? 0.38 : SIDE_SCALE;
+        var backS = isMobile ? 0.28 : BACK_SCALE;
+        var scale = isActive ? FRONT_SCALE : (depth > 0 ? sideS + depth * 0.12 : backS);
+        var itemW = sz * scale;
+        var itemH = sz * scale;
+
+        el.classList.toggle('active', isActive);
+        el.style.width = itemW + 'px';
+        el.style.height = itemH + 'px';
+
+        if (isActive) {
+          el.style.opacity = '1';
+          el.style.zIndex = '10';
+        } else if (depth < -0.2) {
+          el.style.opacity = '0.15';
+          el.style.zIndex = '1';
+        } else {
+          el.style.opacity = String(Math.max(0.3, 0.35 + depth * 0.35));
+          el.style.zIndex = String(Math.round(depth * 5 + 5));
+        }
+
+        el.style.transform = 'translate(calc(-50% + ' + x + 'px), calc(-50% + ' + y + 'px))';
       });
-      function paint(){ var p=PROJECTS[i];
-        slides.forEach(function(s,k){ var on=k===i; s.classList.toggle('on',on); s.setAttribute('aria-hidden',!on); s.inert=!on;
-          ttls[k].classList.toggle('on',on); ttls[k].setAttribute('aria-hidden',!on); });
-        dots.forEach(function(d,k){ d.setAttribute('aria-current', k===i?'true':'false'); });
-        document.getElementById('crumbHere').textContent=p.name;
-        document.title=p.name+' — Work — ryan was here';
-        document.body.style.backgroundColor=p.dark;
-        try{ history.replaceState(null,'','#'+p.id); }catch(e){} }
-      // slide in from the side you're heading towards; the old one leaves the other way
-      function show(n, dir){ n=(n+N)%N; if (n===i) return;
-        [[slides,48],[ttls,32]].forEach(function(a){ var cur=a[0][i], nxt=a[0][n], d=a[1];
-          nxt.style.transition='none'; nxt.style.transform='translateX('+(dir*d)+'px)'; void nxt.offsetWidth; nxt.style.transition=''; nxt.style.transform='';
-          cur.style.transform='translateX('+(-dir*d)+'px)'; });
-        i=n; paint(); }
-      document.getElementById('prev').addEventListener('click', function(){ show(i-1,-1); });
-      document.getElementById('next').addEventListener('click', function(){ show(i+1, 1); });
-      document.getElementById('crumbWork').addEventListener('click', function(e){ e.preventDefault(); show(0,-1); });   // "Work" goes back to the first project
-      addEventListener('keydown', function(e){ if (e.key==='ArrowRight'){ e.preventDefault(); show(i+1,1); } else if (e.key==='ArrowLeft'){ e.preventDefault(); show(i-1,-1); } });
-      var x0=null, y0=0; stage.addEventListener('touchstart', function(e){ x0=e.touches[0].clientX; y0=e.touches[0].clientY; }, { passive:true });
-      stage.addEventListener('touchend', function(e){ if (x0==null) return; var dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null;
-        if (Math.abs(dx)>40 && Math.abs(dx)>Math.abs(dy)) show(dx<0?i+1:i-1, dx<0?1:-1); }, { passive:true });
-      var foot=document.querySelector('.foot'), fh=function(){ document.body.style.setProperty('--fh', foot.offsetHeight+'px'); };
-      addEventListener('resize', fh); fh();
-      // open on the project named in the address (work.html#heatcheck), and follow it if it changes
-      var pick=function(){ var h=location.hash.slice(1), n=-1; PROJECTS.forEach(function(p,k){ if (p.id===h) n=k; }); return n; };
-      var n0=pick(); if (n0>=0) i=n0; paint();
-      addEventListener('hashchange', function(){ var n=pick(); if (n>=0 && n!==i) show(n, n>i?1:-1); });
+
+      dots.forEach(function(d, k) { d.setAttribute('aria-current', k === cur ? 'true' : 'false'); });
+
+      infoEl.classList.remove('in');
+      infoEl.classList.add('out');
+
+      setTimeout(function() {
+        infoEl.innerHTML = renderInfo(PROJECTS[cur]);
+        infoEl.classList.remove('out');
+        infoEl.classList.add('in');
+      }, 200);
+
+      document.title = PROJECTS[cur].name + ' — Work — ryan was here';
+      try { history.replaceState(null, '', '#' + PROJECTS[cur].id); } catch(e) {}
+    }
+
+    infoEl.innerHTML = renderInfo(PROJECTS[0]);
+    window.addEventListener('resize', function() { paint(); });
+
+    document.getElementById('prev').addEventListener('click', function() { go(cur - 1); });
+    document.getElementById('next').addEventListener('click', function() { go(cur + 1); });
+    addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(cur + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); go(cur - 1); }
+    });
+
+    var x0 = null;
+    orbitEl.addEventListener('touchstart', function(e) { x0 = e.touches[0].clientX; }, { passive: true });
+    orbitEl.addEventListener('touchend', function(e) {
+      if (x0 == null) return;
+      var dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) go(dx < 0 ? cur + 1 : cur - 1);
+    }, { passive: true });
+
+    var pick = function() { var h = location.hash.slice(1), n = -1; PROJECTS.forEach(function(p, k) { if (p.id === h) n = k; }); return n; };
+    var n0 = pick(); if (n0 >= 0) cur = n0;
+    paint();
+    addEventListener('hashchange', function() { var n = pick(); if (n >= 0 && n !== cur) go(n); });
+
+    /* header menu */
+    (function() {
+      var t = document.getElementById('rnav'), b = document.getElementById('rnavToggle');
+      function set(o) { t.classList.toggle('open', o); b.setAttribute('aria-expanded', o); }
+      b.addEventListener('click', function() { set(!t.classList.contains('open')); });
+      document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && t.classList.contains('open')) { set(false); b.focus(); } });
+      document.addEventListener('pointerdown', function(e) { if (t.classList.contains('open') && !t.contains(e.target)) set(false); });
     })();
   </script>
-  <script>
-    /* header: the phone menu (opens under the tab; Escape or a tap elsewhere closes it) */
-    (function(){ var t=document.getElementById('rnav'), b=document.getElementById('rnavToggle');
-      function set(o){ t.classList.toggle('open',o); b.setAttribute('aria-expanded',o); b.setAttribute('aria-label',o?'Close menu':'Menu'); }
-      b.addEventListener('click', function(){ set(!t.classList.contains('open')); });
-      document.addEventListener('keydown', function(e){ if (e.key==='Escape' && t.classList.contains('open')){ set(false); b.focus(); } });
-      document.addEventListener('pointerdown', function(e){ if (t.classList.contains('open') && !t.contains(e.target)) set(false); });
-      t.querySelectorAll('.tab-drop a').forEach(function(a){ a.addEventListener('click', function(){ set(false); }); });
-    })();
+
+  <!-- GLB 3D viewers: replace fallback images when models load -->
+  <script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+  const glbItems = document.querySelectorAll('.orbit-item[data-glb]');
+  if (!glbItems.length) { /* nothing to do */ }
+
+  const loader = new GLTFLoader();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  glbItems.forEach(item => {
+    const src = item.dataset.glb;
+
+    const size = item.getBoundingClientRect();
+    const w = Math.round(size.width) || 240;
+    const h = Math.round(size.height) || 240;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(dpr);
+    renderer.setSize(w, h);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.3;
+
+    const canvas = renderer.domElement;
+    Object.assign(canvas.style, { width: '100%', height: '100%', objectFit: 'contain' });
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(28, 1, 0.01, 100);
+    camera.position.set(0, 0.25, 3);
+    camera.lookAt(0, 0, 0);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.8);
+    dir.position.set(2, 3, 4);
+    scene.add(dir);
+    const rim = new THREE.DirectionalLight(0xffffff, 0.6);
+    rim.position.set(-3, 1, -2);
+    scene.add(rim);
+
+    let model = null;
+    let hovered = false;
+    let rotY = 0;
+
+    loader.load(src, gltf => {
+      model = gltf.scene;
+      const box = new THREE.Box3().setFromObject(model);
+      const center = box.getCenter(new THREE.Vector3());
+      const sz = box.getSize(new THREE.Vector3());
+      const maxDim = Math.max(sz.x, sz.y, sz.z);
+      const scale = 1.5 / maxDim;
+      model.scale.setScalar(scale);
+      model.position.sub(center.multiplyScalar(scale));
+      scene.add(model);
+
+      const img = item.querySelector('img');
+      if (img) img.style.display = 'none';
+      const glow = item.querySelector('.item-glow');
+      if (glow) glow.style.display = 'none';
+      item.appendChild(canvas);
+      loop();
+    });
+
+    function loop() {
+      if (!model) return;
+      const speed = hovered ? 0.018 : 0.005;
+      rotY += speed;
+      model.rotation.y = rotY;
+      renderer.render(scene, camera);
+      requestAnimationFrame(loop);
+    }
+
+    item.addEventListener('mouseenter', () => { hovered = true; });
+    item.addEventListener('mouseleave', () => { hovered = false; });
+  });
   </script>
 </body>
 </html>
