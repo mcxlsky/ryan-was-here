@@ -11,9 +11,8 @@
     .bn-me .glass-av, .bn-me img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: grid; box-shadow: none; }
     .bn-sep { flex: none; width: 1px; height: 24px; margin: 0 8px; background: rgba(255,255,255,0.22); }
     .bn-links { display: flex; gap: 4px; }
-    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(255,255,255,0.72); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; transition: color .15s, background .15s; }
-    .bn-links a:hover { color: #fff; }
-@media (hover: hover) { .bn-links a:hover { text-decoration: underline; text-decoration-thickness: 1.5px; text-underline-offset: 7px; } }   /* hover: an underline rather than a pill (the current page keeps its pill) */
+    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(255,255,255,0.58); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; transition: color .15s, background .15s; }
+    .bn-links a:hover { color: #fff; }   /* hover: dim to lit */
     .bn-links a[aria-current="page"] { color: #fff; background: rgba(255,255,255,0.16); }
     .bnav a:focus-visible, .bnav button:focus-visible, .bio-pop a:focus-visible, .bio-pop button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     @media (max-width: 420px) { .bn-links a { padding: 0 11px; } }
