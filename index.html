@@ -627,7 +627,8 @@
     /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
     .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
     /* iOS 26 Safari tints its top and bottom bars from the rendered colour at the screen edges. Two strips sit there, painted with the scene's own top and bottom rows (sampled every couple of seconds), so the bars read as part of the street and sky. The strips sit below the tab and bnav (Safari reads pixels, not z-order, and sees through the transparent mobile header). ?tint=debug makes them big and red/green to see what Safari does with them */
-    .edge { position: fixed; left: 0; right: 0; height: 44px; z-index: 3; pointer-events: none; background: #171715; transition: background-color 1.5s ease; }   /* above the scene (1) but below the bnav (5) and tab (1001) so they aren't muddied; Safari reads rendered pixels at the edge, not z-order, and sees through the transparent mobile header */
+    .edge { position: fixed; left: 0; right: 0; height: 44px; z-index: 3; pointer-events: none; background: #171715; transition: background-color 1.5s ease; display: none; }
+    @media (pointer: coarse) { .edge { display: block; } }   /* only on touch devices: iOS Safari tints its bars from rendered edge pixels; desktop browsers don't, so the strips just look like artifacts */
     .edge-t { top: 0; -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 20%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0, #000 20%, transparent 100%); }
     .edge-b { bottom: 0; -webkit-mask-image: linear-gradient(to top, #000 0, #000 20%, transparent 100%); mask-image: linear-gradient(to top, #000 0, #000 20%, transparent 100%); }
     /* phones: the wordmark sits a little lower and the bottom nav a little higher, clear of the bar-tint fades */
