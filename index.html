@@ -772,7 +772,8 @@
       ['pointerdown','keydown','wheel','touchstart'].forEach(function(t){ document.addEventListener(t, function(e){ if (wasAt && !document.body.classList.contains('hint-open') && e.target!==bul) armHint(); }, { passive:true }); });
       function board(){ var R=r(); if (!R || !window.__nextTrain) return;
         var at=R.target>0.999; document.body.classList.toggle('at-platform',at); card.classList.toggle('riding', !at && R.target>=R.T0); nl.hidden=!at;
-        if (at && !wasAt){ wasAt=true; openHint(false); armHint(); setBullet(true); } else if (!at && wasAt){ wasAt=false; openHint(false); setBullet(false); }
+        if (at && !wasAt){ wasAt=true; openHint(false); armHint(); setBullet(true); try { history.replaceState(null,'','#platform'); } catch(e){} }
+        else if (!at && wasAt){ wasAt=false; openHint(false); setBullet(false); try { history.replaceState(null,'',location.pathname); } catch(e){} }
         if (R.target>0.999) return set('3 Av–149 St','Tap the paper to read','','',false,false,false,'street');
         if (R.target>=R.T0) return set('Riding','The next stop is 3 Av–149 St','','',true,true,true,'on');
         var sec=window.__nextTrain(), m=sec==null?null:(sec<=8?0:Math.ceil((sec-8)/8)), committed=!!R.seq || R.target>0.0005,
