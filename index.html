@@ -504,16 +504,16 @@
     .dock > .away { opacity: 0; transform: translateY(10px); pointer-events: none; }
     .glass { position: relative; flex: 1 1 0; min-width: 0; display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px 16px 16px;
              border-radius: 22px; color: #fff; isolation: isolate;
-             background: linear-gradient(160deg, rgba(12,12,16,0.52) 0%, rgba(8,8,12,0.44) 50%, rgba(12,12,16,0.48) 100%);
-             -webkit-backdrop-filter: blur(12px) saturate(1.3) brightness(0.82); backdrop-filter: blur(12px) saturate(1.3) brightness(0.82);
-             border: 1px solid rgba(255,255,255,0.14);
-             box-shadow: 0 10px 36px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12); }
-    /* specular sheen: a glossy highlight along the top-left rim */
+             background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.07) 100%);
+             -webkit-backdrop-filter: blur(26px) saturate(1.8) brightness(1.06); backdrop-filter: blur(26px) saturate(1.8) brightness(1.06);
+             border: 1px solid rgba(255,255,255,0.22);
+             box-shadow: 0 8px 32px -6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(255,255,255,0.06); }
+    /* specular sheen: soft refraction highlight wrapping the top edge */
     .glass::before { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
-             background: radial-gradient(100% 50% at 15% -8%, rgba(255,255,255,0.22), rgba(255,255,255,0) 48%); mix-blend-mode: overlay; }
-    /* secondary specular: a faint glossy catch on the bottom-right */
+             background: radial-gradient(120% 60% at 20% -12%, rgba(255,255,255,0.18), rgba(255,255,255,0) 56%); mix-blend-mode: overlay; }
+    /* secondary specular: ambient light catch along the bottom curve */
     .glass::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
-             background: radial-gradient(60% 40% at 85% 108%, rgba(255,255,255,0.10), rgba(255,255,255,0) 42%); mix-blend-mode: overlay; }
+             background: radial-gradient(80% 50% at 80% 112%, rgba(255,255,255,0.08), rgba(255,255,255,0) 48%); mix-blend-mode: overlay; }
     .glass-av { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #e5ab00; color: #111; display: grid; place-items: center;
              font: 700 15px/1 var(--font-ui); letter-spacing: -0.02em; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
     .glass-t { min-width: 0; display: grid; gap: 6px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
@@ -522,22 +522,25 @@
     .glass-h span { font: 500 12.5px/1.25 var(--font-ui); color: rgba(255,255,255,0.72); }
     .glass-p { font: 400 13.5px/1.45 var(--font-ui); color: rgba(255,255,255,0.88); text-wrap: pretty; }
     .glass-a { justify-self: start; display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; color: #fff; text-decoration: none;
-             font: 600 13px/1 var(--font-ui); padding: 7px 11px; border-radius: 999px; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.28);
-             transition: background .2s; }
-    .glass-a:hover { background: rgba(255,255,255,0.26); }
+             font: 600 13px/1 var(--font-ui); padding: 7px 11px; border-radius: 999px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.20);
+             -webkit-backdrop-filter: blur(8px) saturate(1.4) brightness(1.1); backdrop-filter: blur(8px) saturate(1.4) brightness(1.1);
+             box-shadow: inset 0 1px 0 rgba(255,255,255,0.16); transition: background .2s, box-shadow .2s; }
+    .glass-a:hover { background: rgba(255,255,255,0.22); box-shadow: inset 0 1px 0 rgba(255,255,255,0.22); }
     .glass-a svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: square; }
     .glass-a:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     @media (max-width: 720px){ .glass { padding: 14px; gap: 12px; border-radius: 18px; }
       .glass-p { font-size: 13px; } }
     /* the train card: the next southbound, and a button to board it (or, at the platform, to go back up) */
-    .train { width: 272px; flex-direction: column; gap: 10px; padding: 14px 14px 14px 16px; }
+    .train { width: 272px; flex-direction: column; gap: 10px; padding: 14px 14px 14px 16px; border-color: transparent; }
     .train-bullet { width: 64px; height: 64px; aspect-ratio: 1; flex-shrink: 0; border-radius: 50%; background: #00933C; display: grid; place-items: center; margin: auto 0; }
     .train-bullet span { font: 700 36px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; color: #fff; letter-spacing: 0; }
     .train-k { font: 600 10px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.78); text-shadow: 0 1px 2px rgba(0,0,0,0.25);
                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .train-go { -webkit-appearance: none; appearance: none; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px;
-                border-radius: 999px; background: #fff; color: #111; font: 600 13.5px/1 var(--font-ui); white-space: nowrap; transition: background .2s, opacity .2s; }
-    .train-go:hover { background: #f0efe9; }
+                border-radius: 999px; background: rgba(255,255,255,0.10); color: #fff; font: 600 13.5px/1 var(--font-ui); white-space: nowrap;
+                -webkit-backdrop-filter: blur(8px) saturate(1.4) brightness(1.1); backdrop-filter: blur(8px) saturate(1.4) brightness(1.1);
+                box-shadow: inset 0 1px 0 rgba(255,255,255,0.14); transition: background .2s, opacity .2s, box-shadow .2s; }
+    .train-go:hover { background: rgba(255,255,255,0.20); box-shadow: inset 0 1px 0 rgba(255,255,255,0.20); }
     .train-go:disabled { opacity: 0.55; cursor: default; }
     .train-go:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     @media (max-width: 760px){
@@ -552,8 +555,9 @@
     .about-full .glass-a:hover { background: #2a2a2a; }
     .about-full .glass-a:focus-visible { outline-color: #111; }
     .card-x { position: absolute; top: 12px; right: 12px; width: 30px; height: 30px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
-              background: rgba(255,255,255,0.14); color: #fff; transition: background .2s, transform .2s; }
-    .card-x:hover { background: rgba(255,255,255,0.24); transform: scale(1.06); }
+              background: rgba(255,255,255,0.10); color: #fff; -webkit-backdrop-filter: blur(8px) saturate(1.4) brightness(1.1); backdrop-filter: blur(8px) saturate(1.4) brightness(1.1);
+              box-shadow: inset 0 1px 0 rgba(255,255,255,0.14); transition: background .2s, transform .2s, box-shadow .2s; }
+    .card-x:hover { background: rgba(255,255,255,0.20); transform: scale(1.06); box-shadow: inset 0 1px 0 rgba(255,255,255,0.20); }
     .card-x:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     .card-x svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     /* full screen: white, inside the frame, under the header; it opens out of the card (clip-path from the card's box to the whole window) */
@@ -586,20 +590,20 @@
     @media (prefers-reduced-motion: reduce) { .soon-toast { transition: opacity .2s ease; transform: translate(-50%, 0); } }
     /* bottom nav: your photo on the left (opens a mini bio), Home / Work / About centred */
     .bnav { position: fixed; z-index: 5; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: fit-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 6px; padding: 8px;
-            border-radius: 999px; color: #fff; isolation: isolate; border: 1px solid rgba(255,255,255,0.14); background: linear-gradient(160deg, rgba(12,12,16,0.52) 0%, rgba(8,8,12,0.44) 50%, rgba(12,12,16,0.48) 100%); -webkit-backdrop-filter: blur(12px) saturate(1.3) brightness(0.82); backdrop-filter: blur(12px) saturate(1.3) brightness(0.82);
-            box-shadow: 0 10px 36px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12); }
+            border-radius: 999px; color: #fff; isolation: isolate; border: 1px solid transparent; background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.07) 100%); -webkit-backdrop-filter: blur(26px) saturate(1.8) brightness(1.06); backdrop-filter: blur(26px) saturate(1.8) brightness(1.06);
+            box-shadow: 0 8px 32px -6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(255,255,255,0.06); }
     .bn-me { flex: none; -webkit-appearance: none; appearance: none; border: 0; padding: 0; background: none; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; transition: transform .2s; }
     .bn-me:hover { transform: scale(1.06); }
     .bn-me .glass-av, .bn-me img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: grid; box-shadow: none; }
     .bn-sep { flex: none; width: 1px; height: 24px; margin: 0 8px; background: rgba(255,255,255,0.22); }
     .bn-links { display: flex; gap: 4px; }
-    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(255,255,255,0.58); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; transition: color .15s, background .15s; }
-    .bn-links a:hover { color: #fff; }   /* hover: dim to lit */
-    .bn-links a[aria-current="page"] { color: #fff; background: rgba(255,255,255,0.16); }
+    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(255,255,255,0.58); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; transition: color .15s, background .15s, box-shadow .15s; }
+    .bn-links a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    .bn-links a[aria-current="page"] { color: #fff; background: rgba(255,255,255,0.14); -webkit-backdrop-filter: blur(6px) brightness(1.1); backdrop-filter: blur(6px) brightness(1.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14); }
     .bnav a:focus-visible, .bnav button:focus-visible, .bio-pop a:focus-visible, .bio-pop button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     @media (max-width: 420px) { .bn-links a { padding: 0 11px; } }
-    .bio-pop { position: fixed; z-index: 5; left: 50%; top: 50%; width: min(340px, calc(100% - 32px)); padding: 18px; border-radius: 22px; color: #fff; isolation: isolate; border: 1px solid rgba(255,255,255,0.14); background: linear-gradient(160deg, rgba(12,12,16,0.52) 0%, rgba(8,8,12,0.44) 50%, rgba(12,12,16,0.48) 100%); -webkit-backdrop-filter: blur(12px) saturate(1.3) brightness(0.82); backdrop-filter: blur(12px) saturate(1.3) brightness(0.82);
-            box-shadow: 0 10px 36px -8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12); opacity: 0; visibility: hidden; transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
+    .bio-pop { position: fixed; z-index: 5; left: 50%; top: 50%; width: min(340px, calc(100% - 32px)); padding: 18px; border-radius: 22px; color: #fff; isolation: isolate; border: 1px solid rgba(255,255,255,0.22); background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.07) 100%); -webkit-backdrop-filter: blur(26px) saturate(1.8) brightness(1.06); backdrop-filter: blur(26px) saturate(1.8) brightness(1.06);
+            box-shadow: 0 8px 32px -6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(255,255,255,0.06); opacity: 0; visibility: hidden; transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
             transition: opacity .2s ease, transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s linear .3s; }
     body.bio-open .dock > .train { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .2s ease, visibility 0s linear .2s; }   /* the bio takes the train card's place */
     .bio-pop.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%); transition: opacity .2s ease, transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s; }
@@ -610,8 +614,10 @@
     .bio-top span { font: 500 13.5px/1.25 var(--font-ui); color: rgba(255,255,255,0.78); }
     .bio-rule { height: 1px; margin: 16px 0; background: rgba(255,255,255,0.16); }
     .bio-icons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-    .bio-ic { -webkit-appearance: none; appearance: none; border: 0; cursor: pointer; flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 15px 0 13px; border-radius: 999px; background: rgba(255,255,255,0.14); color: #fff; text-decoration: none; font: inherit; transition: background .2s, transform .2s; }
-    .bio-ic:hover { background: rgba(255,255,255,0.26); transform: translateY(-1px); }
+    .bio-ic { -webkit-appearance: none; appearance: none; border: 0; cursor: pointer; flex: none; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 15px 0 13px; border-radius: 999px; background: rgba(255,255,255,0.10); color: #fff; text-decoration: none; font: inherit;
+              -webkit-backdrop-filter: blur(8px) saturate(1.4) brightness(1.1); backdrop-filter: blur(8px) saturate(1.4) brightness(1.1);
+              box-shadow: inset 0 1px 0 rgba(255,255,255,0.14); transition: background .2s, transform .2s, box-shadow .2s; }
+    .bio-ic:hover { background: rgba(255,255,255,0.20); transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.20); }
     .bio-ic .ic { display: grid; place-items: center; }
     .bio-ic .lb { font: 600 13px/1 var(--font-ui); color: #fff; white-space: nowrap; }
     .bio-ic svg { width: 16px; height: 16px; fill: currentColor; }
@@ -640,17 +646,17 @@
     .train-k { grid-area: k; white-space: normal; display: grid; gap: 4px; overflow: visible; } .train-sep { display: none; }
     #tD { font: 600 15px/1.2 var(--font-ui); letter-spacing: -0.01em; text-transform: none; color: #fff; }
     .train-go { grid-area: g; align-self: stretch; display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: auto; min-width: 88px; padding: 0 12px 0 14px; border-radius: 999px; white-space: normal; text-align: center; }
-    .tg-box { order: 2; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid #111; display: grid; place-items: center; transition: background .15s, border-color .15s; }
-    .tg-box svg { width: 10px; height: 10px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(0.6); transition: opacity .15s, transform .15s; }
-    .train-go[aria-checked="true"] .tg-box { background: #00933C; border-color: #00933C; }
+    .tg-box { order: 2; flex: none; width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.5); display: grid; place-items: center; transition: background .15s, border-color .15s; }
+    .tg-box svg { width: 10px; height: 10px; fill: none; stroke: #111; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transform: scale(0.6); transition: opacity .15s, transform .15s; }
+    .train-go[aria-checked="true"] .tg-box { background: #fff; border-color: #fff; }
     .train-go[aria-checked="true"] .tg-box svg { opacity: 1; transform: none; }
     .tg-m { display: flex; align-items: baseline; gap: 4px; }
     .tg-m b, .tg-m span { font: 600 14px/1 var(--font-ui); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
     .tg-m span { color: inherit; }
-    .train.now .train-go { background: transparent; box-shadow: inset 0 0 0 1.5px #111; color: #111; } .train.now .tg-m b, .train.now .tg-m span { color: #111; }   /* arriving (and riding): an outlined pill, to match the hint button */
+    /* .train.now no longer overrides .train-go — it keeps its glass treatment in every state */
     /* arriving at the platform: the card eases up from the middle of the screen and shrinks to a small pill (the hint button + the X); the text unfolds later */
     .dock > .train { transition: opacity 1.2s cubic-bezier(.3,0,.3,1), top .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1), width .7s cubic-bezier(.2,.8,.2,1); }
-    body.at-platform .dock > .train { top: calc(18px + env(safe-area-inset-top, 0px)); transform: translate(-50%, 0); width: 132px; }
+    body.at-platform .dock > .train { top: calc(18px + env(safe-area-inset-top, 0px)); transform: translate(-50%, 0); width: 132px; border-radius: 999px; }
     body.at-platform.hint-open .dock > .train { width: min(280px, calc(100% - 32px)); }
     body.at-platform .train-k { min-width: 0; overflow: hidden; text-align: center; opacity: 0; transition: opacity .3s ease; }
     body.at-platform.hint-open .train-k { opacity: 1; transition: opacity .5s ease .3s; }
@@ -667,7 +673,7 @@
     .fade { position: fixed; inset: 0; z-index: 80; background: #000; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .4s ease, visibility 0s linear .4s; } .fade.on { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .4s ease; }   /* hidden when off, so iOS Safari can't pick its black as the colour of the browser bars */
     .train-bullet { transition: background .5s ease, box-shadow .5s ease, width .7s cubic-bezier(.2,.8,.2,1), height .7s cubic-bezier(.2,.8,.2,1); } .train-bullet > * { grid-area: 1 / 1; } .train-bullet span, .train-bullet .np { transition: opacity .5s ease; }
     .train-bullet .np { display: block; opacity: 0; width: 21px; height: 21px; }
-    body.at-platform .train-bullet { width: 40px; height: 40px; background: transparent; box-shadow: inset 0 0 0 1.5px #111; color: #111; cursor: pointer; } body.at-platform .train-bullet:hover { background: rgba(17,17,17,0.08); }   /* outlined, the same size as the X */ body.at-platform .train-bullet span { opacity: 0; } body.at-platform .train-bullet .np { opacity: 1; }   /* at the platform the 5 becomes a newspaper */
+    body.at-platform .train-bullet { width: 40px; height: 40px; background: transparent; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.3); color: #fff; cursor: pointer; } body.at-platform .train-bullet:hover { background: rgba(255,255,255,0.10); }   /* outlined, the same size as the X */ body.at-platform .train-bullet span { opacity: 0; } body.at-platform .train-bullet .np { opacity: 1; }   /* at the platform the 5 becomes a lightbulb */
     body.at-platform #tK, body.at-platform .train-sep { display: none; }
     body.at-platform .tab { opacity: 0; visibility: hidden; }   /* the wordmark steps away at the platform: the card is the hint now */
     .train-go.is-text:disabled { opacity: 1; } .train-go:disabled { pointer-events: none; }
