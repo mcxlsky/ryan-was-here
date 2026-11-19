@@ -176,7 +176,7 @@
     .veil { display: none; }   /* replaced by the .loader below */
     /* the loader: the landmasses of the real map (a deeper tint of the work page's cream) with its subway lines drawing themselves across them in the map's own colours; over everything until the street is ready */
     .loader { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; }
-    .loader::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); transition: opacity 1s ease; }
+    .loader::before { content: ''; position: absolute; inset: 0; background: #FAFAFA; transition: opacity 1s ease; }
     .loader.bg-out { pointer-events: none; } .loader.bg-out::before { opacity: 0; }
     .loader svg { position: relative; transition: opacity 1s ease; }
     .loader.hide svg { opacity: 0; }
@@ -480,19 +480,28 @@
       .tab-links { display: none; } .tab-cta { display: none; } .tab-menu { display: grid; }
     }
     /* header split in two, no backgrounds: wordmark top left, hamburger top right; every link lives in the menu */
-    .tab { left: 0; right: 0; top: 0; transform: none; max-width: none; height: auto; padding: 14px 20px; justify-content: center; background: none; border-radius: 0; pointer-events: none; }
+    .tab { left: 0; right: 0; top: 0; transform: none; max-width: none; height: auto; padding: 31px 20px 11px; justify-content: center; background: none; border-radius: 0; pointer-events: none; }
     .tab::before, .tab::after { display: none; }
     .tab > * { pointer-events: auto; }
     .tab-brand { height: auto; }
     .tab-name { display: block; font-size: 17px; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,0.35); transition: color .3s; }
-    .tab-name { font-family: "Caveat", "Segoe Script", "Bradley Hand", "Snell Roundhand", cursive; font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: 0; }   /* handwritten */
+    .tab-name { font-family: "Caveat", "Segoe Script", "Bradley Hand", "Snell Roundhand", cursive; font-weight: 700; font-size: 26px; line-height: 1; letter-spacing: 0; }   /* handwritten; same size and line as the About page's mark (.full-mark), so it doesn't jump when About opens */
     .tab-links, .tab-cta { display: none; }
     .tab-menu { display: grid; background: none; width: 40px; height: 40px; margin-right: -10px; }
     .tab-menu i, .tab-menu i::before, .tab-menu i::after { background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,0.3); }
     .tab.open .tab-menu i { background: transparent; box-shadow: none; }
     .tab a:focus-visible, .tab button:focus-visible { outline-color: #fff; }
     .tab-drop { top: calc(100% - 6px); right: 20px; }
-    body.full-open .tab { opacity: 0; visibility: hidden; }   /* the open About shows just its X, where the hamburger was */
+    body.full-open .tab { opacity: 0; visibility: hidden; }
+    body.full-open .bnav { z-index: 910; background: rgba(255,255,255,0.55); border-color: rgba(17,17,17,0.08); -webkit-backdrop-filter: blur(26px) saturate(1.6) brightness(1.1); backdrop-filter: blur(26px) saturate(1.6) brightness(1.1);
+                           box-shadow: 0 1px 4px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7); }
+    body.full-open .bn-links a { color: rgba(17,17,17,0.45); }
+    body.full-open .bn-links a:hover { color: #111; background: rgba(17,17,17,0.06); }
+    body.full-open .bn-links a[aria-current="page"] { color: #111; background: rgba(17,17,17,0.08); -webkit-backdrop-filter: blur(6px) brightness(1.05); backdrop-filter: blur(6px) brightness(1.05); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5); }
+    body.full-open .bn-sep { background: rgba(17,17,17,0.12); }
+    /* on the About page the bottom nav shrinks toward its bottom edge in step with how far the page is scrolled: full size at the top, 88% at the bottom (--nav-s is set by script); no transition while open so it tracks the scroll exactly, and it eases back to full size on close */
+    .bnav { transform-origin: 50% 100%; transition: transform .3s cubic-bezier(.2,.8,.2,1); }
+    body.full-open .bnav { transform: translateX(-50%) scale(var(--nav-s, 1)); transition: none; }
     .tab { transition: opacity .25s ease, visibility 0s; }
     /* the countdown board drops out under the brand on hover */
     .tab-brand .rsign { left: 0; top: calc(100% + 8px); height: 60px; border-radius: 12px; }
@@ -561,35 +570,137 @@
     .card-x:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     .card-x svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     /* full screen: white, inside the frame, under the header; it opens out of the card (clip-path from the card's box to the whole window) */
-    .about-full { position: fixed; z-index: 900; inset: calc(var(--frame) - 1px); border-radius: calc(var(--frame-r) + 1px); background: #fff; color: #111; overflow-y: auto; scrollbar-width: none;
-                  clip-path: inset(var(--ct, 0) var(--cr, 0) var(--cb, 0) var(--cl, 0) round var(--crad, 12px));
-                  transition: clip-path .55s cubic-bezier(.2,.8,.2,1); }
+    .about-full { position: fixed; z-index: 900; inset: 0; border-radius: 0; background: #fff; color: #111; overflow-y: auto; scrollbar-width: none;
+                  clip-path: inset(var(--ct, 0) var(--cr, 0) var(--cb, 0) var(--cl, 0) round var(--crad, 0px));
+                  transition: clip-path .55s cubic-bezier(.2,.8,.2,1), opacity .35s ease; }
+    .about-full.closing { opacity: 0; pointer-events: none; }   /* the X fades the panel out in place */
     .about-full::-webkit-scrollbar { display: none; }
     /* as the long About scrolls, the copy fades out under the header instead of showing either side of the tab */
     .about-full::before { content: ''; position: sticky; top: 0; z-index: 1; display: block; height: 96px; margin-bottom: -96px; pointer-events: none;
                           background: linear-gradient(#fff 62%, rgba(255,255,255,0)); }
     .about-full.instant { transition: none; }
-    .full-in { max-width: 760px; margin: 0 auto; padding: clamp(96px, 16vh, 150px) 40px 64px; display: grid; gap: clamp(14px, 2.2vh, 20px);
+    /* the text block scales with the open area between the header (68px) and the floating nav (86px): one unit (--fs) sets the type size, column width and spacing, sized so the block fills 75% of that area (the block is ~28.3 --fs tall). The bottom padding mirrors the nav (86px) plus 2% of the open area, so the block sits a touch above centre (gap above ≈ 0.85 × gap below). 15px is the floor */
+    .full-in { --fs: max(15px, min(2vw, calc((100dvh - 154px) * 0.0265))); font-size: var(--fs); width: calc(var(--fs) * 28); max-width: calc(100% - 48px); margin: 0 auto; padding: 0 0 calc(86px + (100dvh - 154px) * 0.02 + env(safe-area-inset-bottom, 0px)); min-height: calc(100dvh - 68px); display: grid; gap: 0; align-content: center;
                opacity: 0; transform: translateY(10px); transition: opacity .3s ease, transform .4s cubic-bezier(.2,.8,.2,1); }
     .about-full.open .full-in { opacity: 1; transform: none; transition-delay: .18s; }
-    .full-by { display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
-    .full-by .glass-av { width: 56px; height: 56px; font-size: 19px; box-shadow: none; }
-    .full-by p { display: grid; gap: 4px; } .full-by b { font: 600 17px/1.2 var(--font-ui); } .full-by span { font: 400 14px/1.2 var(--font-ui); color: rgba(17,17,17,0.55); }
-    .full-in > p { font: 400 clamp(16px, 2.1vh, 19px)/1.55 var(--font-ui); color: rgba(17,17,17,0.72); text-wrap: pretty; }
-    .full-in > .full-lead { font: 500 clamp(22px, min(3vw, 3.6vh), 34px)/1.25 var(--font-ui); letter-spacing: -0.02em; color: #111; text-wrap: balance; }
-    .full-cta { margin-top: 10px; } .full-cta .glass-a { font-size: 14px; padding: 10px 16px; }
-    .full-x { position: fixed; top: calc(var(--frame) + 14px + env(safe-area-inset-top, 0px)); right: calc(var(--frame) + 10px); width: 40px; height: 40px; z-index: 2; }
+    .full-bar { position: sticky; top: 0; z-index: 1; padding: 31px 40px 11px; text-align: center; }
+    .full-mark { font: 700 26px/1 "Caveat", "Segoe Script", "Bradley Hand", cursive; color: rgba(17,17,17,0.22); display: block; }
+    .full-photo { display: block; width: 3.8em; height: 3.8em; border-radius: 50%; object-fit: cover; background: rgba(17,17,17,0.06); justify-self: start; margin-bottom: 0.85em; }
+    .full-lead { font: 500 1em/1.55 var(--font-ui); letter-spacing: -0.01em; color: rgba(17,17,17,0.7); text-wrap: balance; margin-bottom: 0.95em; }
+    /* section links: icon + label rows stacked in the panel's top-left corner; the first row sits on the header line with the mark and the close button */
+    .full-tabs { position: absolute; z-index: 2; top: calc(var(--frame) + 30px + env(safe-area-inset-top, 0px)); left: calc(var(--frame) + 40px);
+                 display: flex; flex-direction: column; align-items: flex-start; margin-left: -8px;
+                 opacity: 0; transition: opacity .3s ease; }
+    .about-full.open .full-tabs { opacity: 1; transition-delay: .18s; }
+    .about-full .full-bar { transition: opacity .3s ease; }
+    .about-full .full-x { transition: background .2s, transform .2s, box-shadow .2s, color .2s, opacity .3s ease; }
+    /* opened while the page loader is still up: keep everything but the background hidden until the loader has finished fading */
+    .about-full.held .full-in, .about-full.held .full-tabs, .about-full.held .full-bar, .about-full.held .full-x { opacity: 0; transition: none; }
+    .about-full.held .full-in { transform: translateY(10px); }
+    .full-tab { height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: none; border: none; border-radius: 8px; font: 500 13px/1 var(--font-ui); white-space: nowrap; text-decoration: none; color: rgba(17,17,17,0.35); cursor: pointer; transition: color .2s; }
+    .full-tab svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .full-tab:hover { color: rgba(17,17,17,0.7); }
+    .full-tab.active { color: #111; }
+    .full-tab:focus { outline: none; }
+    .full-tab:focus-visible { box-shadow: 0 0 0 2px rgba(17,17,17,0.2); }
+    .full-panels { display: grid; }
+    /* sections share one grid cell (so the block keeps the tallest one's height) and cross-fade in place: the old one fades and drifts up, the new one rises in just after */
+    .full-panel { grid-area: 1 / 1; visibility: hidden; opacity: 0; transform: translateY(8px);
+                  transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s; }
+    .full-panel.active { visibility: visible; opacity: 1; transform: none;
+                         transition: opacity .35s ease .12s, transform .45s cubic-bezier(.2,.8,.2,1) .12s, visibility 0s; }
+    .full-panel.leaving:not(.active) { transform: translateY(-6px); }
+    /* Inspiration: a shelf of current favourites (cover art lives in images/shelf). Sizes come from the shelf's width (cqi), so it scales with the text block on every screen */
+    .shelf { container-type: inline-size; padding-top: .2em; margin-top: 1.2em; }
+    .shelf:first-child { margin-top: 0; }
+    .shelf-row { --gap: 1.1em; --col: calc((100cqi - 2 * var(--gap)) / 3); --wrap: calc(var(--col) * .95);
+                 position: relative; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 var(--gap); }
+    /* the plank: a light top surface the covers stand on, a grained front edge (SVG noise stretched sideways into long streaks), and a soft shadow underneath */
+    .shelf-row::before { content: ''; position: absolute; left: -4%; right: -4%; top: calc(var(--wrap) - .22em); height: .8em; border-radius: 2px 2px 3px 3px;
+                         background: linear-gradient(#ecd6b1 0 .22em, rgba(255,255,255,.3) .22em calc(.22em + 1px), transparent calc(.22em + 1px)),
+                                     linear-gradient(transparent 65%, rgba(70,40,15,.2)),
+                                     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='30' preserveAspectRatio='none'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.5' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.33  0 0 0 0 0.19  0 0 0 0 0.07  1.4 0 0 0 -0.55'/%3E%3C/filter%3E%3Crect width='600' height='30' filter='url(%23w)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat,
+                                     linear-gradient(#caa274, #ad8152);
+                         box-shadow: 0 .7em 1.1em -.55em rgba(60,38,15,.42), inset 0 -1px 0 rgba(70,40,15,.25); }
+    .shelf-item { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+    /* the cover: plays on the page (record, podcast) or links out (book) */
+    .obj-wrap { position: relative; z-index: 1; align-self: stretch; height: var(--wrap); display: flex; align-items: flex-end; justify-content: center; color: inherit; text-decoration: none; }
+    .shelf-play { padding: 0; border: 0; background: none; font: inherit; cursor: pointer; }
+    .shelf-play:focus { outline: none; }
+    .shelf-play:focus-visible .obj { outline: 2px solid rgba(17,17,17,.35); outline-offset: 3px; }
+    .obj { position: relative; display: block; transition: transform .45s cubic-bezier(.2,.8,.2,1); }
+    .obj img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    /* record: the sleeve, with the vinyl peeking out the right side */
+    .obj-record { width: 70%; aspect-ratio: 1; }
+    .obj-record .sleeve { position: absolute; inset: 0; z-index: 1; border-radius: 2px; box-shadow: 0 .6em 1em -.6em rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.06); }
+    .obj-record .disc { position: absolute; top: 4%; left: 28%; width: 92%; aspect-ratio: 1; border-radius: 50%;
+                        background: radial-gradient(circle, #FAFAFA 0 2.2%, transparent 2.6%), conic-gradient(from 20deg, transparent 0 14%, rgba(255,255,255,.1) 19%, transparent 25% 64%, rgba(255,255,255,.07) 69%, transparent 75%), radial-gradient(circle, #e5ab00 0 15%, #0c0c0c 15.5% 17%, transparent 17.5%),
+                                    repeating-radial-gradient(circle, #121212 0 1.1%, #1f1f1f 1.3% 2.3%);
+                        box-shadow: 0 .4em .8em -.4em rgba(0,0,0,.5); transition: translate .6s cubic-bezier(.2,.8,.2,1); }
+    /* book: the standing cover with a hint of spine (shading and a highlight along the left edge) */
+    .obj-book { width: 56%; aspect-ratio: 2 / 3; overflow: hidden; border-radius: 2px 4px 4px 2px; box-shadow: 0 .6em 1em -.6em rgba(0,0,0,.5); }
+    .obj-book::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+                       background: linear-gradient(90deg, rgba(0,0,0,.3), rgba(255,255,255,.2) 4%, transparent 9%, transparent 94%, rgba(0,0,0,.12)); }
+    /* podcast: square cover with just softened corners */
+    .obj-pod { width: 70%; aspect-ratio: 1; overflow: hidden; border-radius: 5%; box-shadow: 0 .6em 1em -.6em rgba(0,0,0,.45); }
+    /* play/pause badge in the middle of a playable cover: shown on hover or keyboard focus, and while playing */
+    .play-badge { position: absolute; z-index: 2; left: 50%; top: 50%; width: 34%; aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%;
+                  background: rgba(255,255,255,.88); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+                  opacity: 0; transform: translate(-50%, -50%) scale(.9); transition: opacity .2s, transform .2s; }
+    .play-badge svg { width: 42%; height: 42%; fill: #111; }
+    .play-badge .i-pause, .playing .play-badge .i-play { display: none; }
+    .playing .play-badge .i-pause { display: block; }
+    .shelf-play:hover .play-badge, .shelf-play:focus-visible .play-badge, .playing .play-badge { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    /* title + creator: a flat card a shade darker than the page on hover */
+    .shelf-meta { display: flex; flex-direction: column; align-items: center; margin-top: 1em; padding: .45em 1.1em .5em; border-radius: 8px; transition: background .2s; }
+    .shelf-meta:hover { background: rgba(17,17,17,.05); }
+    .shelf-title { font: 600 .78em/1.25 var(--font-ui); letter-spacing: -.01em; color: #111; }
+    .shelf-by { margin-top: .15em; font: 500 .7em/1.3 var(--font-ui); color: rgba(17,17,17,.55); }
+    .shelf-now { margin-top: .25em; font: 500 .6em/1.3 var(--font-ui); color: rgba(17,17,17,.45); }
+    /* the record (the only playable item): on hover the vinyl eases a little out of its sleeve; while playing it slides further out and spins */
+    /* the slide uses `translate`, which applies after `rotate`, so the disc spins about its own centre rather than orbiting where it started */
+    @media (hover: hover) { .shelf-play:hover .disc { translate: 7% 0; } }
+    .shelf-item.playing .disc { translate: 12% 0; animation: discSpin 1.8s linear infinite; }
+    @keyframes discSpin { to { rotate: 360deg; } }
+    @media (prefers-reduced-motion: reduce) { .obj, .obj-record .disc { transition: none; } .shelf-item.playing .disc { animation: none; } }
+    .full-panel p { font: 500 1em/1.55 var(--font-ui); letter-spacing: -0.01em; color: rgba(17,17,17,0.7); text-wrap: pretty; margin-top: 0.95em; }
+    .full-panel p:first-child { margin-top: 0; }
+    .full-in > p { font: 500 1em/1.55 var(--font-ui); letter-spacing: -0.01em; color: rgba(17,17,17,0.7); text-wrap: pretty; margin-top: 0.95em; }
+    .full-in > p:first-of-type { margin-top: 0; }
+    .full-bar { position: relative; z-index: 1; }
+    .full-foot { position: relative; z-index: 1; background: #F5F5F5; padding: 48px 40px calc(96px + env(safe-area-inset-bottom, 0px)); }
+    .foot-map svg { display: block; width: 96px; height: auto; }
+    .foot-map .land { fill: #e4e1d8; stroke: none; }
+    .foot-map .ln { fill: none; stroke-width: 9.5; stroke-linecap: round; stroke-linejoin: round; }
+    .foot-name { display: block; margin-top: 24px; font: 600 clamp(19px, 2.5vh, 21px)/1 var(--font-ui); color: #111; letter-spacing: -0.01em; }
+    .foot-links { display: flex; gap: 4px; margin-right: -10px; }
+    .foot-links a { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: rgba(17,17,17,0.52); transition: color .2s, background .2s; }
+    .foot-links a:hover { color: #111; background: rgba(17,17,17,0.05); }
+    .foot-links a:focus-visible { outline: 2px solid rgba(17,17,17,0.5); outline-offset: 2px; }
+    .foot-links svg { width: 22px; height: 22px; fill: currentColor; }
+    .foot-links .stroke svg { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .foot-tag { font: 500 clamp(19px, 2.5vh, 21px)/1.55 var(--font-ui); letter-spacing: -0.01em; color: rgba(17,17,17,0.52); margin-top: 12px; }
+    .foot-bot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 64px; padding-top: 16px; border-top: 1px solid rgba(17,17,17,0.08); font: 400 13px/1.3 var(--font-ui); color: rgba(17,17,17,0.4); }
+    .foot-bot > span { min-width: 0; }
+    .foot-loc { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; padding: 7px 12px 7px 10px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(17,17,17,0.06), 0 0 0 1px rgba(17,17,17,0.06);
+                font: 500 14px/1 var(--font-ui); color: rgba(17,17,17,0.6); }
+    .foot-loc svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+    .full-x { position: fixed; top: calc(var(--frame) + 24px + env(safe-area-inset-top, 0px)); right: calc(var(--frame) + 10px); width: 40px; height: 40px; z-index: 3; }
+    /* scroll-driven sections: the stage (header, links, text) holds in place while the sections change (one every 0.95 screen — STEP in the script — so 1.9 screens), then lingers on the last one for another half screen before the footer scrolls up.
+       --stage-h / --stage-top are measured by script: when the stage is taller than the screen (phones), it first scrolls until its bottom meets the screen's bottom and holds there, so no text is hidden */
+    .about-full.scrolly .full-track { height: calc(var(--stage-h, 100dvh) + 240dvh); }
+    .about-full.scrolly .full-stage { position: sticky; top: var(--stage-top, 0px); z-index: 1; }
     .full-x svg { width: 16px; height: 16px; }
-    .full-x { background: rgba(17,17,17,0.08); color: #111; }
-    .full-x:hover { background: rgba(17,17,17,0.14); }
-    @media (max-width: 720px){ .full-in { padding: 104px 22px 48px; } }
-    @media (prefers-reduced-motion: reduce){ .about-full, .full-in { transition: none; } }
+    .full-x { background: none; color: rgba(17,17,17,0.35); }
+    .full-x:hover { background: none; color: rgba(17,17,17,0.6); }
+    @media (max-width: 720px){ .full-in { --fs: 18px; width: auto; max-width: none; padding: 64px 32px calc(106px + env(safe-area-inset-bottom, 0px)); } .full-foot { padding-left: 32px; padding-right: 32px; } .foot-name, .foot-tag { font-size: 18px; } .full-tabs { left: calc(var(--frame) + 24px); } }
+    @media (prefers-reduced-motion: reduce){ .about-full, .full-in, .full-tabs, .about-full .full-bar, .about-full .full-x, .bnav { transition: none; } .full-panel, .full-panel.leaving:not(.active) { transform: none; } }
     .homebase { display: none; }
-    .soon-toast { position: fixed; z-index: 70; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 8px); padding: 11px 18px; border-radius: 999px; background: rgba(22,22,25,0.9); color: #fff; font: 600 13.5px/1 var(--font-ui, system-ui, sans-serif); letter-spacing: 0.01em; white-space: nowrap; pointer-events: none; opacity: 0; box-shadow: 0 14px 32px -14px rgba(0,0,0,0.5); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: opacity .25s ease, transform .3s cubic-bezier(.2,.8,.2,1); }
+    .soon-toast { position: fixed; z-index: 70; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 8px); padding: 11px 18px; border-radius: 999px; background: rgba(22,22,25,0.9); color: #fff; font: 600 13.5px/1 var(--font-ui, system-ui, sans-serif); letter-spacing: 0.01em; white-space: nowrap; pointer-events: none; opacity: 0; box-shadow: 0 14px 32px -14px rgba(0,0,0,0.5); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: opacity .25s ease, transform .3s cubic-bezier(.2,.8,.2,1); }
     .soon-toast.show { opacity: 1; transform: translate(-50%, 0); }
     @media (prefers-reduced-motion: reduce) { .soon-toast { transition: opacity .2s ease; transform: translate(-50%, 0); } }
     /* bottom nav: your photo on the left (opens a mini bio), Home / Work / About centred */
-    .bnav { position: fixed; z-index: 5; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: fit-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 6px; padding: 8px;
+    .bnav { position: fixed; z-index: 5; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: fit-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 6px; padding: 8px;
             border-radius: 999px; color: #fff; isolation: isolate; border: 1px solid transparent; background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.07) 100%); -webkit-backdrop-filter: blur(26px) saturate(1.8) brightness(1.06); backdrop-filter: blur(26px) saturate(1.8) brightness(1.06);
             box-shadow: 0 8px 32px -6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(255,255,255,0.06); }
     .bn-me { flex: none; -webkit-appearance: none; appearance: none; border: 0; padding: 0; background: none; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; transition: transform .2s; }
@@ -625,20 +736,22 @@
     .bio-ic .ok { display: none; } .bio-ic.done .ok { display: block; } .bio-ic.done .mail { display: none; }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
-    .about-full { background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%); }
+    .about-full { background: #FAFAFA; }
     /* iOS 26 Safari tints its top and bottom bars from the rendered colour at the screen edges. Two strips sit there, painted with the scene's own top and bottom rows (sampled every couple of seconds), so the bars read as part of the street and sky. The strips sit below the tab and bnav (Safari reads pixels, not z-order, and sees through the transparent mobile header). ?tint=debug makes them big and red/green to see what Safari does with them */
     .edge { position: fixed; left: 0; right: 0; height: 44px; z-index: 3; pointer-events: none; background: #171715; transition: background-color 1.5s ease; display: none; }
     @media (pointer: coarse) { .edge { display: block; } }   /* only on touch devices: iOS Safari tints its bars from rendered edge pixels; desktop browsers don't, so the strips just look like artifacts */
     .edge-t { top: 0; -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 20%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0, #000 20%, transparent 100%); }
     .edge-b { bottom: 0; -webkit-mask-image: linear-gradient(to top, #000 0, #000 20%, transparent 100%); mask-image: linear-gradient(to top, #000 0, #000 20%, transparent 100%); }
-    /* phones: the wordmark sits a little lower and the bottom nav a little higher, clear of the bar-tint fades */
+    /* phones: the bottom nav sits a little higher, clear of the bar-tint fades (the wordmark's 31px top padding already clears them) */
     @media (pointer: coarse), (max-width: 600px) {
-      .tab { top: calc(var(--frame, 8px) + env(safe-area-inset-top, 0px) + 14px); }
+      .tab { top: calc(var(--frame, 8px) + env(safe-area-inset-top, 0px)); }
       .bnav { bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
       .soon-toast { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
     }
     .about-full { display: none; }   /* About is 'coming soon': keep its full-screen cream layer out of the page entirely (iOS Safari was tinting the bottom bar from it) */
-    .about-full::before { background: linear-gradient(#efeee9 62%, rgba(239,238,233,0)); }
+    .about-full.preview { display: block; }   /* ?preview=about bypasses the gate */
+    .about-full.preview[hidden] { display: none; }   /* …but a closed panel still hides */
+    .about-full::before { background: linear-gradient(#FAFAFA 62%, rgba(250,250,250,0)); }
     /* the Next Train card floats at the centre of the screen instead of sitting in the dock */
     .dock > .train { position: fixed; top: 50%; left: 50%; right: auto; bottom: auto; flex: none; width: min(300px, calc(100% - 32px)); transform: translate(-50%, -50%); }
     /* the card's layout at every width: the R on the left; to its right, Next train / Flatbush Av / the countdown with the Board button */
@@ -704,11 +817,70 @@
 
   <section class="about-full" id="aboutFull" aria-label="About Ryan" aria-modal="true" role="dialog" hidden>
     <button class="card-x full-x" id="aboutClose" type="button" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></button>
-    <div class="full-in">
-      <div class="full-by"><div class="glass-av" aria-hidden="true">RM</div><p><b>Ryan McCaulsky</b><span>Product Designer · The Bronx, NY</span></p></div>
-      <p class="full-lead">Hey, I’m Ryan! I’m a Product Designer with over nine years of experience building in Healthcare, Transportation Logistics, and Digital Media.</p>
-      <div class="full-cta"><a class="glass-a" href="#" data-soon>View work<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h9M8.5 4l4 4-4 4"/></svg></a></div>
+    <div class="full-track"><div class="full-stage">
+    <div class="full-bar">
+      <span class="full-mark" aria-hidden="true">ryan was here</span>
     </div>
+    <nav class="full-tabs" aria-label="About sections">
+      <a class="full-tab active" href="#about-me" aria-current="true" data-tab="background"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="5.4" r="2.6"/><path d="M2.9 13.8c.8-2.7 2.8-4.1 5.1-4.1s4.3 1.4 5.1 4.1"/></svg><span>About me</span></a>
+      <a class="full-tab" href="#my-process" data-tab="process"><svg viewBox="0 0 16 16" aria-hidden="true"><g transform="translate(-0.8 0.9) rotate(30 8 8)"><path d="M6.4 7.8h3.2v3.6a1.6 1.6 0 0 1-3.2 0z" fill="currentColor" fill-opacity=".35" stroke="none"/><path d="M5.6 2h4.8M6.4 2v9.4a1.6 1.6 0 0 0 3.2 0V2M6.4 7.8h3.2"/></g><circle cx="12.7" cy="1.9" r=".75"/><circle cx="14.5" cy="4.3" r=".45"/></svg><span>My process</span></a>
+      <a class="full-tab" href="#inspiration" data-tab="inspiration"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7 1.8c.4 2.8 1.3 3.7 4.1 4.1-2.8.4-3.7 1.3-4.1 4.1-.4-2.8-1.3-3.7-4.1-4.1 2.8-.4 3.7-1.3 4.1-4.1z"/><path d="M12 9.6c.2 1.3.7 1.8 2 2-1.3.2-1.8.7-2 2-.2-1.3-.7-1.8-2-2 1.3-.2 1.8-.7 2-2z"/></svg><span>Inspiration</span></a>
+    </nav>
+    <div class="full-in">
+      <img class="full-photo" src="images/ryan-portrait.jpg" alt="Ryan McCaulsky" width="320" height="320">
+      <div class="full-panels">
+        <div class="full-panel active" id="panel-background">
+          <p class="full-lead">Hey, I’m Ryan! I’m a Product Designer with over nine years of experience building experiences in Healthcare, Transportation Logistics, and Digital Media.</p>
+          <p>I care about the details that make software feel considered — the transitions, the hierarchy, the moments where something just works without you noticing why. Most of my career has been spent at the intersection of complex systems and the people who have to use them every day.</p>
+          <p>In healthcare, that meant making clinical workflows faster without losing the precision clinicians depend on. In transportation logistics, it was about surfacing the right information at the right time for people making decisions under pressure. In digital media, it was building tools that stay out of the way and let creators focus on the work.</p>
+        </div>
+        <div class="full-panel" id="panel-process">
+          <p>I approach every problem through systems thinking — understanding the full context before narrowing in on the right intervention. The best solutions usually come from mapping the whole system, not just the screen in front of you.</p>
+          <p>My process moves from research and mental models to low-fidelity interaction design, then high-fidelity prototyping. I build and maintain design systems so teams can ship faster without losing coherence across a product.</p>
+        </div>
+        <div class="full-panel" id="panel-inspiration">
+          <p>And here are a few things that currently have my attention.</p>
+          <div class="shelf">
+            <ul class="shelf-row" aria-label="On my shelf right now">
+              <li class="shelf-item">
+                <button class="obj-wrap shelf-play" type="button" data-play="album" aria-pressed="false" aria-label="Play a preview of Scenery by Ryo Fukui">
+                  <span class="obj obj-record"><span class="disc"></span><img class="sleeve" src="images/shelf/scenery.jpg" alt="" width="360" height="360"><span class="play-badge" aria-hidden="true"><svg class="i-play" viewBox="0 0 16 16"><path d="M5 3.2v9.6L13 8z"/></svg><svg class="i-pause" viewBox="0 0 16 16"><path d="M4.5 3h2.5v10H4.5zM9 3h2.5v10H9z"/></svg></span></span>
+                </button>
+                <span class="shelf-meta"><span class="shelf-title">Scenery</span><span class="shelf-by">Ryo Fukui</span></span>
+                <span class="shelf-now" aria-live="polite"></span>
+              </li>
+              <li class="shelf-item">
+                <span class="obj-wrap" aria-hidden="true">
+                  <span class="obj obj-book"><img src="images/shelf/neuromancer.jpg" alt="" width="240" height="360"></span>
+                </span>
+                <span class="shelf-meta"><span class="shelf-title">Neuromancer</span><span class="shelf-by">William Gibson</span></span>
+              </li>
+              <li class="shelf-item">
+                <span class="obj-wrap" aria-hidden="true">
+                  <span class="obj obj-pod"><img src="images/shelf/market-mondays.jpg" alt="" width="360" height="360"></span>
+                </span>
+                <span class="shelf-meta"><span class="shelf-title">Market Mondays</span><span class="shelf-by">EYL</span></span>
+                
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div></div>
+    <footer class="full-foot">
+      <div class="foot-map"><svg viewBox="-64 0 714 850" aria-hidden="true" focusable="false"><defs><mask id="ftRiv" maskUnits="userSpaceOnUse" x="0" y="0" width="760" height="850"><rect x="0" y="0" width="760" height="850" fill="#fff"/><g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round"><path d="M32 97L92 101L95 133L128 168L176 212L214 226L243 229" stroke-width="8"/><path d="M243 224L247 300L246 380L250 440L262 470L285 490L283 520L278 560L252 598" stroke-width="10"/></g></mask></defs><g mask="url(#ftRiv)"><path class="land" style="--i:0" d="M30 0L398 0L399 49L434 88L435 135L345 225L346 232L401 232L441 193L445 193L446 205L733 205L733 575L724 575L640 659L620 659L622 615L680 557L681 463L673 462L660 475L660 482L653 482L651 488L641 494L641 503L632 503L598 537L597 718L514 804L514 808L507 810L492 826L471 826L470 840L439 840L409 814L300 812L297 808L297 727L256 681L255 610L252 609L251 594L239 593L234 598L234 609L221 611L221 626L206 626L193 638L160 638L123 601L117 600L110 588L97 588L97 575L32 510L30 445L21 443L21 415L30 413Z"/><path class="land" style="--i:1" d="M90 679L184 679L190 686L190 739L92 839L34 840L30 836L30 814L55 785L55 714Z"/></g><g><path class="ln" pathLength="1" style="--i:0;stroke:#D43046" d="M64 48L64.0 290.0Q64 304 73.9 313.9L102.1 342.1Q112 352 112.0 366.0L112.0 562.0Q112 576 121.9 585.9L170.3 634.3Q176 640 184.0 640.0L192 640"/><path class="ln" pathLength="1" style="--i:1;stroke:#D43046" d="M272 32L272.0 180.7Q272 192 264.0 200.0L264.0 200.0Q256 208 244.7 208.0L158.0 208.0Q144 208 144.0 222.0L144.0 258.0Q144 272 130.0 272.0L80 272"/><path class="ln" pathLength="1" style="--i:2;stroke:#D43046" d="M112 544L226.0 544.0Q240 544 240.0 558.0L240.0 584.0Q240 592 248.0 592.0L248.0 592.0Q256 592 256.0 600.0L256.0 600.0Q256 608 261.7 613.7L278.1 630.1Q288 640 302.0 640.0L356.7 640.0Q368 640 376.0 648.0L376.0 648.0Q384 656 395.3 656.0L434.0 656.0Q448 656 457.9 646.1L576 528"/><path class="ln" pathLength="1" style="--i:3;stroke:#D43046" d="M432 640L512 720"/><path class="ln" pathLength="1" style="--i:4;stroke:#439767" d="M176 48L176.0 196.7Q176 208 184.0 216.0L184.0 216.0Q192 224 192.0 235.3L192.0 596.7Q192 608 200.0 616.0L200.0 616.0Q208 624 219.3 624.0L356.7 624.0Q368 624 376.0 632.0L376.0 632.0Q384 640 395.3 640.0L450.0 640.0Q464 640 473.9 630.1L496 608"/><path class="ln" pathLength="1" style="--i:5;stroke:#439767" d="M448 624L448.0 642.0Q448 656 457.9 665.9L512 720"/><path class="ln" pathLength="1" style="--i:6;stroke:#439767" d="M384 80L384.0 88.0Q384 96 378.3 101.7L329.9 150.1Q320 160 320.0 174.0L320.0 194.0Q320 208 306.0 208.0L208 208"/><path class="ln" pathLength="1" style="--i:7;stroke:#439767" d="M304 48L304.0 98.0Q304 112 294.1 121.9L281.9 134.1Q272 144 272.0 158.0L272 192"/><path class="ln" pathLength="1" style="--i:8;stroke:#367CC0" d="M32 112L32.0 146.0Q32 160 41.9 169.9L70.1 198.1Q80 208 80.0 222.0L80.0 436.7Q80 448 88.0 456.0L88.0 456.0Q96 464 107.3 464.0L116.7 464.0Q128 464 136.0 472.0L136.0 472.0Q144 480 144.0 491.3L144.0 548.7Q144 560 152.0 568.0L152.0 568.0Q160 576 171.3 576.0L274.0 576.0Q288 576 288.0 590.0L288.0 642.0Q288 656 302.0 656.0L306.0 656.0Q320 656 329.9 646.1L362.3 613.7Q368 608 368.0 600.0L368.0 600.0Q368 592 376.0 592.0L386.0 592.0Q400 592 409.9 582.1L502.1 489.9Q512 480 526.0 480.0L530.0 480.0Q544 480 553.9 470.1L608 416"/><path class="ln" pathLength="1" style="--i:9;stroke:#367CC0" d="M80 352L290.0 352.0Q304 352 313.9 342.1L342.1 313.9Q352 304 366.0 304.0L562.0 304.0Q576 304 585.9 313.9L602.3 330.3Q608 336 608.0 344.0L608 352"/><path class="ln" pathLength="1" style="--i:10;stroke:#E28932" d="M192 80L192.0 162.0Q192 176 178.0 176.0L107.3 176.0Q96 176 88.0 184.0L88.0 184.0Q80 192 80.0 203.3L80.0 324.7Q80 336 88.0 344.0L88.0 344.0Q96 352 107.3 352.0L146.0 352.0Q160 352 160.0 366.0L160.0 466.0Q160 480 169.9 489.9L182.1 502.1Q192 512 206.0 512.0L226.0 512.0Q240 512 249.9 521.9L326.1 598.1Q336 608 336.0 622.0L336.0 706.0Q336 720 345.9 729.9L426.3 810.3Q432 816 440.0 816.0L448 816"/><path class="ln" pathLength="1" style="--i:11;stroke:#E28932" d="M368 624L512 768"/><path class="ln" pathLength="1" style="--i:12;stroke:#E28932" d="M304 320L312.0 320.0Q320 320 325.7 314.3L330.3 309.7Q336 304 336.0 296.0L336.0 296.0Q336 288 344.0 288.0L578.0 288.0Q592 288 601.9 278.1L624 256"/><path class="ln" pathLength="1" style="--i:13;stroke:#E28932" d="M432 368L432.0 450.0Q432 464 422.1 473.9L409.9 486.1Q400 496 386.0 496.0L256 496"/><path class="ln" pathLength="1" style="--i:14;stroke:#F8D447" d="M304 240L304.0 276.7Q304 288 312.0 296.0L314.3 298.3Q320 304 328.0 304.0L328.0 304.0Q336 304 330.3 309.7L328.0 312.0Q320 320 308.7 320.0L171.3 320.0Q160 320 152.0 312.0L149.7 309.7Q144 304 136.0 304.0L136.0 304.0Q128 304 128.0 312.0L128.0 354.0Q128 368 137.9 377.9L166.1 406.1Q176 416 176.0 430.0L176.0 594.0Q176 608 190.0 608.0L324.7 608.0Q336 608 344.0 616.0L344.0 616.0Q352 624 352.0 635.3L352.0 772.7Q352 784 344.0 792.0L336 800"/><path class="ln" pathLength="1" style="--i:15;stroke:#A14087" d="M48 416L48.0 382.0Q48 368 62.0 368.0L276.7 368.0Q288 368 296.0 360.0L298.3 357.7Q304 352 304.0 344.0L304.0 344.0Q304 336 309.7 330.3L406.1 233.9Q416 224 430.0 224.0L480 224"/><path class="ln" pathLength="1" style="--i:16;stroke:#80AE46" d="M272 352L272.0 402.0Q272 416 281.9 425.9L358.1 502.1Q368 512 368.0 526.0L368 592"/><path class="ln" pathLength="1" style="--i:17;stroke:#9F7739" d="M624 320L553.9 390.1Q544 400 544.0 414.0L544.0 434.0Q544 448 534.1 457.9L505.9 486.1Q496 496 482.0 496.0L235.3 496.0Q224 496 216.0 504.0L216.0 504.0Q208 512 208.0 523.3L208 592"/><path class="ln" pathLength="1" style="--i:18;stroke:#969798" d="M32 448L292.7 448.0Q304 448 312.0 440.0L312.0 440.0Q320 432 328.0 440.0L328.0 440.0Q336 448 347.3 448.0L434.0 448.0Q448 448 457.9 457.9L566.1 566.1Q576 576 576.0 590.0L576 608"/></g></svg></div>
+      <span class="foot-name">Ryan McCaulsky</span>
+      <p class="foot-tag">Product Designer with nine years in healthcare, logistics and media.</p>
+      <span class="foot-loc"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 14.2s4.6-4.1 4.6-7.6a4.6 4.6 0 0 0-9.2 0c0 3.5 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.6" r="1.7"/></svg>The Bronx, NY</span>
+      <div class="foot-bot">
+        <span>© 2026 Ryan McCaulsky</span>
+        <nav class="foot-links" aria-label="Elsewhere">
+          <a href="https://www.linkedin.com/in/ryanmccaulsky/" target="_blank" rel="noopener" aria-label="LinkedIn" title="LinkedIn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 2H3.6C2.7 2 2 2.7 2 3.6v16.8c0 .9.7 1.6 1.6 1.6h16.8c.9 0 1.6-.7 1.6-1.6V3.6c0-.9-.7-1.6-1.6-1.6zM8 19H5V9.5h3V19zM6.5 8.2a1.7 1.7 0 1 1 0-3.5 1.7 1.7 0 0 1 0 3.5zM19 19h-3v-4.6c0-1.1 0-2.5-1.5-2.5S12.8 13 12.8 14.3V19h-3V9.5h2.9v1.3c.4-.8 1.4-1.5 2.8-1.5 3 0 3.6 2 3.6 4.6V19z"/></svg></a>
+          <a class="stroke" href="mailto:ryan.mccaulsky@gmail.com" aria-label="Email" title="Email"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M2.4 4.2 8 8.6l5.6-4.4"/></svg></a>
+        </nav>
+      </div>
+    </footer>
   </section>
   <div class="dock">
   <section class="glass train fadeout" id="trainCard" aria-label="Next train">
@@ -802,7 +974,7 @@
       var loader = document.getElementById('loader'), t0 = performance.now();
       var holdLoader = /[?&]loader=hold/.test(location.search);   // preview: keep the loader up
       (function waitLoader(){ var dt = performance.now()-t0; if (holdLoader) return;
-        if ((window.__ready && window.__warm && dt>2400) || dt>25000){ window.__loaderMs=Math.round(dt); window.__loaderUp=false; loader.classList.add('bg-out'); setTimeout(function(){ loader.classList.add('hide'); setTimeout(function(){ loader.remove(); }, 1100); }, 0); } else requestAnimationFrame(waitLoader); })();
+        if ((window.__ready && window.__warm && dt>2400) || dt>25000){ window.__loaderMs=Math.round(dt); window.__loaderUp=false; loader.classList.add('bg-out'); setTimeout(function(){ loader.classList.add('hide'); setTimeout(function(){ loader.remove(); window.dispatchEvent(new Event('loader-gone')); }, 1100); }, 0); } else requestAnimationFrame(waitLoader); })();
       var veil = document.getElementById('veil');
       (function wait(){ if (window.__ready && window.__warm) veil.classList.add('hide'); else requestAnimationFrame(wait); })();   // loading veil fades once the train is built
     })();
@@ -2805,16 +2977,79 @@ THREE.ColorManagement.enabled = false;
       function toCard(){ var c=card.getBoundingClientRect(), f=full.getBoundingClientRect();
         full.style.setProperty('--ct',(c.top-f.top)+'px'); full.style.setProperty('--cl',(c.left-f.left)+'px');
         full.style.setProperty('--cr',(f.right-c.right)+'px'); full.style.setProperty('--cb',(f.bottom-c.bottom)+'px'); full.style.setProperty('--crad','22px'); }
-      function toFull(){ ['--ct','--cl','--cr','--cb'].forEach(function(k){ full.style.setProperty(k,'0px'); }); full.style.setProperty('--crad','12px'); }
-      function open(){ full.hidden=false; full.classList.add('instant'); toCard(); void full.offsetWidth; full.classList.remove('instant');
+      function toFull(){ ['--ct','--cl','--cr','--cb'].forEach(function(k){ full.style.setProperty(k,'0px'); }); full.style.setProperty('--crad','0px'); }
+      // instant: opened on page load rather than by a click, so start full-screen instead of growing out of the button
+      var closeT;
+      function open(instant){ clearTimeout(closeT); full.classList.remove('closing'); full.hidden=false; if (document.getElementById('loader')) full.classList.add('held'); full.classList.add('instant'); if (instant===true) toFull(); else toCard(); void full.offsetWidth; full.classList.remove('instant');
         requestAnimationFrame(function(){ toFull(); full.classList.add('open'); }); openB.setAttribute('aria-expanded','true');
-        window.__aboutP=1; document.body.classList.add('full-open'); full.scrollTop=0; closeB.focus({ preventScroll:true }); }
-      function close(){ if (full.hidden) return; full.classList.remove('open'); toCard(); openB.setAttribute('aria-expanded','false'); window.__aboutP=0; document.body.classList.remove('full-open');
-        var done=function(){ full.hidden=true; full.removeEventListener('transitionend',done); }; full.addEventListener('transitionend',done);
-        setTimeout(done, 700); openB.focus({ preventScroll:true }); }
+        window.__aboutP=1; document.body.classList.add('full-open'); full.scrollTop=0; full.dispatchEvent(new Event('about-open')); closeB.focus({ preventScroll:true }); }
+      function close(){ if (full.hidden || full.classList.contains('closing')) return; full.classList.remove('open'); full.classList.add('closing'); openB.setAttribute('aria-expanded','false'); window.__aboutP=0; document.body.classList.remove('full-open'); document.body.style.removeProperty('--nav-s'); full.dispatchEvent(new Event('about-close'));
+        if (/^#(about-me|my-process|inspiration)$/.test(location.hash)) history.replaceState(null,'',location.pathname+location.search);   // a closed About shouldn't reopen on reload
+        // hide once the panel's own fade ends (children's transitions bubble here too); a reopen mid-fade cancels it
+        var done=function(e){ if (e && e.target!==full) return; clearTimeout(closeT); full.removeEventListener('transitionend',done); if (!full.classList.contains('closing')) return; full.hidden=true; full.classList.remove('closing'); };
+        full.addEventListener('transitionend',done); closeT=setTimeout(done, 500); openB.focus({ preventScroll:true }); }
       openB.addEventListener('click', function(e){ e.preventDefault(); open(); }); closeB.addEventListener('click', close);
-      if (location.hash==='#about') setTimeout(open, 700);   // arriving from the nav on another page
+      window.__aboutOpen=open;
+      full.addEventListener('scroll', function(){ var max=full.scrollHeight-full.clientHeight, p=max>0 ? Math.min(1, full.scrollTop/max) : 0;
+        document.body.style.setProperty('--nav-s', (1 - 0.12*p).toFixed(4)); }, { passive:true });
+      window.addEventListener('loader-gone', function(){ full.classList.remove('held'); });
+      // arriving from the nav on another page, or a link straight to a section; skipped while About is gated ("coming soon": the nav link still carries data-soon)
+      if (/^#(about|about-me|my-process|inspiration)$/.test(location.hash)) setTimeout(function(){ if (!openB.hasAttribute('data-soon')) open(true); }, 700);
       addEventListener('keydown', function(e){ if (e.key==='Escape' && !full.hidden) close(); });
+    })();
+  </script>
+  <script>
+    // About section links behave like anchors (address, back/forward, deep links) but swap the section in place with a cross-fade.
+    // Scrolling steps through the sections too (one every STEP of a screen) while the stage holds in place.
+    (function(){
+      var full=document.getElementById('aboutFull'), stage=full.querySelector('.full-stage');
+      var links=[].slice.call(document.querySelectorAll('.full-tab')), byHash={}, STEP=0.95, lockUntil=0, pinStart=0;   // STEP must match the track height in the CSS (2 × STEP + 0.5 screens)
+      links.forEach(function(a){ byHash[a.getAttribute('href')]=a; });
+      full.classList.add('scrolly');
+      function step(){ return full.clientHeight*STEP; }
+      // a stage taller than the screen holds once its bottom meets the screen's bottom (pinStart px in); a shorter one holds from the top
+      function measure(){ var h=stage.offsetHeight, H=full.clientHeight; pinStart=Math.max(0, h-H);
+        full.style.setProperty('--stage-h', h+'px'); full.style.setProperty('--stage-top', Math.min(0, H-h)+'px'); }
+      // move the scroll to a section's stretch (About me goes back to the very top); ignore scroll-driven switching while a smooth scroll passes the others
+      function goTo(a, smooth){ show(a); var i=links.indexOf(a); lockUntil=performance.now() + (smooth ? 900 : 0);
+        full.scrollTo({ top: i ? pinStart + i*step() : 0, behavior: smooth ? 'smooth' : 'auto' }); }
+      function show(a){ if (!a || a.classList.contains('active')) return;
+        var cur=document.querySelector('.full-tab.active');
+        if (cur){ cur.classList.remove('active'); cur.removeAttribute('aria-current');
+          var old=document.getElementById('panel-'+cur.dataset.tab); old.classList.add('leaving'); old.classList.remove('active');
+          setTimeout(function(){ old.classList.remove('leaving'); }, 250); }
+        a.classList.add('active'); a.setAttribute('aria-current','true');
+        var next=document.getElementById('panel-'+a.dataset.tab); next.classList.remove('leaving'); next.classList.add('active'); }
+      links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); if (a.classList.contains('active')) return;
+        history.pushState(null,'',a.getAttribute('href')); goTo(a, true); }); });
+      window.addEventListener('popstate', function(){ goTo(byHash[location.hash] || links[0], true); });
+      // scrolling picks the section; the address follows quietly (replaceState, so scrolling doesn't fill the history)
+      full.addEventListener('scroll', function(){ if (performance.now() < lockUntil) return;
+        var a=links[Math.max(0, Math.min(links.length-1, Math.round((full.scrollTop - pinStart)/step())))];
+        if (!a.classList.contains('active')){ show(a); history.replaceState(null,'',a.getAttribute('href')); } }, { passive:true });
+      full.addEventListener('about-open', function(){ measure(); goTo(byHash[location.hash] || links[0], false); });
+      window.addEventListener('resize', function(){ if (!full.hidden) measure(); });
+      show(byHash[location.hash]);
+    })();
+    // Shelf playback: the record plays Apple's 30-second preview of "Early Summer" from Scenery.
+    // The preview link is looked up from the iTunes API on first click (preview links can change); if that or playback fails, the record just stays still.
+    (function(){
+      var btn=document.querySelector('.shelf-play'), li=btn.closest('.shelf-item'), now=li.querySelector('.shelf-now'), audio=new Audio(), track=null;
+      function lookup(){ return fetch('https://itunes.apple.com/lookup?id=1329457232&entity=song&country=us').then(function(r){ return r.json(); }).then(function(d){
+        var tracks=d.results.filter(function(t){ return t.wrapperType==='track' && t.previewUrl; });
+        return tracks.filter(function(t){ return /early summer/i.test(t.trackName); })[0] || tracks[0]; }); }
+      function mark(on){ li.classList.toggle('playing', on); btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        now.textContent = on && track ? 'Playing “' + track.trackName + '” (preview)' : ''; }
+      btn.addEventListener('click', function(){
+        if (!audio.paused){ audio.pause(); return; }
+        (track ? Promise.resolve(track) : lookup().then(function(t){ return track=t; }))
+          .then(function(t){ if (audio.src!==t.previewUrl) audio.src=t.previewUrl; return audio.play(); })
+          .catch(function(){ mark(false); });
+      });
+      audio.addEventListener('play', function(){ mark(true); });
+      audio.addEventListener('pause', function(){ mark(false); });
+      audio.addEventListener('ended', function(){ mark(false); });
+      document.getElementById('aboutFull').addEventListener('about-close', function(){ audio.pause(); });
     })();
   </script>
   <script>
@@ -2839,6 +3074,10 @@ THREE.ColorManagement.enabled = false;
     (function(){ var el=document.createElement('div'), t; el.className='soon-toast'; el.setAttribute('role','status'); document.body.appendChild(el);
         document.addEventListener('click', function(e){ var a=e.target.closest && e.target.closest('[data-soon]'); if (!a) return; e.preventDefault(); e.stopPropagation();
           el.textContent='Coming soon'; el.classList.add('show'); clearTimeout(t); t=setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ if (!el.classList.contains('show')) el.textContent=''; },300); },1800); }, true); })();
+    if (/[?&]preview=about/.test(location.search)){
+      var af=document.getElementById('aboutFull'); if (af){ af.classList.add('preview'); af.removeAttribute('hidden');
+        document.querySelector('.bn-about')?.removeAttribute('data-soon');
+        setTimeout(function(){ window.__aboutOpen(true); },800); } }
   </script>
 </body>
 </html>
