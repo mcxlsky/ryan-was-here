@@ -3003,16 +3003,22 @@ THREE.ColorManagement.enabled = false;
     // Scrolling steps through the sections too (one every STEP of a screen) while the stage holds in place.
     (function(){
       var full=document.getElementById('aboutFull'), stage=full.querySelector('.full-stage');
-      var links=[].slice.call(document.querySelectorAll('.full-tab')), byHash={}, STEP=0.95, lockUntil=0, pinStart=0;   // STEP must match the track height in the CSS (2 × STEP + 0.5 screens)
+      var links=[].slice.call(document.querySelectorAll('.full-tab')), byHash={}, STEP=0.95, pinStart=0, target=null, targetT, settleT;   // STEP must match the track height in the CSS (2 × STEP + 0.5 screens)
       links.forEach(function(a){ byHash[a.getAttribute('href')]=a; });
       full.classList.add('scrolly');
       function step(){ return full.clientHeight*STEP; }
       // a stage taller than the screen holds once its bottom meets the screen's bottom (pinStart px in); a shorter one holds from the top
       function measure(){ var h=stage.offsetHeight, H=full.clientHeight; pinStart=Math.max(0, h-H);
         full.style.setProperty('--stage-h', h+'px'); full.style.setProperty('--stage-top', Math.min(0, H-h)+'px'); }
-      // move the scroll to a section's stretch (About me goes back to the very top); ignore scroll-driven switching while a smooth scroll passes the others
-      function goTo(a, smooth){ show(a); var i=links.indexOf(a); lockUntil=performance.now() + (smooth ? 900 : 0);
-        full.scrollTo({ top: i ? pinStart + i*step() : 0, behavior: smooth ? 'smooth' : 'auto' }); }
+      // the section that belongs at the current scroll position; show it (and quietly update the address) if it isn't already
+      function sync(){ var a=links[Math.max(0, Math.min(links.length-1, Math.round((full.scrollTop - pinStart)/step())))];
+        if (!a.classList.contains('active')){ show(a); history.replaceState(null,'',a.getAttribute('href')); } }
+      // move the scroll to a section's stretch (About me goes back to the very top). While a smooth scroll travels there, scroll-driven
+      // switching waits (so the sections in between don't flash) — until it arrives, the visitor scrolls themselves, or 1.2s passes
+      function goTo(a, smooth){ show(a); var i=links.indexOf(a), top=i ? pinStart + i*step() : 0;
+        clearTimeout(targetT); target=null;
+        if (smooth){ target=Math.min(top, full.scrollHeight - full.clientHeight); targetT=setTimeout(function(){ target=null; sync(); }, 1200); }
+        full.scrollTo({ top: top, behavior: smooth ? 'smooth' : 'auto' }); }
       function show(a){ if (!a || a.classList.contains('active')) return;
         var cur=document.querySelector('.full-tab.active');
         if (cur){ cur.classList.remove('active'); cur.removeAttribute('aria-current');
@@ -3023,10 +3029,14 @@ THREE.ColorManagement.enabled = false;
       links.forEach(function(a){ a.addEventListener('click', function(e){ e.preventDefault(); if (a.classList.contains('active')) return;
         history.pushState(null,'',a.getAttribute('href')); goTo(a, true); }); });
       window.addEventListener('popstate', function(){ goTo(byHash[location.hash] || links[0], true); });
-      // scrolling picks the section; the address follows quietly (replaceState, so scrolling doesn't fill the history)
-      full.addEventListener('scroll', function(){ if (performance.now() < lockUntil) return;
-        var a=links[Math.max(0, Math.min(links.length-1, Math.round((full.scrollTop - pinStart)/step())))];
-        if (!a.classList.contains('active')){ show(a); history.replaceState(null,'',a.getAttribute('href')); } }, { passive:true });
+      // scrolling picks the section; the address follows quietly (replaceState, so scrolling doesn't fill the history).
+      // A last check once scrolling settles guarantees the section always matches where the page actually stopped.
+      full.addEventListener('scroll', function(){
+        clearTimeout(settleT); settleT=setTimeout(function(){ if (target===null) sync(); }, 120);
+        if (target!==null){ if (Math.abs(full.scrollTop - target) > 2) return; clearTimeout(targetT); target=null; }
+        sync(); }, { passive:true });
+      // the visitor taking over mid-way (wheel, touch, keys) cancels a link's smooth-scroll wait straight away
+      ['wheel','touchstart','keydown'].forEach(function(ev){ full.addEventListener(ev, function(){ if (target!==null){ clearTimeout(targetT); target=null; } }, { passive:true }); });
       full.addEventListener('about-open', function(){ measure(); goTo(byHash[location.hash] || links[0], false); });
       window.addEventListener('resize', function(){ if (!full.hidden) measure(); });
       show(byHash[location.hash]);
