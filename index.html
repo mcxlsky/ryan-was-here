@@ -693,6 +693,12 @@
        --stage-h / --stage-top are measured by script: when the stage is taller than the screen (phones), it first scrolls until its bottom meets the screen's bottom and holds there, so no text is hidden */
     .about-full.scrolly .full-track { height: calc(var(--stage-h, 100dvh) + 240dvh); }
     .about-full.scrolly .full-stage { position: sticky; top: var(--stage-top, 0px); z-index: 1; }
+    /* one scroll gesture = one section: each section's resting point is a snap stop that a flick can't skip (scroll-snap-stop: always),
+       and the footer is the last stop. Only when the stage fits the screen — on phones the taller stage needs free scrolling to be read. */
+    .about-full.scrolly .full-track { position: relative; }
+    .about-full.snappy { scroll-snap-type: y mandatory; }
+    .full-snap { position: absolute; left: 0; width: 1px; height: 1px; pointer-events: none; scroll-snap-align: start; scroll-snap-stop: always; }
+    .about-full.snappy .full-foot { scroll-snap-align: end; scroll-snap-stop: always; }
     .full-x svg { width: 16px; height: 16px; }
     .full-x { background: none; color: rgba(17,17,17,0.35); }
     .full-x:hover { background: none; color: rgba(17,17,17,0.6); }
@@ -3013,10 +3019,13 @@ THREE.ColorManagement.enabled = false;
       var links=[].slice.call(document.querySelectorAll('.full-tab')), byHash={}, STEP=0.95, pinStart=0, target=null, targetT, settleT;   // STEP must match the track height in the CSS (2 × STEP + 0.5 screens)
       links.forEach(function(a){ byHash[a.getAttribute('href')]=a; });
       full.classList.add('scrolly');
+      var track=full.querySelector('.full-track'), snaps=links.map(function(){ var m=document.createElement('span'); m.className='full-snap'; m.setAttribute('aria-hidden','true'); track.appendChild(m); return m; });
       function step(){ return full.clientHeight*STEP; }
       // a stage taller than the screen holds once its bottom meets the screen's bottom (pinStart px in); a shorter one holds from the top
       function measure(){ var h=stage.offsetHeight, H=full.clientHeight; pinStart=Math.max(0, h-H);
-        full.style.setProperty('--stage-h', h+'px'); full.style.setProperty('--stage-top', Math.min(0, H-h)+'px'); }
+        full.style.setProperty('--stage-h', h+'px'); full.style.setProperty('--stage-top', Math.min(0, H-h)+'px');
+        snaps.forEach(function(m, i){ m.style.top=(i ? pinStart + i*step() : 0)+'px'; });   // each section's resting point, same as goTo() scrolls to
+        full.classList.toggle('snappy', pinStart===0); }
       // the section that belongs at the current scroll position; show it (and quietly update the address) if it isn't already
       function sync(){ var a=links[Math.max(0, Math.min(links.length-1, Math.round((full.scrollTop - pinStart)/step())))];
         if (!a.classList.contains('active')){ show(a); history.replaceState(null,'',a.getAttribute('href')); } }
@@ -3038,13 +3047,22 @@ THREE.ColorManagement.enabled = false;
       window.addEventListener('popstate', function(){ goTo(byHash[location.hash] || links[0], true); });
       // scrolling picks the section; the address follows quietly (replaceState, so scrolling doesn't fill the history).
       // A last check once scrolling settles guarantees the section always matches where the page actually stopped.
+      // between snaps the section text fades with the scroll itself: full at its stop, gone by 40% of the way to the next, drifting up a
+      // touch as it leaves and rising into place as the next arrives. A link's smooth scroll skips this (the panels cross-fade instead).
+      var panels=full.querySelector('.full-panels'), still=matchMedia('(prefers-reduced-motion: reduce)');
+      function fade(){
+        if (target!==null){ panels.style.opacity=''; panels.style.transform=''; return; }
+        var p=Math.max(0, Math.min(links.length-1, (full.scrollTop - pinStart)/step())), off=p - Math.round(p);
+        panels.style.opacity=Math.max(0, 1 - Math.abs(off)/0.4).toFixed(3);
+        panels.style.transform=still.matches ? '' : 'translateY('+(-off*24).toFixed(1)+'px)'; }
       full.addEventListener('scroll', function(){
+        fade();
         clearTimeout(settleT); settleT=setTimeout(function(){ if (target===null) sync(); }, 120);
         if (target!==null){ if (Math.abs(full.scrollTop - target) > 2) return; clearTimeout(targetT); target=null; }
         sync(); }, { passive:true });
       // the visitor taking over mid-way (wheel, touch, keys) cancels a link's smooth-scroll wait straight away
       ['wheel','touchstart','keydown'].forEach(function(ev){ full.addEventListener(ev, function(){ if (target!==null){ clearTimeout(targetT); target=null; } }, { passive:true }); });
-      full.addEventListener('about-open', function(){ measure(); goTo(byHash[location.hash] || links[0], false); });
+      full.addEventListener('about-open', function(){ measure(); goTo(byHash[location.hash] || links[0], false); fade(); });
       window.addEventListener('resize', function(){ if (!full.hidden) measure(); });
       show(byHash[location.hash]);
     })();
