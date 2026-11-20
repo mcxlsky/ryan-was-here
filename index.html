@@ -585,7 +585,7 @@
     .about-full.open .full-in { opacity: 1; transform: none; transition-delay: .18s; }
     .full-bar { position: sticky; top: 0; z-index: 1; padding: 31px 40px 11px; text-align: center; }
     .full-mark { font: 700 26px/1 "Caveat", "Segoe Script", "Bradley Hand", cursive; color: rgba(17,17,17,0.22); display: block; }
-    .full-photo { display: block; width: 3.8em; height: 3.8em; border-radius: 50%; object-fit: cover; background: rgba(17,17,17,0.06); justify-self: start; margin-bottom: 0.85em; }
+    .full-photo { display: block; width: 3.8em; height: 3.8em; border-radius: 50%; object-fit: cover; background: rgba(17,17,17,0.06); justify-self: start; margin-bottom: 1.3em; }
     .full-lead { font: 500 1em/1.55 var(--font-ui); letter-spacing: -0.01em; color: rgba(17,17,17,0.7); text-wrap: balance; margin-bottom: 0.95em; }
     /* section links: icon + label rows stacked in the panel's top-left corner; the first row sits on the header line with the mark and the close button */
     .full-tabs { position: absolute; z-index: 2; top: calc(var(--frame) + 30px + env(safe-area-inset-top, 0px)); left: calc(var(--frame) + 40px);
@@ -616,7 +616,7 @@
     .shelf-row { --gap: 1.1em; --col: calc((100cqi - 2 * var(--gap)) / 3); --wrap: calc(var(--col) * .95);
                  position: relative; list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 var(--gap); }
     /* the plank: a light top surface the covers stand on, a grained front edge (SVG noise stretched sideways into long streaks), and a soft shadow underneath */
-    .shelf-row::before { content: ''; position: absolute; left: -4%; right: -4%; top: calc(var(--wrap) - .22em); height: .8em; border-radius: 2px 2px 3px 3px;
+    .shelf-row::before { content: ''; position: absolute; left: 0; right: 0; top: calc(var(--wrap) - .22em); height: .8em; border-radius: 2px 2px 3px 3px;
                          background: linear-gradient(#ecd6b1 0 .22em, rgba(255,255,255,.3) .22em calc(.22em + 1px), transparent calc(.22em + 1px)),
                                      linear-gradient(transparent 65%, rgba(70,40,15,.2)),
                                      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='30' preserveAspectRatio='none'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.5' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.33  0 0 0 0 0.19  0 0 0 0 0.07  1.4 0 0 0 -0.55'/%3E%3C/filter%3E%3Crect width='600' height='30' filter='url(%23w)'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat,
@@ -667,13 +667,9 @@
     .full-panel p:first-child { margin-top: 0; }
     .full-in > p { font: 500 1em/1.55 var(--font-ui); letter-spacing: -0.01em; color: rgba(17,17,17,0.7); text-wrap: pretty; margin-top: 0.95em; }
     .full-in > p:first-of-type { margin-top: 0; }
-    /* inline links in the About copy: a shade darker than the text, led by a small page icon (no underline); the page tips on hover */
+    /* inline links in the About copy: a shade darker than the text, no underline */
     .full-link { color: #111; text-decoration: none; border-radius: 2px; }
-    .full-link-start { white-space: nowrap; }   /* keeps the icon on the same line as its first word */
-    .full-link-ic { display: inline-block; width: 0.95em; height: 0.95em; margin: 0 0.18em 0 0.02em; vertical-align: -0.12em; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s cubic-bezier(.3,1.4,.5,1); }
-    .full-link:hover .full-link-ic { transform: rotate(-8deg) translateY(-0.06em); }
     .full-link:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
-    @media (prefers-reduced-motion: reduce){ .full-link-ic { transition: none; } }
     .full-bar { position: relative; z-index: 1; }
     .full-foot { position: relative; z-index: 1; background: #F5F5F5; padding: 48px 40px calc(96px + env(safe-area-inset-bottom, 0px)); }
     .foot-map svg { display: block; width: 96px; height: auto; }
@@ -744,6 +740,9 @@
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
     /* the expanded About: a faint warm gradient so the panel reads apart from the white frame around it */
     .about-full { background: #FAFAFA; }
+    /* the site runs color-scheme: dark for the night scene; the light About page opts out, and selected text gets a soft gold highlight instead of the dark-mode grey */
+    .about-full { color-scheme: light; }
+    .about-full ::selection { background: rgba(240, 186, 40, 0.32); color: #111; }
     /* iOS 26 Safari tints its top and bottom bars from the rendered colour at the screen edges. Two strips sit there, painted with the scene's own top and bottom rows (sampled every couple of seconds), so the bars read as part of the street and sky. The strips sit below the tab and bnav (Safari reads pixels, not z-order, and sees through the transparent mobile header). ?tint=debug makes them big and red/green to see what Safari does with them */
     .edge { position: fixed; left: 0; right: 0; height: 44px; z-index: 3; pointer-events: none; background: #171715; transition: background-color 1.5s ease; display: none; }
     @media (pointer: coarse) { .edge { display: block; } }   /* only on touch devices: iOS Safari tints its bars from rendered edge pixels; desktop browsers don't, so the strips just look like artifacts */
@@ -837,16 +836,17 @@
       <img class="full-photo" src="images/ryan-portrait.jpg" alt="Ryan McCaulsky" width="320" height="320">
       <div class="full-panels">
         <div class="full-panel active" id="panel-background">
-          <p class="full-lead">Hey, I’m Ryan! I’m a Product Designer with <a class="full-link" href="Ryan-McCaulsky-Resume.pdf" target="_blank" rel="noopener"><span class="full-link-start"><svg class="full-link-ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 1.8h5.3L12.5 5v9.2H4zM9.3 1.8V5h3.2M6.2 8.4h4.1M6.2 10.9h4.1"/></svg>over</span> nine years of experience<span class="sr"> (resume, PDF, opens in a new tab)</span></a> building experiences in Healthcare, Transportation Logistics, and Digital Media.</p>
-          <p>I care about the details that make software feel considered — the transitions, the hierarchy, the moments where something just works without you noticing why. Most of my career has been spent at the intersection of complex systems and the people who have to use them every day.</p>
-          <p>In healthcare, that meant making clinical workflows faster without losing the precision clinicians depend on. In transportation logistics, it was about surfacing the right information at the right time for people making decisions under pressure. In digital media, it was building tools that stay out of the way and let creators focus on the work.</p>
+          <p class="full-lead">Hey, I’m Ryan! I’m a Product Designer with <a class="full-link" href="Ryan-McCaulsky-Resume.pdf" target="_blank" rel="noopener">over nine years of experience<span class="sr"> (resume, PDF, opens in a new tab)</span></a> building in healthcare, transportation logistics, and digital media.</p>
+          <p>I’ve always rooted for the underdog. I gravitate toward scrappy startups and challenger brands — taking messy, complicated software and making it feel clear, fast, and easy to use.</p>
+          <p>Lately, I’ve been launching independent projects, including Blackradio. It’s my playground for curiosity, craft, and testing the edges of what’s possible.</p>
         </div>
         <div class="full-panel" id="panel-process">
-          <p>I approach every problem through systems thinking — understanding the full context before narrowing in on the right intervention. The best solutions usually come from mapping the whole system, not just the screen in front of you.</p>
-          <p>My process moves from research and mental models to low-fidelity interaction design, then high-fidelity prototyping. I build and maintain design systems so teams can ship faster without losing coherence across a product.</p>
+          <p>My process starts with curiosity. I spend just as much time thinking about backend engineering and business outcomes as I do visual affordances.</p>
+          <p>Traditional wireframes might be close to extinction, but going wide on an idea still matters. I work closely with subject matter experts to map out a product’s connective tissue, then move quickly into interactive prototypes so teams can test real behavior and not theoretical outcomes.</p>
+          <p>Deep conversations with an LLM never hurt either.</p>
         </div>
         <div class="full-panel" id="panel-inspiration">
-          <p>And here are a few things that currently have my attention.</p>
+          <p>Curiosity doesn’t clock out when the laptop closes. I’m always digging into new records, books, and podcasts to keep things fresh. Here’s a look at what currently has my attention.</p>
           <div class="shelf">
             <ul class="shelf-row" aria-label="On my shelf right now">
               <li class="shelf-item">
