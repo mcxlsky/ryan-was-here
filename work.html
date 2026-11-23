@@ -38,7 +38,7 @@
     /* view switcher: stacked links in the top-left corner like the About page's section links, at every width */
     .full-tabs { position: fixed; z-index: 3; top: calc(30px + env(safe-area-inset-top, 0px)); left: calc(var(--gut) + var(--edge));
                  display: flex; flex-direction: column; align-items: flex-start; margin-left: -8px; }
-    .full-tab { height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: none; border: none; border-radius: 8px;
+    .full-tab { height: 24px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: none; border: none; border-radius: 8px;
                 font: 500 13px/1 var(--font-ui); white-space: nowrap; text-decoration: none; color: rgba(17,17,17,0.35); cursor: pointer; transition: color .2s; }
     .full-tab:hover { color: rgba(17,17,17,0.7); }
     .full-tab[aria-current="page"] { color: #111; }
@@ -77,14 +77,16 @@
     .cl-obj canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .5s ease; }
     .cl-obj.drawn canvas { opacity: 1; }
     .cl-obj img { width: 74%; height: auto; }   /* only if the browser can't do 3D */
-    /* the front project's name and details in one small flat card under its object, in the soft grey the chips used; a fixed size (centred contents),
-       so swapping projects never moves the orbit */
-    .cl-info { width: min(100%, 210px); min-height: 148px; margin: 22px auto auto; padding: 16px 16px; display: grid; justify-items: center; align-content: center; gap: 2px;
+    /* the front project's name and details in one small flat card under its object, in the soft grey the chips used. Every project has the same
+       lines (name, role, dates, button), so every card is the same height and swapping projects never moves the orbit.
+       Spacing: 18px all round, 6px under the name, 2px between the details, 14px above the button */
+    .cl-info { width: min(100%, 210px); margin: 22px auto auto; padding: 18px 16px; display: grid; justify-items: center; align-content: start; gap: 0;
                text-align: center; background: rgba(17,17,17,0.055); border-radius: 16px; }
-    .cl-info b { margin-bottom: 4px; font: 600 16px/1.25 var(--font-ui); letter-spacing: -0.02em; }   /* the name, then its details stacked one per line */
-    .cl-info .meta { font: 500 12.5px/1.35 var(--font-ui); color: rgba(17,17,17,0.55); }   /* the details, one per line (the card is their fill now) */
+    .cl-info b { margin-bottom: 6px; font: 600 16px/1.25 var(--font-ui); letter-spacing: -0.02em; }   /* the name, then its details stacked one per line */
+    .cl-info .meta { font: 500 12.5px/1.35 var(--font-ui); color: rgba(17,17,17,0.55); }
+    .cl-info .meta + .meta { margin-top: 2px; }   /* the details, one per line (the card is their fill now) */
     /* the way in: a small dark button at the card's foot, to the project's Featured slide */
-    .cl-info .cl-open { margin-top: 10px; padding: 7px 14px; border-radius: 999px; background: #111; color: #fff; font: 500 12.5px/1.2 var(--font-ui);
+    .cl-info .cl-open { margin-top: 14px; padding: 7px 14px; border-radius: 999px; background: #111; color: #fff; font: 500 12.5px/1.2 var(--font-ui);
                         text-decoration: none; transition: background .2s ease; }
     .cl-info .cl-open:hover { background: #333; }
 
