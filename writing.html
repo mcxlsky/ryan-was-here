@@ -12,39 +12,45 @@
     :root { --font-ui: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { min-height: 100%; }
-    body { min-height: 100vh; min-height: 100dvh; background: linear-gradient(180deg, #efeee9 0%, #f7f6f3 28%, #f9f9f7 60%, #efeee9 100%) fixed; color: #111;
+    body { min-height: 100vh; min-height: 100dvh; background: #FAFAFA; color: #111;
            font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
     a { color: inherit; text-decoration: none; }
     a:focus-visible, button:focus-visible { outline: 2px solid #111; outline-offset: 3px; }
 
-    .top { position: fixed; z-index: 2; top: 0; left: 0; right: 0; display: flex; align-items: center; justify-content: center; padding: calc(14px + env(safe-area-inset-top, 0px)) 20px 14px; pointer-events: none; }
+    /* header, as on the About page: the faint wordmark centred on a fade that lets the list scroll away under it, and a bare X on the right */
+    .top { --edge: max(0px, (100vw - 1280px) / 2); position: fixed; z-index: 2; top: 0; left: 0; right: 0; display: flex; justify-content: center; padding: calc(31px + env(safe-area-inset-top, 0px)) 40px 39px; pointer-events: none;
+           background: linear-gradient(#FAFAFA 62%, rgba(250,250,250,0)); }
     .top > * { pointer-events: auto; }
-    .brand { font: 600 17px/1 var(--font-ui); letter-spacing: -0.01em; }
-    .brand { font-family: "Caveat", "Segoe Script", "Bradley Hand", "Snell Roundhand", cursive; font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: 0; }
-    .x { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); right: 10px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(17,17,17,0.08); transition: background .15s; }
-    .x:hover { background: rgba(17,17,17,0.14); }
+    .brand { font: 700 26px/1 "Caveat", "Segoe Script", "Bradley Hand", "Snell Roundhand", cursive; color: rgba(17,17,17,0.22); border-radius: 4px; transition: color .2s; }
+    .brand:hover { color: rgba(17,17,17,0.45); }
+    .x { position: absolute; top: calc(24px + env(safe-area-inset-top, 0px)); right: calc(10px + var(--edge)); display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; color: rgba(17,17,17,0.35); transition: color .2s; }
+    .x:hover { color: rgba(17,17,17,0.6); }
     .x svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 
-    main { max-width: 760px; margin: 0 auto; padding: calc(clamp(96px, 16vh, 150px) + env(safe-area-inset-top, 0px)) 24px calc(120px + env(safe-area-inset-bottom, 0px)); }
-    h1 { font: 600 clamp(34px, 6vw, 56px)/1.05 var(--font-ui); letter-spacing: -0.03em; }
-    .lede { margin-top: 14px; font: 400 clamp(16px, 2.1vw, 19px)/1.5 var(--font-ui); color: rgba(17,17,17,0.6); }
-    .lede a { color: #111; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(17,17,17,0.3); }
+    main { max-width: 760px; margin: 0 auto; padding: calc(clamp(96px, 16vh, 150px) + env(safe-area-inset-top, 0px)) 24px 96px; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* the page title, for screen readers only */
+    .lede { font: 400 clamp(16px, 2.1vw, 19px)/1.5 var(--font-ui); color: rgba(17,17,17,0.6); text-align: center; text-wrap: balance; }
 
-    .posts { margin-top: 40px; border-top: 1px solid rgba(0,0,0,0.1); }
-    .post { display: flex; align-items: center; gap: 20px; padding: 24px 0; border-bottom: 1px solid rgba(0,0,0,0.1); transition: opacity .15s; }
-    .posts:hover .post { opacity: 0.4; } .posts:hover .post:hover, .posts:hover .post:focus-visible { opacity: 1; }
-    .post-t { flex: 1; min-width: 0; display: grid; gap: 6px; }
-    .post-t b { font: 600 clamp(19px, 2.6vw, 24px)/1.2 var(--font-ui); letter-spacing: -0.02em; text-wrap: balance; }
+    /* posts: a grid of cards, each led by the article's Substack image (cropped to 4:5, which suits the portrait photos), then the title, subtitle and date */
+    .posts { margin-top: 40px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+    .post { display: flex; flex-direction: column; border-radius: 16px; background: #fff; overflow: hidden;
+            box-shadow: 0 1px 2px rgba(17,17,17,0.06), 0 0 0 1px rgba(17,17,17,0.06); transition: box-shadow .25s, transform .25s cubic-bezier(.2,.8,.2,1); }
+    .post:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -14px rgba(17,17,17,0.28), 0 0 0 1px rgba(17,17,17,0.08); }
+    .post:focus-visible { outline-offset: 4px; }
+    .post-img { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: rgba(17,17,17,0.06); }
+    .post-img img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+    .post:hover .post-img img { transform: scale(1.03); }
+    .post-t { display: grid; gap: 6px; padding: 18px 20px 20px; }
+    .post-t b { font: 600 clamp(18px, 2.2vw, 21px)/1.22 var(--font-ui); letter-spacing: -0.02em; text-wrap: balance; }
     .post-t p { font: 400 15px/1.45 var(--font-ui); color: rgba(17,17,17,0.6); text-wrap: pretty; }
-    .post-t time { font: 500 12.5px/1 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: rgba(17,17,17,0.4); }
-    .post-a { flex: none; color: rgba(17,17,17,0.25); transition: color .2s, transform .2s; }
-    .post:hover .post-a { color: rgba(17,17,17,0.6); transform: translateX(4px); }
-    .post-a svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-    .note { padding: 28px 0; font: 400 15px/1.5 var(--font-ui); color: rgba(17,17,17,0.55); }
-    .skel { height: 92px; border-bottom: 1px solid rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; gap: 10px; }
-    .skel i { display: block; height: 12px; border-radius: 6px; background: rgba(17,17,17,0.07); }
-    .skel i:first-child { width: 58%; height: 16px; } .skel i:last-child { width: 34%; }
-    @media (prefers-reduced-motion: reduce) { .post, .post-a { transition: none; } }
+    .post-t time { margin-top: 4px; font: 500 12.5px/1 var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; color: rgba(17,17,17,0.4); }
+    .note { grid-column: 1 / -1; padding: 28px 0; font: 400 15px/1.5 var(--font-ui); color: rgba(17,17,17,0.55); }
+    .skel { border-radius: 16px; background: #fff; box-shadow: 0 0 0 1px rgba(17,17,17,0.06); overflow: hidden; }
+    .skel::before { content: ''; display: block; aspect-ratio: 4 / 5; background: rgba(17,17,17,0.06); }
+    .skel i { display: block; height: 12px; margin: 0 20px 10px; border-radius: 6px; background: rgba(17,17,17,0.07); }
+    .skel i:first-child { width: 62%; height: 16px; margin-top: 20px; } .skel i:last-child { width: 38%; margin-bottom: 22px; }
+    @media (max-width: 600px) { .posts { grid-template-columns: 1fr; gap: 16px; } .post-img, .skel::before { aspect-ratio: 4 / 3; } }   /* one column on phones: a shorter crop so a card fits on screen */
+    @media (prefers-reduced-motion: reduce) { .post, .post-img img { transition: none; } .post:hover { transform: none; } .post:hover .post-img img { transform: none; } }
   </style>
 </head>
 <body>
@@ -54,10 +60,9 @@
   </header>
 
   <main>
-    <h1>Writing</h1>
-    <p class="lede">Notes on design, code and whatever else I'm chewing on. It all lives on <a href="https://ryanwashere.substack.com" target="_blank" rel="noopener">Substack</a>.</p>
+    <h1 class="sr">Writing</h1>
+    <p class="lede">Maybe I’m overthinking, but at least I’m thinking. Right?</p>
     <div class="posts" id="posts" aria-live="polite" aria-busy="true">
-      <div class="skel" aria-hidden="true"><i></i><i></i></div>
       <div class="skel" aria-hidden="true"><i></i><i></i></div>
       <div class="skel" aria-hidden="true"><i></i><i></i></div>
     </div>
@@ -79,12 +84,15 @@
       if (xml){ var doc=new DOMParser().parseFromString(xml,'text/xml'); if (!doc.querySelector('parsererror')){ items=Array.prototype.slice.call(doc.querySelectorAll('item')).slice(0,20); try { localStorage.setItem(KEY,xml); } catch(e){} } }
       box.setAttribute('aria-busy','false');
       if (!items.length){ box.innerHTML='<p class="note">Couldn’t load the posts just now. You can read everything at <a href="https://ryanwashere.substack.com" target="_blank" rel="noopener" style="text-decoration:underline">ryanwashere.substack.com</a>.</p>'; return; }
+      // the article image is the feed's enclosure; it's served through Substack's image CDN at 800px wide instead of the multi-megabyte original
+      var img=function(u){ if (!u) return ''; var m=u.match(/\/(https?%3A%2F%2F.*)$/i), o=m?decodeURIComponent(m[1]):u;
+        return 'https://substackcdn.com/image/fetch/w_800,c_limit,f_auto,q_auto:good,fl_progressive:steep/'+encodeURIComponent(o); };
       box.innerHTML=items.map(function(it){
-        var q=function(s){ var e=it.querySelector(s); return e?e.textContent:''; };
+        var q=function(s){ var e=it.querySelector(s); return e?e.textContent:''; }, en=it.querySelector('enclosure'), pic=img(en && /^image\//.test(en.getAttribute('type')||'image/') ? en.getAttribute('url') : '');
         var title=q('title').trim(), link=(q('link')||q('guid')).trim(), sub=q('description').replace(/<[^>]+>/g,'').trim(), raw=q('pubDate');
         var date=raw?new Date(raw).toLocaleDateString('en-US',{ month:'short', day:'numeric', year:'numeric' }):'';
-        return '<a class="post" href="'+esc(link)+'" target="_blank" rel="noopener"><span class="post-t"><b>'+esc(title)+'</b>'+(sub?'<p>'+esc(sub)+'</p>':'')+(date?'<time>'+esc(date)+'</time>':'')+'</span>'+
-          '<span class="post-a" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span></a>';
+        return '<a class="post" href="'+esc(link)+'" target="_blank" rel="noopener">'+(pic?'<span class="post-img"><img src="'+esc(pic)+'" alt="" width="800" height="1000" loading="lazy" decoding="async"></span>':'')+
+          '<span class="post-t"><b>'+esc(title)+'</b>'+(sub?'<p>'+esc(sub)+'</p>':'')+(date?'<time>'+esc(date)+'</time>':'')+'</span></a>';
       }).join('');
     })();
   </script>

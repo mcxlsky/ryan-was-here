@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <!-- Fleeting: a semi-truck cab, front on, lit from above — cream cab, chrome grille, charcoal bumper and tyres, orange marker lights -->
+  <defs>
+    <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf8f1"/><stop offset=".6" stop-color="#efe8db"/><stop offset="1" stop-color="#e0d7c5"/></linearGradient>
+    <linearGradient id="creamSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".09"/><stop offset=".1" stop-color="#000" stop-opacity="0"/><stop offset=".9" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".1"/></linearGradient>
+    <linearGradient id="char" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46464a"/><stop offset=".5" stop-color="#26262a"/><stop offset="1" stop-color="#141415"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a4048"/><stop offset="1" stop-color="#15181c"/></linearGradient>
+    <linearGradient id="glassShine" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".28"/><stop offset=".38" stop-color="#fff" stop-opacity=".06"/><stop offset=".39" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="chromeV" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f6f7f9"/><stop offset=".5" stop-color="#a9adb4"/><stop offset="1" stop-color="#e4e6e9"/></linearGradient>
+    <linearGradient id="chromeH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9ea2a9"/><stop offset=".5" stop-color="#f7f8fa"/><stop offset="1" stop-color="#9ea2a9"/></linearGradient>
+    <linearGradient id="bar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdfdfe"/><stop offset=".55" stop-color="#b8bcc2"/><stop offset="1" stop-color="#7f848b"/></linearGradient>
+    <radialGradient id="lamp" cx=".4" cy=".35" r=".7"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#e9edf2"/><stop offset="1" stop-color="#9aa3ad"/></radialGradient>
+    <radialGradient id="orange" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#ffb085"/><stop offset=".45" stop-color="#ef6a35"/><stop offset="1" stop-color="#c94a1c"/></radialGradient>
+    <linearGradient id="tyre" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0e0e0f"/><stop offset=".5" stop-color="#2c2c2f"/><stop offset="1" stop-color="#0e0e0f"/></linearGradient>
+    <filter id="soft" x="-20%" y="-60%" width="140%" height="220%"><feGaussianBlur stdDeviation="14"/></filter>
+  </defs>
+
+  <!-- contact shadow -->
+  <ellipse cx="400" cy="640" rx="270" ry="18" fill="#000" opacity=".24" filter="url(#soft)"/>
+
+  <!-- tyres -->
+  <rect x="196" y="540" width="84" height="92" rx="18" fill="url(#tyre)"/>
+  <rect x="520" y="540" width="84" height="92" rx="18" fill="url(#tyre)"/>
+  <g stroke="#3a3a3e" stroke-width="3" opacity=".8"><line x1="206" y1="570" x2="270" y2="570"/><line x1="206" y1="590" x2="270" y2="590"/><line x1="206" y1="610" x2="270" y2="610"/><line x1="530" y1="570" x2="594" y2="570"/><line x1="530" y1="590" x2="594" y2="590"/><line x1="530" y1="610" x2="594" y2="610"/></g>
+
+  <!-- chrome exhaust stacks behind the cab: what makes it read as a semi -->
+  <g>
+    <rect x="166" y="112" width="20" height="400" rx="8" fill="url(#chromeH)"/>
+    <rect x="614" y="112" width="20" height="400" rx="8" fill="url(#chromeH)"/>
+    <rect x="162" y="104" width="28" height="14" rx="5" fill="url(#char)"/>
+    <rect x="610" y="104" width="28" height="14" rx="5" fill="url(#char)"/>
+    <rect x="170" y="124" width="4" height="380" rx="2" fill="#fff" opacity=".7"/>
+    <rect x="618" y="124" width="4" height="380" rx="2" fill="#fff" opacity=".7"/>
+  </g>
+
+  <!-- mirrors on their arms -->
+  <g>
+    <path d="M196 280 H158 M604 280 H642" stroke="url(#chromeV)" stroke-width="8" stroke-linecap="round"/>
+    <rect x="118" y="214" width="42" height="112" rx="12" fill="url(#char)"/>
+    <rect x="124" y="222" width="30" height="96" rx="8" fill="url(#glass)"/><rect x="124" y="222" width="30" height="96" rx="8" fill="url(#glassShine)"/>
+    <rect x="640" y="214" width="42" height="112" rx="12" fill="url(#char)"/>
+    <rect x="646" y="222" width="30" height="96" rx="8" fill="url(#glass)"/><rect x="646" y="222" width="30" height="96" rx="8" fill="url(#glassShine)"/>
+  </g>
+
+  <!-- cab -->
+  <path d="M196 214 Q196 150 260 146 H540 Q604 150 604 214 V548 H196 Z" fill="url(#cream)"/>
+  <path d="M196 214 Q196 150 260 146 H540 Q604 150 604 214 V548 H196 Z" fill="url(#creamSide)"/>
+  <path d="M236 149 H564" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+
+  <!-- roof marker lights -->
+  <g>
+    <rect x="318" y="160" width="26" height="12" rx="6" fill="url(#orange)"/>
+    <rect x="356" y="160" width="26" height="12" rx="6" fill="url(#orange)"/>
+    <rect x="394" y="160" width="26" height="12" rx="6" fill="url(#orange)" transform="translate(-6 0)"/>
+    <rect x="426" y="160" width="26" height="12" rx="6" fill="url(#orange)"/>
+    <rect x="464" y="160" width="26" height="12" rx="6" fill="url(#orange)" transform="translate(-6 0)"/>
+  </g>
+
+  <!-- visor and windshield (two panes) -->
+  <rect x="216" y="184" width="368" height="20" rx="8" fill="url(#char)"/>
+  <path d="M226 210 H392 V334 H238 Q226 334 226 322 Z" fill="url(#glass)"/>
+  <path d="M408 210 H574 V322 Q574 334 562 334 H408 Z" fill="url(#glass)"/>
+  <path d="M226 210 H392 V334 H238 Q226 334 226 322 Z" fill="url(#glassShine)"/>
+  <path d="M408 210 H574 V322 Q574 334 562 334 H408 Z" fill="url(#glassShine)"/>
+  <rect x="392" y="210" width="16" height="124" fill="#d9d0be"/>
+
+  <!-- wordmark above the grille -->
+  <text x="400" y="368" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#6b5442" letter-spacing="1.5">FLEETING</text>
+
+  <!-- grille: chrome frame and bars -->
+  <rect x="286" y="382" width="228" height="150" rx="14" fill="url(#chromeH)"/>
+  <rect x="296" y="392" width="208" height="130" rx="8" fill="#141416"/>
+  <g>
+    <rect x="300" y="398" width="200" height="12" rx="6" fill="url(#bar)"/>
+    <rect x="300" y="420" width="200" height="12" rx="6" fill="url(#bar)"/>
+    <rect x="300" y="442" width="200" height="12" rx="6" fill="url(#bar)"/>
+    <rect x="300" y="464" width="200" height="12" rx="6" fill="url(#bar)"/>
+    <rect x="300" y="486" width="200" height="12" rx="6" fill="url(#bar)"/>
+    <rect x="300" y="508" width="200" height="10" rx="5" fill="url(#bar)"/>
+  </g>
+
+  <!-- headlights with orange indicators -->
+  <g>
+    <rect x="212" y="438" width="62" height="44" rx="12" fill="url(#chromeV)"/>
+    <rect x="218" y="444" width="50" height="32" rx="8" fill="url(#lamp)"/>
+    <rect x="218" y="490" width="30" height="12" rx="6" fill="url(#orange)"/>
+    <rect x="526" y="438" width="62" height="44" rx="12" fill="url(#chromeV)"/>
+    <rect x="532" y="444" width="50" height="32" rx="8" fill="url(#lamp)"/>
+    <rect x="552" y="490" width="30" height="12" rx="6" fill="url(#orange)"/>
+  </g>
+
+  <!-- bumper -->
+  <rect x="172" y="532" width="456" height="46" rx="16" fill="url(#char)"/>
+  <rect x="190" y="548" width="420" height="6" rx="3" fill="url(#chromeH)" opacity=".85"/>
+  <rect x="172" y="532" width="456" height="3" rx="1.5" fill="#fff" opacity=".14"/>
+</svg>

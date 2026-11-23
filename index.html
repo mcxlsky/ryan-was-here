@@ -570,7 +570,8 @@
     .card-x:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     .card-x svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
     /* full screen: white, inside the frame, under the header; it opens out of the card (clip-path from the card's box to the whole window) */
-    .about-full { position: fixed; z-index: 900; inset: 0; border-radius: 0; background: #fff; color: #111; overflow-y: auto; scrollbar-width: none;
+    /* --edge: on very wide screens the corner pieces (section links, close button, footer) keep to a centred 1280px frame instead of the window's far edges */
+    .about-full { --edge: max(0px, (100vw - 1280px) / 2); position: fixed; z-index: 900; inset: 0; border-radius: 0; background: #fff; color: #111; overflow-y: auto; scrollbar-width: none;
                   clip-path: inset(var(--ct, 0) var(--cr, 0) var(--cb, 0) var(--cl, 0) round var(--crad, 0px));
                   transition: clip-path .55s cubic-bezier(.2,.8,.2,1), opacity .35s ease; }
     .about-full.closing { opacity: 0; pointer-events: none; }   /* the X fades the panel out in place */
@@ -588,7 +589,7 @@
     .full-photo { display: block; width: 3.8em; height: 3.8em; border-radius: 50%; object-fit: cover; background: rgba(17,17,17,0.06); justify-self: start; margin-bottom: 1.3em; }
     .full-lead { font: 500 1em/1.55 var(--font-ui); letter-spacing: -0.01em; color: rgba(17,17,17,0.7); text-wrap: balance; margin-bottom: 0.95em; }
     /* section links: icon + label rows stacked in the panel's top-left corner; the first row sits on the header line with the mark and the close button */
-    .full-tabs { position: absolute; z-index: 2; top: calc(var(--frame) + 30px + env(safe-area-inset-top, 0px)); left: calc(var(--frame) + 40px);
+    .full-tabs { position: absolute; z-index: 2; top: calc(var(--frame) + 30px + env(safe-area-inset-top, 0px)); left: calc(var(--frame) + 40px + var(--edge));
                  display: flex; flex-direction: column; align-items: flex-start; margin-left: -8px;
                  opacity: 0; transition: opacity .3s ease; }
     .about-full.open .full-tabs { opacity: 1; transition-delay: .18s; }
@@ -671,7 +672,7 @@
     .full-link { color: #111; text-decoration: none; border-radius: 2px; }
     .full-link:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
     .full-bar { position: relative; z-index: 1; }
-    .full-foot { position: relative; z-index: 1; background: #F5F5F5; padding: 48px 40px calc(96px + env(safe-area-inset-bottom, 0px)); }
+    .full-foot { position: relative; z-index: 1; background: #F5F5F5; padding: 48px calc(40px + var(--edge)) calc(96px + env(safe-area-inset-bottom, 0px)); }
     .foot-map svg { display: block; width: 96px; height: auto; }
     .foot-map .land { fill: #e4e1d8; stroke: none; }
     .foot-map .ln { fill: none; stroke-width: 9.5; stroke-linecap: round; stroke-linejoin: round; }
@@ -688,7 +689,7 @@
     .foot-loc { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; padding: 7px 12px 7px 10px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(17,17,17,0.06), 0 0 0 1px rgba(17,17,17,0.06);
                 font: 500 14px/1 var(--font-ui); color: rgba(17,17,17,0.6); }
     .foot-loc svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-    .full-x { position: fixed; top: calc(var(--frame) + 24px + env(safe-area-inset-top, 0px)); right: calc(var(--frame) + 10px); width: 40px; height: 40px; z-index: 3; }
+    .full-x { position: fixed; top: calc(var(--frame) + 24px + env(safe-area-inset-top, 0px)); right: calc(var(--frame) + 10px + var(--edge)); width: 40px; height: 40px; z-index: 3; }
     /* scroll-driven sections: the stage (header, links, text) holds in place while the sections change (one every 0.95 screen — STEP in the script — so 1.9 screens), then lingers on the last one for another half screen before the footer scrolls up.
        --stage-h / --stage-top are measured by script: when the stage is taller than the screen (phones), it first scrolls until its bottom meets the screen's bottom and holds there, so no text is hidden */
     .about-full.scrolly .full-track { height: calc(var(--stage-h, 100dvh) + 240dvh); }
@@ -712,12 +713,15 @@
     .bnav { position: fixed; z-index: 5; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: fit-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 6px; padding: 8px;
             border-radius: 999px; color: #fff; isolation: isolate; border: 1px solid transparent; background: linear-gradient(135deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.07) 100%); -webkit-backdrop-filter: blur(26px) saturate(1.8) brightness(1.06); backdrop-filter: blur(26px) saturate(1.8) brightness(1.06);
             box-shadow: 0 8px 32px -6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(255,255,255,0.06); }
-    .bn-me { flex: none; -webkit-appearance: none; appearance: none; border: 0; padding: 0; background: none; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; transition: transform .2s; }
+    .bn-me { flex: none; -webkit-appearance: none; appearance: none; border: 0; padding: 0; background: none; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; transition: transform .2s; display: grid; place-items: center; }
     .bn-me:hover { transform: scale(1.06); }
-    .bn-me .glass-av, .bn-me img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: grid; box-shadow: none; }
+    .bn-me .glass-av { width: 44px; height: 44px; border-radius: 50%; display: grid; box-shadow: none; }
+    /* 40px ring: the border is the outline, the padding is the gap between it and the photo */
+    .bn-me img { box-sizing: border-box; width: 40px; height: 40px; padding: 1.5px; border: 1.5px solid rgba(255,255,255,0.75); border-radius: 50%; object-fit: cover; display: block; }
+    body.full-open .bn-me img { border-color: rgba(17,17,17,0.25); }
     .bn-sep { flex: none; width: 1px; height: 24px; margin: 0 8px; background: rgba(255,255,255,0.22); }
     .bn-links { display: flex; gap: 4px; }
-    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(255,255,255,0.58); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; transition: color .15s, background .15s, box-shadow .15s; }
+    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(255,255,255,0.58); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 16px; transition: color .15s, background .15s, box-shadow .15s; }
     .bn-links a:hover { color: #fff; background: rgba(255,255,255,0.08); }
     .bn-links a[aria-current="page"] { color: #fff; background: rgba(255,255,255,0.14); -webkit-backdrop-filter: blur(6px) brightness(1.1); backdrop-filter: blur(6px) brightness(1.1); box-shadow: inset 0 1px 0 rgba(255,255,255,0.14); }
     .bnav a:focus-visible, .bnav button:focus-visible, .bio-pop a:focus-visible, .bio-pop button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
@@ -729,6 +733,7 @@
     .bio-pop.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%); transition: opacity .2s ease, transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s; }
     .bio-top { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
     .bio-top .glass-av { width: 56px; height: 56px; font-size: 19px; }
+    .bio-top .bio-av { box-sizing: border-box; width: 56px; height: 56px; padding: 2px; border: 2px solid rgba(255,255,255,0.75); border-radius: 50%; object-fit: cover; display: block; }
     .bio-top p { display: grid; gap: 3px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
     .bio-top b { font: 600 17px/1.2 var(--font-ui); letter-spacing: -0.01em; }
     .bio-top span { font: 500 13.5px/1.25 var(--font-ui); color: rgba(255,255,255,0.78); }
@@ -784,12 +789,19 @@
     /* arriving at the platform: the card eases up from the middle of the screen and shrinks to a small pill (the hint button + the X); the text unfolds later */
     .dock > .train { transition: opacity 1.2s cubic-bezier(.3,0,.3,1), top .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1), width .7s cubic-bezier(.2,.8,.2,1); }
     body.at-platform .dock > .train { top: calc(18px + env(safe-area-inset-top, 0px)); transform: translate(-50%, 0); width: 132px; border-radius: 999px; }
-    body.at-platform.hint-open .dock > .train { width: min(280px, calc(100% - 32px)); }
     body.at-platform .train-k { min-width: 0; overflow: hidden; text-align: center; opacity: 0; transition: opacity .3s ease; }
-    body.at-platform.hint-open .train-k { opacity: 1; transition: opacity .5s ease .3s; }
     body.at-platform #tD { white-space: nowrap; }
     .dock > .train.fadeout { opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .6s ease, visibility 0s linear .6s, top .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1), width .7s cubic-bezier(.2,.8,.2,1); }
     body.snap .dock > .train, body.snap .train-bullet, body.snap .train-k { transition: none !important; }   /* while the screen is black the card jumps to its new place; the fade does the revealing */
+    /* the paper's touch point: a white dot with a ring that breathes out from it, shown once the platform pill has settled */
+    .news-tp { position: fixed; z-index: 4; left: 0; top: 0; width: 0; height: 0; pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s; }
+    .news-tp::before, .news-tp::after { content: ''; position: absolute; left: -8px; top: -8px; width: 16px; height: 16px; border-radius: 50%; }
+    .news-tp::before { background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.35); }
+    .news-tp::after { border: 2px solid #fff; box-sizing: border-box; animation: tp-pulse 1.8s cubic-bezier(.2,.8,.2,1) infinite; }
+    @keyframes tp-pulse { from { transform: scale(1); opacity: .9; } to { transform: scale(3); opacity: 0; } }
+    body.at-platform:not(.full-open):not(.bio-open) .news-tp { opacity: 1; visibility: visible; transition: opacity .6s ease 1.2s, visibility 0s linear 1.2s; }
+    body.snap .news-tp { transition: none; }
+    @media (prefers-reduced-motion: reduce) { .news-tp::after { animation: none; transform: scale(1.75); opacity: .5; } }
     #newsLink:focus-visible { position: fixed; z-index: 6; left: 50%; bottom: 88px; transform: translateX(-50%); width: auto; height: auto; clip-path: none; padding: 12px 18px; border-radius: 999px; background: #fff; color: #111; font: 600 14px/1 var(--font-ui); text-decoration: none; outline: 2px solid #111; }
     .train-go[aria-checked="true"]:disabled { opacity: 1; }   /* booked or riding: committed, not frozen */
     .train.riding #tK, .train.riding .train-go { display: none; }   /* on the ride: just the 5 and where it's headed, no kicker and no chip */
@@ -802,8 +814,63 @@
     .train-bullet .np { display: block; opacity: 0; width: 21px; height: 21px; }
     body.at-platform .train-bullet { width: 40px; height: 40px; background: transparent; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,0.3); color: #fff; cursor: pointer; } body.at-platform .train-bullet:hover { background: rgba(255,255,255,0.10); }   /* outlined, the same size as the X */ body.at-platform .train-bullet span { opacity: 0; } body.at-platform .train-bullet .np { opacity: 1; }   /* at the platform the 5 becomes a lightbulb */
     body.at-platform #tK, body.at-platform .train-sep { display: none; }
-    body.at-platform .tab { opacity: 0; visibility: hidden; }   /* the wordmark steps away at the platform: the card is the hint now */
     .train-go.is-text:disabled { opacity: 1; } .train-go:disabled { pointer-events: none; }
+    /* ── Next-train card: a panel that slides up from behind the bottom nav ── */
+    .bnav-dock { position: fixed; z-index: 5; left: 0; right: 0; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+                 margin-left: auto; margin-right: auto;
+                 width: fit-content; max-width: calc(100% - 32px); display: flex; flex-direction: column; align-items: stretch;
+                 transform-origin: 50% 100%; pointer-events: none; }
+    .bnav-dock > .dock { position: static; left: auto; right: auto; bottom: auto; z-index: auto;
+                         display: flex; margin-bottom: -28px; pointer-events: none; }
+    /* clips only the bottom edge, so the hidden card can't peek out below the nav; top and sides stay open for the shadow */
+    .bnav-dock .dock-cell { flex: 1; display: flex; clip-path: inset(-40px -40px 0 -40px); }
+    .bnav-dock .dock .train { position: static; top: auto; left: auto; right: auto; bottom: auto; transform: translateY(0); flex: 1; width: auto;
+                                border-radius: 20px; border: none;
+                                background: rgb(245, 245, 247);
+                                -webkit-backdrop-filter: none; backdrop-filter: none;
+                                box-shadow: 0 2px 12px -4px rgba(0,0,0,0.18);
+                                margin: 0 1px; padding: 10px 14px 38px; text-shadow: none; display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "b k g"; column-gap: 10px; align-items: center;
+                                opacity: 1; visibility: visible; pointer-events: auto;
+                                transition: transform .5s cubic-bezier(.2,.8,.2,1), visibility 0s; }
+    .bnav-dock .dock .train::before, .bnav-dock .dock .train::after { display: none; }
+    .bnav-dock .dock .train.fadeout { opacity: 1; transform: translateY(100%); visibility: hidden; pointer-events: none;
+                                        transition: transform .45s cubic-bezier(.4,0,.6,1), visibility 0s linear .45s; }
+    .bnav-dock .train-bullet { grid-area: b; width: 36px; height: 36px; margin: 0; }
+    .bnav-dock .train-bullet span { font-size: 20px; }
+    .bnav-dock .train-k { grid-area: k; white-space: normal; display: grid; gap: 2px; overflow: visible; }
+    .bnav-dock #tK { font-size: 9px; color: rgba(0,0,0,0.6); }
+    .bnav-dock #tD { font: 600 13px/1.2 var(--font-ui); letter-spacing: -0.01em; text-transform: none; color: #1a1a1a; }
+    .bnav-dock .train-go { grid-area: g; align-self: center; height: 36px; min-width: 68px; padding: 0 10px; border-radius: 12px;
+                           background: rgba(0,0,0,0.08); color: #1a1a1a; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+    .bnav-dock .tg-box { border-color: rgba(0,0,0,0.18); box-shadow: none; }
+    .bnav-dock .train-go[aria-checked="true"] .tg-box { background: #1a1a1a; border-color: #1a1a1a; }
+    .bnav-dock .train-go[aria-checked="true"] .tg-box svg { stroke: #fff; }
+    .bnav-dock .train-go:focus-visible { outline-color: #1a1a1a; }
+    .bnav-dock .tg-m b, .bnav-dock .tg-m span { font-size: 13px; }
+    .bnav-dock > .bnav { pointer-events: auto; position: relative; transform: none; left: auto; bottom: auto; width: auto; max-width: none; z-index: 1;
+                         border-radius: 20px; transition: transform .3s cubic-bezier(.2,.8,.2,1), background-color .25s ease .45s; }
+    /* solid under the glass while the card is behind it; turns back to glass only after the card has slid away */
+    body:not(.full-open):not(.at-platform) .bnav-dock > .dock:has(.train:not(.fadeout)) + .bnav { background-color: rgb(30,30,33); transition-delay: 0s; transition-duration: 0s; }
+    .bnav-dock .dock .train * { text-shadow: none; }
+    body.bio-open .bnav-dock .dock .train { opacity: 0; visibility: hidden; pointer-events: none; }
+    body.bio-open .bnav-dock { align-items: center; }
+    body.full-open .bnav-dock { z-index: 910; transform: scale(var(--nav-s, 1)); transition: none; }
+    body.full-open .bnav-dock > .bnav { transform: none; transition: none; }
+    /* the train card belongs to the street scene only; the About page gets the plain nav */
+    body.full-open .bnav-dock .dock .train { transform: translateY(100%); visibility: hidden; pointer-events: none; transition: none; }
+    body.at-platform .bnav-dock { align-items: center; }
+    body.at-platform .bnav-dock .dock .train { position: fixed; top: calc(18px + env(safe-area-inset-top, 0px)); left: 50%; transform: translate(-50%, 0); border-radius: 999px;
+                                                  width: 132px; overflow: visible; min-height: auto; padding: 12px;
+                                                  transition: opacity 1.2s cubic-bezier(.3,0,.3,1), top .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1), width .7s cubic-bezier(.2,.8,.2,1); }
+    body.at-platform .bnav-dock .dock-cell { clip-path: none; }
+    body.at-platform .bnav-dock .dock .train.fadeout { opacity: 0; transform: translate(-50%, 0); transition: opacity .6s ease, visibility 0s linear .6s; }
+    @media (prefers-reduced-motion: reduce) {
+      .bnav-dock .dock .train { transform: none; transition: opacity .2s ease; }
+      .bnav-dock .dock .train.fadeout { transform: none; opacity: 0; transition: opacity .2s ease, visibility 0s linear .2s; }
+    }
+    body.at-platform .bnav-dock .train-bullet { width: 40px; height: 40px; }
+    body.snap .bnav-dock .dock .train, body.snap .bnav-dock .train-bullet, body.snap .bnav-dock .train-k, body.snap .bnav-dock > .dock { transition: none !important; }
+    @media (pointer: coarse), (max-width: 600px) { .bnav-dock { bottom: calc(28px + env(safe-area-inset-bottom, 0px)); } }
   </style>
 </head>
 <body>
@@ -895,20 +962,9 @@
       </div>
     </footer>
   </section>
-  <div class="dock">
-  <section class="glass train fadeout" id="trainCard" aria-label="Next train">
-    <p class="train-k"><span id="tK">Next train</span><span class="train-sep"> · </span><span id="tD">Flatbush Av</span></p>
-    <div class="train-bullet" id="tBul" aria-label="5 train"><span>5</span><svg class="np" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5a6 6 0 0 0-12 0c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 21.5h4"/></svg></div>
-    <button class="train-go" id="tGo" type="button" role="checkbox" aria-checked="false" aria-label="Get on the next train">
-      <span class="tg-box" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"/></svg></span>
-      <span class="tg-m" aria-live="polite"><b id="tM">–</b><span id="tU">min</span></span>
-      <span class="tg-x" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></span>
-    </button>
-  </section>
-  </div>
   <div class="bio-pop" id="bioPop" role="dialog" aria-label="About Ryan">
     <div class="bio-top">
-      <div class="glass-av" aria-hidden="true">RM</div>   <!-- placeholder: swap in a photo -->
+      <img class="bio-av" src="images/ryan-avatar.jpg" alt="" width="56" height="56">
       <p><b>Ryan McCaulsky</b><span>Product Designer</span><span>The Bronx, NY</span></p>
     </div>
     <div class="bio-rule" aria-hidden="true"></div>
@@ -924,11 +980,26 @@
   <div class="edge edge-t" id="edgeT" aria-hidden="true"></div><div class="edge edge-b" id="edgeB" aria-hidden="true"></div>
   <div class="fade" id="fade" aria-hidden="true"></div>
   <a class="sr" id="newsLink" href="writing.html" hidden>Read Ryan’s writing</a>
-  <nav class="bnav" aria-label="Main">
-    <button class="bn-me" id="bnMe" type="button" aria-label="About me" aria-haspopup="dialog" aria-expanded="false" aria-controls="bioPop"><span class="glass-av" aria-hidden="true">RM</span></button>
-    <span class="bn-sep" aria-hidden="true"></span>
-    <div class="bn-links"><a href="#" class="bn-home" aria-current="page">Home</a><a href="#" class="bn-work" data-soon>Work</a><a href="#" class="bn-about" data-soon>About</a></div>
-  </nav>
+  <div class="bnav-dock" id="bnavDock">
+    <div class="dock">
+    <div class="dock-cell">
+    <section class="glass train fadeout" id="trainCard" aria-label="Next train">
+      <p class="train-k"><span id="tK">Next train</span><span class="train-sep"> · </span><span id="tD">Flatbush Av</span></p>
+      <div class="train-bullet" id="tBul" aria-label="5 train"><span>5</span><svg class="np" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5a6 6 0 0 0-12 0c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 21.5h4"/></svg></div>
+      <button class="train-go" id="tGo" type="button" role="checkbox" aria-checked="false" aria-label="Get on the next train">
+        <span class="tg-box" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7"/></svg></span>
+        <span class="tg-m" aria-live="polite"><b id="tM">–</b><span id="tU">min</span></span>
+        <span class="tg-x" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></span>
+      </button>
+    </section>
+    </div>
+    </div>
+    <nav class="bnav" aria-label="Main">
+      <div class="bn-links"><a href="#" class="bn-home" aria-current="page">Home</a><a href="work.html" class="bn-work">Work</a><a href="#" class="bn-about" data-soon>About</a></div>
+      <span class="bn-sep" aria-hidden="true"></span>
+      <button class="bn-me" id="bnMe" type="button" aria-label="About me" aria-haspopup="dialog" aria-expanded="false" aria-controls="bioPop"><img src="images/ryan-avatar.jpg" alt="" width="44" height="44"></button>
+    </nav>
+  </div>
   <div class="homebase" id="homebase">
   </div>
 
@@ -946,21 +1017,20 @@
       var firstPass=matchMedia('(prefers-reduced-motion: reduce)').matches;
       function passed(){ if (firstPass) return true; var A=window.__AMB; if (!A) return false;
         if (A.nb.wait>0 || A.nb.x<-170 || A.sb.wait>0 || A.sb.x>190) firstPass=true; return firstPass; }
-      var nl=document.getElementById('newsLink'), bul=document.getElementById('tBul'), wasAt=false, hintT=null, HINT_MS=15000;
-      // at the platform the newspaper icon is a hint button; left alone for 15 s it unfolds to say what to do (any tap, key or scroll restarts the wait)
-      function openHint(on){ clearTimeout(hintT); document.body.classList.toggle('hint-open',on); bul.setAttribute('aria-expanded',on); }
-      function armHint(){ clearTimeout(hintT); hintT=setTimeout(function(){ openHint(true); },HINT_MS); }
-      function setBullet(on){ if (on){ bul.setAttribute('role','button'); bul.tabIndex=0; bul.setAttribute('aria-label','Show hint'); bul.setAttribute('aria-expanded','false'); }
-        else { bul.removeAttribute('role'); bul.removeAttribute('tabindex'); bul.removeAttribute('aria-expanded'); bul.setAttribute('aria-label','5 train'); } }
-      bul.addEventListener('click', function(){ if (wasAt) openHint(!document.body.classList.contains('hint-open')); });
-      bul.addEventListener('keydown', function(e){ if (wasAt && (e.key==='Enter' || e.key===' ')){ e.preventDefault(); openHint(!document.body.classList.contains('hint-open')); } });
-      ['pointerdown','keydown','wheel','touchstart'].forEach(function(t){ document.addEventListener(t, function(e){ if (wasAt && !document.body.classList.contains('hint-open') && e.target!==bul) armHint(); }, { passive:true }); });
-      function board(){ var R=r(); if (!R || !window.__nextTrain) return;
-        var at=R.target>0.999; document.body.classList.toggle('at-platform',at); card.classList.toggle('riding', !at && R.target>=R.T0); nl.hidden=!at;
-        if (at && !wasAt){ wasAt=true; openHint(false); armHint(); setBullet(true); try { history.replaceState(null,'','#platform'); } catch(e){} }
-        else if (!at && wasAt){ wasAt=false; openHint(false); setBullet(false); try { history.replaceState(null,'',location.pathname); } catch(e){} }
-        if (R.target>0.999) return set('3 Av–149 St','Tap the paper to read','','',false,false,false,'street');
-        if (R.target>=R.T0) return set('Riding','The next stop is 3 Av–149 St','','',true,true,true,'on');
+      var nl=document.getElementById('newsLink'), wasAt=false;
+      var leaving=false;
+      function board(){ var R=r(); if (!R || !window.__nextTrain || leaving) return;
+        var at=R.target>0.999;
+        // pulling in by train: the riding card slides back down behind the nav before the platform takes over (the platform has no card: the wordmark is back up top and the dot on the paper is the hint)
+        if (at && !wasAt && !card.classList.contains('fadeout') && !document.body.classList.contains('snap')){
+          leaving=true; card.classList.add('fadeout');
+          setTimeout(function(){ leaving=false; board(); }, matchMedia('(prefers-reduced-motion: reduce)').matches?200:450);
+          return; }
+        document.body.classList.toggle('at-platform',at); card.classList.toggle('riding', !at && R.target>=R.T0); nl.hidden=!at;
+        if (at && !wasAt){ wasAt=true; try { history.replaceState(null,'','#platform'); } catch(e){} }
+        else if (!at && wasAt){ wasAt=false; try { history.replaceState(null,'',location.pathname); } catch(e){} }
+        if (at){ card.classList.add('fadeout'); return; }
+        if (R.target>=R.T0) return set('Riding','Now arriving at 3rd Av–149th St','','',true,true,true,'on');
         var sec=window.__nextTrain(), m=sec==null?null:(sec<=8?0:Math.ceil((sec-8)/8)), committed=!!R.seq || R.target>0.0005,
             frozen=!R.booked && !committed && !window.__boardable(), arriving=m===0 || frozen;
         set('Next train','Flatbush Av', arriving?'Arriving':(m==null?'–':m), arriving?'':'min', arriving, R.booked||committed, committed||frozen, frozen?'info':'');
@@ -1761,12 +1831,13 @@ THREE.ColorManagement.enabled = false;
           // geographic projection of the real network (approximate station coordinates), drawn in the diagram's palette
           const HD=70, LAT1=40.905, LAT0=40.565, ky=(h-HD)/(LAT1-LAT0), kx=ky*Math.cos(40.73*Math.PI/180), LON0=-74.07;
           const pr=([la,lo])=>[(lo-LON0)*kx, HD+(LAT1-la)*ky];
-          const lands=[]; const poly=(pts,fill)=>{ c.fillStyle=fill; c.beginPath(); pts.forEach((p,i)=>{ const [x,y]=pr(p); i?c.lineTo(x,y):c.moveTo(x,y); }); c.closePath(); c.fill(); if (fill==='#ffffff') lands.push(pts); };   // only real city shorelines get pulled back
-          c.fillStyle='#cfdfea'; c.fillRect(0,0,w,h);
-          const LAND='#ffffff', PARK='#e2eedb';
-          poly([[40.95,-74.2],[40.95,-73.935],[40.89,-73.93],[40.85,-73.955],[40.80,-73.985],[40.75,-74.02],[40.70,-74.035],[40.66,-74.07],[40.5,-74.2]],'#eceae5');   // New Jersey
-          poly([[40.95,-73.80],[40.95,-73.6],[40.862,-73.6],[40.868,-73.79]],'#eceae5');   // Westchester
-          poly([[40.80,-73.705],[40.80,-73.6],[40.56,-73.6],[40.58,-73.735]],'#eceae5');    // Nassau
+          const lands=[]; const poly=(pts,fill)=>{ c.fillStyle=fill; c.beginPath(); pts.forEach((p,i)=>{ const [x,y]=pr(p); i?c.lineTo(x,y):c.moveTo(x,y); }); c.closePath(); c.fill(); if (fill===LAND) lands.push(pts); };   // only real city shorelines get pulled back
+          // the MTA diagram's palette: pale blue water, cream city, grey-white neighbours, soft green parks
+          const WATER='#b7dbee', LAND='#f4efdf', AWAY='#e6e4dd', PARK='#c9e3b5';
+          c.fillStyle=WATER; c.fillRect(0,0,w,h);
+          poly([[40.95,-74.2],[40.95,-73.935],[40.89,-73.93],[40.85,-73.955],[40.80,-73.985],[40.75,-74.02],[40.70,-74.035],[40.66,-74.07],[40.5,-74.2]],AWAY);   // New Jersey
+          poly([[40.95,-73.80],[40.95,-73.6],[40.862,-73.6],[40.868,-73.79]],AWAY);   // Westchester
+          poly([[40.80,-73.705],[40.80,-73.6],[40.56,-73.6],[40.58,-73.735]],AWAY);    // Nassau
           poly([[40.65,-74.2],[40.645,-74.08],[40.64,-74.065],[40.61,-74.057],[40.585,-74.07],[40.5,-74.12]],LAND);                                    // Staten Island
           poly([[40.7006,-74.0153],[40.7085,-74.0185],[40.730,-74.0110],[40.760,-74.0045],[40.780,-73.9900],[40.800,-73.9730],[40.835,-73.9500],[40.856,-73.9350],[40.875,-73.9230],[40.879,-73.9150],
                 [40.873,-73.9110],[40.850,-73.9250],[40.835,-73.9330],[40.810,-73.9330],[40.795,-73.9285],[40.780,-73.9420],[40.758,-73.9590],[40.743,-73.9710],[40.730,-73.9730],[40.712,-73.9770],[40.709,-73.9990]],LAND);   // Manhattan
@@ -1775,9 +1846,9 @@ THREE.ColorManagement.enabled = false;
           poly([[40.785,-73.913],[40.770,-73.937],[40.755,-73.948],[40.742,-73.961],[40.737,-73.959],[40.720,-73.962],[40.705,-73.975],[40.703,-73.997],[40.690,-74.002],[40.675,-74.020],
                 [40.660,-74.006],[40.640,-74.033],[40.610,-74.040],[40.590,-74.012],[40.574,-74.012],[40.572,-73.970],[40.576,-73.940],[40.583,-73.900],[40.570,-73.880],[40.560,-73.940],
                 [40.55,-73.8],[40.58,-73.75],[40.59,-73.6],[40.80,-73.6],[40.790,-73.750],[40.792,-73.800],[40.786,-73.840],[40.765,-73.860],[40.776,-73.890],[40.787,-73.905]],LAND);   // Brooklyn + Queens
-          poly([[40.648,-73.905],[40.650,-73.850],[40.640,-73.780],[40.612,-73.770],[40.598,-73.820],[40.588,-73.880],[40.603,-73.905]],'#cfdfea');   // Jamaica Bay
+          poly([[40.648,-73.905],[40.650,-73.850],[40.640,-73.780],[40.612,-73.770],[40.598,-73.820],[40.588,-73.880],[40.603,-73.905]],WATER);   // Jamaica Bay
           // widen the rivers (as the diagram does): pull every shore back with a water-coloured stroke
-          c.strokeStyle='#cfdfea'; c.lineWidth=9; c.lineJoin='round'; for (const pts of lands){ c.beginPath(); pts.forEach((p,i)=>{ const [x,y]=pr(p); i?c.lineTo(x,y):c.moveTo(x,y); }); c.closePath(); c.stroke(); }
+          c.strokeStyle=WATER; c.lineWidth=9; c.lineJoin='round'; for (const pts of lands){ c.beginPath(); pts.forEach((p,i)=>{ const [x,y]=pr(p); i?c.lineTo(x,y):c.moveTo(x,y); }); c.closePath(); c.stroke(); }
           poly([[40.7681,-73.9819],[40.7644,-73.9730],[40.7969,-73.9493],[40.8005,-73.9580]],PARK);               // Central Park
           poly([[40.6720,-73.9700],[40.6610,-73.9800],[40.6500,-73.9720],[40.6600,-73.9600]],PARK);               // Prospect Park
           poly([[40.8970,-73.8960],[40.8970,-73.8770],[40.8800,-73.8800],[40.8820,-73.8960]],PARK);               // Van Cortlandt
@@ -1807,7 +1878,7 @@ THREE.ColorManagement.enabled = false;
             GPT:[40.7314,-73.9544], MET:[40.7123,-73.9514], MW:[40.6946,-73.9493], BN:[40.6896,-73.9535], CARR:[40.6803,-73.9951],
             L8:[40.7398,-74.0026], L1AV:[40.7310,-73.9817], BED:[40.7173,-73.9568], LOR:[40.7140,-73.9504], MWY:[40.6995,-73.9122], CAN:[40.6464,-73.9019],
             BROAD:[40.7065,-74.0110], CHJ:[40.7133,-74.0039], BOW:[40.7203,-73.9939], CYP:[40.6896,-73.8728] };
-          const R=(col,label,stops,o)=>({ col, label, pts:stops.map(k=>S[k]), o:o||0 });
+          const R=(col,label,stops,o)=>({ col, label, keys:stops, pts:stops.map(k=>S[k]), o:o||0 });
           const routes=[
             R('#a7a9ac','L',['L8','U14','L1AV','BED','LOR','MWY','BJ','CAN']),
             R('#996633','J',['BROAD','FUL','CHJ','BOW','DEL','MARCY','MYRT','BJ','CYP','JC'],0),
@@ -1832,35 +1903,50 @@ THREE.ColorManagement.enabled = false;
             R('#00933c','6',['BBCH','CAN6','AST','U14','S23_6','GCT','L59','L86','L125X','A3_138','HUNT','PKC','PBP'],4),
           ];
           const path=(r)=>{ const P=r.pts.map(pr); return P.map((p,i)=>{ const a=P[Math.max(0,i-1)], b=P[Math.min(P.length-1,i+1)]; let dx=b[0]-a[0], dy=b[1]-a[1]; const L=Math.hypot(dx,dy)||1; return [p[0]-dy/L*r.o, p[1]+dx/L*r.o]; }); };
+          const HV='"Helvetica Neue", Helvetica, Arial, sans-serif';
+          // water names, in the diagram's blue italic
+          c.fillStyle='#4f88ad'; c.font='italic 13px '+HV; c.textAlign='center';
+          for (const [t,la,lo,rot] of [['Hudson River',40.868,-73.946,-1.07],['Upper Bay',40.668,-74.048,0],['East River',40.735,-73.966,-1.3],['Jamaica Bay',40.622,-73.845,0],['Atlantic Ocean',40.572,-73.86,0],['Long Island Sound',40.835,-73.70,0]]){
+            const [x,y]=pr([la,lo]); c.save(); c.translate(x,y); c.rotate(rot); c.fillText(t,0,0); c.restore(); }
+          c.textAlign='left';
+          // routes: thick, flat colour, side by side through the shared trunks
           c.lineJoin=c.lineCap='round';
-          for (const r of routes){ const q=path(r); c.strokeStyle=r.col; c.lineWidth=4; c.beginPath(); q.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke(); }
-          // stations
-          const seen=new Set();
-          for (const r of routes) r.pts.forEach(p=>{ const k=p.join(); if (seen.has(k)) return; seen.add(k); const [x,y]=pr(p);
-            c.fillStyle='#fff'; c.strokeStyle='#1a1a1a'; c.lineWidth=1.4; c.beginPath(); c.arc(x,y,3.1,0,Math.PI*2); c.fill(); c.stroke(); });
-          // route bullets at the outer terminals
-          const bul=(r,end)=>{ const p=end?r.pts[r.pts.length-1]:r.pts[0]; let [x,y]=pr(p); const [x2,y2]=pr(end?r.pts[r.pts.length-2]:r.pts[1]);
-            const dx=x-x2, dy=y-y2, L=Math.hypot(dx,dy)||1; x+=dx/L*14; y+=dy/L*14;
-            c.fillStyle=r.col; c.beginPath(); c.arc(x,y,8.5,0,Math.PI*2); c.fill(); c.fillStyle=r.col==='#fccc0a'?'#111':'#fff';
-            c.font='bold 11px Helvetica, Arial, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(r.label,x,y+0.5); c.textAlign='left'; c.textBaseline='alphabetic'; };
-          const placed=[]; for (const r of routes) for (const e of [false,true]){ const p=e?r.pts[r.pts.length-1]:r.pts[0]; const k=p.join()+r.col;
-            const [x,y]=pr(p); if (placed.some(([px,py,pk])=>pk===k)) continue; placed.push([x,y,k]); bul(r,e); }
-          // labels: boroughs, a few hubs, and here
-          c.fillStyle='#111'; c.font='bold 24px Helvetica, Arial, sans-serif';
-          for (const [t,la,lo] of [['The Bronx',40.885,-73.865],['Manhattan',40.79,-74.045],['Queens',40.735,-73.86],['Brooklyn',40.63,-73.93],['Staten Island',40.60,-74.068]]){ const [x,y]=pr([la,lo]); c.fillText(t,x,y); }
-          c.font='11px Helvetica, Arial, sans-serif'; c.fillStyle='#333';
-          for (const [t,k,dx,dy] of [['Times Sq','TSQ',-62,-8],['Grand Central','GCT',8,-4],['Atlantic Av','ATL',8,10],['Jamaica','JC',6,14],['Flushing','FLU',-10,-10],['Coney Island','CI',-28,16],['Yankee Stadium','Y161',-92,4],['Broadway Jct','BJ',8,4]]){
-            const [x,y]=pr(S[k.trim()]); c.fillText(t,x+dx,y+dy); }
-          { const [x,y]=pr(S.A149); c.strokeStyle='#111'; c.lineWidth=2.5; c.beginPath(); c.arc(x,y,8,0,Math.PI*2); c.stroke();
-            c.fillStyle='#111'; c.fillRect(x+10,y-23,118,20); c.fillStyle='#fff'; c.font='bold 12px Helvetica, Arial, sans-serif'; c.fillText('You are here',x+16,y-9); }
-          // header + key
-          c.fillStyle='#fff'; c.fillRect(0,0,w,HD); c.fillStyle='#111'; c.fillRect(0,HD-4,w,4);
-          c.font='bold 44px Helvetica, Arial, sans-serif'; c.fillText('Subway Map',22,50);
-          c.fillStyle='#fff'; c.fillRect(w-200,h-170,186,156); c.strokeStyle='#111'; c.lineWidth=2; c.strokeRect(w-200,h-170,186,156);
-          c.fillStyle='#111'; c.font='bold 15px Helvetica, Arial, sans-serif'; c.fillText('Key',w-188,h-146);
-          [['#00933c','Full-time service'],['#ffffff','Station'],['#a7a9ac','Shuttle / other'],['#fccc0a','Broadway line']].forEach(([col,t],i)=>{ const y=h-118+i*26;
-            c.fillStyle=col; c.strokeStyle='#111'; c.lineWidth=1.5; if (i===1){ c.beginPath(); c.arc(w-172,y-5,5,0,Math.PI*2); c.fill(); c.stroke(); } else c.fillRect(w-188,y-9,30,6);
-            c.fillStyle='#333'; c.font='13px Helvetica, Arial, sans-serif'; c.fillText(t,w-150,y); }); });
+          for (const r of routes){ const q=path(r); r.q=q; c.strokeStyle=r.col; c.lineWidth=4.2; c.beginPath(); q.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y)); c.stroke(); }
+          // stations: a black dot on the line where only one colour stops; where colours meet, the map's transfer mark (a white circle with a black rim)
+          const marks=new Map(); for (const r of routes) r.keys.forEach((k,i)=>{ if (!marks.has(k)) marks.set(k,{ cols:new Set(), pts:[] }); const m=marks.get(k); m.cols.add(r.col); m.pts.push(r.q[i]); });
+          for (const [k,m] of marks){
+            if (m.cols.size===1){ c.fillStyle='#111'; for (const [x,y] of m.pts){ c.beginPath(); c.arc(x,y,2.4,0,Math.PI*2); c.fill(); } continue; }
+            const [x,y]=pr(S[k]); c.fillStyle='#111'; c.beginPath(); c.arc(x,y,5.4,0,Math.PI*2); c.fill(); c.fillStyle='#fff'; c.beginPath(); c.arc(x,y,3.6,0,Math.PI*2); c.fill(); }
+          // route bullets at the outer terminals: a circle in the route's colour, the letter or number in Helvetica (black on yellow)
+          const bullet=(x,y,r,rad)=>{ c.fillStyle=r.col; c.beginPath(); c.arc(x,y,rad,0,Math.PI*2); c.fill(); c.fillStyle=r.col==='#fccc0a'?'#111':'#fff';
+            c.font='bold '+Math.round(rad*1.3)+'px '+HV; c.textAlign='center'; c.textBaseline='middle'; c.fillText(r.label,x,y+0.5); c.textAlign='left'; c.textBaseline='alphabetic'; };
+          const placed=[]; for (const r of routes) for (const e of [false,true]){
+            const i=e?r.pts.length-1:0, j=e?r.pts.length-2:1; let [x,y]=r.q[i]; const [x2,y2]=r.q[j], dx=x-x2, dy=y-y2, L=Math.hypot(dx,dy)||1; x+=dx/L*15; y+=dy/L*15;
+            for (let n=0; n<6 && placed.some(([px,py])=>Math.hypot(px-x,py-y)<19); n++){ x+=dx/L*19; y+=dy/L*19; }   // fan out where several routes end together
+            placed.push([x,y]); bullet(x,y,r,9); }
+          // borough names: the map's spaced capitals; Manhattan runs up the Hudson beside its island
+          c.fillStyle='#3d3d3d'; c.font='bold 21px '+HV; try { c.letterSpacing='3px'; } catch(e){}
+          for (const [t,la,lo,rot] of [['THE BRONX',40.897,-73.852,0],['MANHATTAN',40.762,-74.024,-1.07],['QUEENS',40.735,-73.86,0],['BROOKLYN',40.635,-73.935,0],['STATEN ISLAND',40.596,-74.068,0]]){
+            const [x,y]=pr([la,lo]); c.save(); c.translate(x,y); c.rotate(rot); c.fillText(t,0,0); c.restore(); }
+          c.fillStyle='#8a8880'; c.font='bold 12px '+HV; for (const [t,la,lo] of [['NEW JERSEY',40.845,-74.065],['NASSAU',40.70,-73.66],['WESTCHESTER',40.92,-73.75]]){ const [x,y]=pr([la,lo]); c.fillText(t,x,y); }
+          try { c.letterSpacing='0px'; } catch(e){}
+          // a few hub names, in plain black Helvetica
+          c.font='bold 11px '+HV; c.fillStyle='#111'; c.strokeStyle=LAND; c.lineWidth=3.5; c.lineJoin='round';   // a cream halo so the names read over the lines
+          for (const [t,k,dx,dy] of [['Times Sq','TSQ',-62,-8],['Grand Central','GCT',10,-6],['Atlantic Av','ATL',-74,4],['Jamaica','JC',8,16],['Flushing','FLU',-14,-12],['Coney Island','CI',-84,4],['Yankee Stadium','Y161',-112,22],['Broadway Jct','BJ',-30,18]]){
+            const [x,y]=pr(S[k]); c.strokeText(t,x+dx,y+dy); c.fillText(t,x+dx,y+dy); }
+          // header: the black band with a thin white rule along its top, as on the station signs
+          c.fillStyle='#111'; c.fillRect(0,0,w,HD); c.fillStyle='#fff'; c.fillRect(0,9,w,2.5);
+          c.font='bold 40px '+HV; c.fillText('Subway',22,56);
+          c.font='bold 13px '+HV; c.textAlign='right'; c.fillText('New York City',w-22,46); c.textAlign='left';
+          // key: the two station marks, then every route bullet in trunk order
+          const KX=w-214, KY=h-196, KW=200, KH=182;
+          c.fillStyle='#fff'; c.fillRect(KX,KY,KW,KH); c.strokeStyle='#111'; c.lineWidth=2; c.strokeRect(KX,KY,KW,KH);
+          c.fillStyle='#111'; c.font='bold 15px '+HV; c.fillText('Key',KX+12,KY+24);
+          c.fillStyle='#111'; c.beginPath(); c.arc(KX+24,KY+44,3,0,Math.PI*2); c.fill();
+          c.fillStyle='#111'; c.beginPath(); c.arc(KX+24,KY+66,5.4,0,Math.PI*2); c.fill(); c.fillStyle='#fff'; c.beginPath(); c.arc(KX+24,KY+66,3.6,0,Math.PI*2); c.fill();
+          c.fillStyle='#333'; c.font='12px '+HV; c.fillText('Local station',KX+44,KY+48); c.fillText('Transfer station',KX+44,KY+70);
+          const order=['1','2','3','4','5','6','7','A','C','E','B','D','F','M','N','Q','R','W','G','J','L'];
+          order.forEach((l,i)=>{ const r=routes.find(q=>q.label===l); bullet(KX+22+(i%7)*26, KY+102+Math.floor(i/7)*26, r, 10); }); });
         const mapM=new THREE.MeshStandardMaterial({ map:mapT, emissive:0xffffff, emissiveMap:mapT, emissiveIntensity:0.16, roughness:0.18, metalness:0, envMapIntensity:0.6 });   // behind acrylic
         const MW=0.74, MH=0.92, MY=1.16;
         for (const mx of [-4.385,-1.455,1.455,4.385]){
@@ -2597,7 +2683,7 @@ THREE.ColorManagement.enabled = false;
             pR.position.set(sx-(PW/2)*Math.cos(psi),py,z0+(PW/2)*Math.sin(psi)); pR.rotation.y=Math.PI+psi;
             for (const m of [pL,pR]){ m.castShadow=true; m.receiveShadow=true; news.add(m); }
             const hit=new THREE.Mesh(new THREE.PlaneGeometry(1.3,1.0),new THREE.MeshBasicMaterial({ visible:false })); hit.position.set(sx,py,z0-0.03); hit.rotation.y=Math.PI; news.add(hit);
-            news.userData.hit=hit; window.__news=news;
+            news.userData.hit=hit; news.userData.front=pR; window.__news=news;
             fig.scale.setScalar(S); fig.position.set(sx*(1-S),seat*(1-S),hz*(1-S)); }
           // a waste basket by the far column
           const bin=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.22,0.78,18,1,true), new THREE.MeshStandardMaterial({ color:0x1d1e1f, roughness:0.6, metalness:0.4, side:THREE.DoubleSide }));
@@ -2699,7 +2785,12 @@ THREE.ColorManagement.enabled = false;
     const over=e=>{ if (!window.__news || RIDE.target<0.999 || e.target!==cv) return false; const r=cv.getBoundingClientRect();
       ndc.set((e.clientX-r.left)/r.width*2-1, -((e.clientY-r.top)/r.height)*2+1); ray.setFromCamera(ndc,camera); return ray.intersectObject(window.__news.userData.hit,false).length>0; };
     document.addEventListener('pointermove', e=>{ cv.style.cursor=over(e)?'pointer':''; });
-    document.addEventListener('click', e=>{ if (over(e)) location.href='writing.html'; }); }
+    document.addEventListener('click', e=>{ if (over(e)) location.href='writing.html'; });
+    // the touch point: a pulsing dot pinned to the front page while you're at the platform (it lets taps fall through to the paper)
+    const tp=document.createElement('span'), wp=new THREE.Vector3(); tp.className='news-tp'; tp.setAttribute('aria-hidden','true'); document.body.appendChild(tp);
+    (function pin(){ requestAnimationFrame(pin); if (RIDE.target<0.999 || !window.__news) return;
+      window.__news.userData.front.getWorldPosition(wp).project(camera); const r=cv.getBoundingClientRect();
+      tp.style.transform='translate('+(r.left+(wp.x+1)/2*r.width).toFixed(1)+'px,'+(r.top+(1-wp.y)/2*r.height).toFixed(1)+'px)'; })(); }
   // train speed vs scroll: pull away from rest, cruise, brake into the station (integrated into a position table)
   const BRAKE0=0.66, BRAKE1=0.84;
   const vel = t => t<0.08 ? t/0.08 : t<BRAKE0 ? 1 : t<BRAKE1 ? 1-(t-BRAKE0)/(BRAKE1-BRAKE0) : 0;
@@ -2992,17 +3083,18 @@ THREE.ColorManagement.enabled = false;
         full.style.setProperty('--cr',(f.right-c.right)+'px'); full.style.setProperty('--cb',(f.bottom-c.bottom)+'px'); full.style.setProperty('--crad','22px'); }
       function toFull(){ ['--ct','--cl','--cr','--cb'].forEach(function(k){ full.style.setProperty(k,'0px'); }); full.style.setProperty('--crad','0px'); }
       // instant: opened on page load rather than by a click, so start full-screen instead of growing out of the button
-      var closeT;
-      function open(instant){ clearTimeout(closeT); full.classList.remove('closing'); full.hidden=false; if (document.getElementById('loader')) full.classList.add('held'); full.classList.add('instant'); if (instant===true) toFull(); else toCard(); void full.offsetWidth; full.classList.remove('instant');
+      var closeT, home=document.querySelector('.bnav .bn-home');
+      function mark(onAbout){ var on=onAbout?card:home, off=onAbout?home:card; on.setAttribute('aria-current','page'); off.removeAttribute('aria-current'); }
+      function open(instant){ mark(true); clearTimeout(closeT); full.classList.remove('closing'); full.hidden=false; if (document.getElementById('loader')) full.classList.add('held'); full.classList.add('instant'); if (instant===true) toFull(); else toCard(); void full.offsetWidth; full.classList.remove('instant');
         requestAnimationFrame(function(){ toFull(); full.classList.add('open'); }); openB.setAttribute('aria-expanded','true');
         window.__aboutP=1; document.body.classList.add('full-open'); full.scrollTop=0; full.dispatchEvent(new Event('about-open')); closeB.focus({ preventScroll:true }); }
-      function close(){ if (full.hidden || full.classList.contains('closing')) return; full.classList.remove('open'); full.classList.add('closing'); openB.setAttribute('aria-expanded','false'); window.__aboutP=0; document.body.classList.remove('full-open'); document.body.style.removeProperty('--nav-s'); full.dispatchEvent(new Event('about-close'));
+      function close(){ if (full.hidden || full.classList.contains('closing')) return; mark(false); full.classList.remove('open'); full.classList.add('closing'); openB.setAttribute('aria-expanded','false'); window.__aboutP=0; document.body.classList.remove('full-open'); document.body.style.removeProperty('--nav-s'); full.dispatchEvent(new Event('about-close'));
         if (/^#(about-me|my-process|inspiration)$/.test(location.hash)) history.replaceState(null,'',location.pathname+location.search);   // a closed About shouldn't reopen on reload
         // hide once the panel's own fade ends (children's transitions bubble here too); a reopen mid-fade cancels it
         var done=function(e){ if (e && e.target!==full) return; clearTimeout(closeT); full.removeEventListener('transitionend',done); if (!full.classList.contains('closing')) return; full.hidden=true; full.classList.remove('closing'); };
         full.addEventListener('transitionend',done); closeT=setTimeout(done, 500); openB.focus({ preventScroll:true }); }
       openB.addEventListener('click', function(e){ e.preventDefault(); open(); }); closeB.addEventListener('click', close);
-      window.__aboutOpen=open;
+      window.__aboutOpen=open; window.__aboutClose=close;
       full.addEventListener('scroll', function(){ var max=full.scrollHeight-full.clientHeight, p=max>0 ? Math.min(1, full.scrollTop/max) : 0;
         document.body.style.setProperty('--nav-s', (1 - 0.12*p).toFixed(4)); }, { passive:true });
       window.addEventListener('loader-gone', function(){ full.classList.remove('held'); });
@@ -3101,7 +3193,9 @@ THREE.ColorManagement.enabled = false;
           document.body.appendChild(ta); ta.select(); var good=false; try { good=document.execCommand('copy'); } catch(x){} ta.remove(); if (good) ok(); };
         if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(em).then(ok, legacy); else legacy(); });
       document.querySelector('.bn-about').addEventListener('click', function(){ set(false); });
-      home.addEventListener('click', function(e){ e.preventDefault(); set(false); if (window.__goHome) window.__goHome(); });
+      home.addEventListener('click', function(e){ e.preventDefault(); set(false);
+        if (document.body.classList.contains('full-open')){ if (window.__aboutClose) window.__aboutClose(); home.focus({ preventScroll:true }); return; }
+        if (window.__goHome) window.__goHome(); });
     })();
   </script>
   <script>

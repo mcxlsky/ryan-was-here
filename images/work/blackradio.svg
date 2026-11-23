@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <!-- Blackradio: a cream-and-charcoal boombox, front on, lit from above (the Work page's object set: cream body, charcoal trim, one orange accent) -->
+  <defs>
+    <linearGradient id="cream" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf8f1"/><stop offset=".55" stop-color="#f1ebdf"/><stop offset="1" stop-color="#e4dccb"/></linearGradient>
+    <linearGradient id="creamSide" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".07"/><stop offset=".08" stop-color="#000" stop-opacity="0"/><stop offset=".92" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".08"/></linearGradient>
+    <linearGradient id="char" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3d"/><stop offset="1" stop-color="#151516"/></linearGradient>
+    <linearGradient id="charTop" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a4a4e"/><stop offset=".5" stop-color="#2a2a2d"/><stop offset="1" stop-color="#1c1c1e"/></linearGradient>
+    <linearGradient id="chrome" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f5f7"/><stop offset=".45" stop-color="#b9bdc3"/><stop offset=".55" stop-color="#9ea2a9"/><stop offset="1" stop-color="#e3e5e8"/></linearGradient>
+    <linearGradient id="chromeH" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#cfd2d6"/><stop offset=".5" stop-color="#f7f8fa"/><stop offset="1" stop-color="#a7abb1"/></linearGradient>
+    <radialGradient id="bezel" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="#4b4b4f"/><stop offset=".7" stop-color="#232325"/><stop offset="1" stop-color="#111112"/></radialGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eceef0"/><stop offset=".5" stop-color="#9a9ea4"/><stop offset="1" stop-color="#d9dcdf"/></linearGradient>
+    <pattern id="grille" width="9" height="9" patternUnits="userSpaceOnUse"><rect width="9" height="9" fill="#1d1d1f"/><circle cx="4.5" cy="4.5" r="2" fill="#0c0c0d"/><circle cx="4" cy="4" r=".8" fill="#3b3b3e"/></pattern>
+    <radialGradient id="grilleShade" cx=".5" cy=".3" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".1"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></radialGradient>
+    <radialGradient id="cap" cx=".38" cy=".3" r=".75"><stop offset="0" stop-color="#6a6a6f"/><stop offset=".35" stop-color="#2c2c2f"/><stop offset="1" stop-color="#0e0e0f"/></radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b2e33"/><stop offset="1" stop-color="#121416"/></linearGradient>
+    <linearGradient id="glassShine" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".45" stop-color="#fff" stop-opacity=".04"/><stop offset=".46" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="orange" cx=".38" cy=".32" r=".7"><stop offset="0" stop-color="#ffa070"/><stop offset=".45" stop-color="#ef6a35"/><stop offset="1" stop-color="#c94a1c"/></radialGradient>
+    <radialGradient id="reel" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#e9e3d6"/><stop offset=".55" stop-color="#cfc6b3"/><stop offset="1" stop-color="#8f8676"/></radialGradient>
+    <filter id="soft" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="12"/></filter>
+    <clipPath id="bodyClip"><rect x="100" y="240" width="600" height="380" rx="44"/></clipPath>
+  </defs>
+
+  <!-- contact shadow -->
+  <ellipse cx="400" cy="640" rx="290" ry="18" fill="#000" opacity=".22" filter="url(#soft)"/>
+
+  <!-- antenna (behind the body) -->
+  <line x1="628" y1="250" x2="712" y2="96" stroke="url(#chromeH)" stroke-width="8" stroke-linecap="round"/>
+  <line x1="628" y1="250" x2="712" y2="96" stroke="#fff" stroke-opacity=".6" stroke-width="2" stroke-linecap="round" transform="translate(-2 -1)"/>
+  <circle cx="713" cy="94" r="9" fill="url(#chrome)" stroke="#8d9198" stroke-width="1"/>
+  <rect x="612" y="226" width="34" height="22" rx="6" fill="url(#charTop)"/>
+
+  <!-- handle -->
+  <path d="M206 250 V182 a26 26 0 0 1 26 -26 H568 a26 26 0 0 1 26 26 V250" fill="none" stroke="#151516" stroke-width="26" stroke-linejoin="round"/>
+  <path d="M206 250 V182 a26 26 0 0 1 26 -26 H568 a26 26 0 0 1 26 26 V250" fill="none" stroke="url(#charTop)" stroke-width="20" stroke-linejoin="round"/>
+  <path d="M220 178 a14 14 0 0 1 12 -12 H568" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- body -->
+  <g clip-path="url(#bodyClip)">
+    <rect x="100" y="240" width="600" height="380" fill="url(#cream)"/>
+    <rect x="100" y="240" width="600" height="380" fill="url(#creamSide)"/>
+    <!-- charcoal base with the tape slot -->
+    <rect x="100" y="560" width="600" height="60" fill="url(#char)"/>
+    <rect x="100" y="560" width="600" height="3" fill="#fff" opacity=".12"/>
+    <rect x="100" y="555" width="600" height="5" fill="#000" opacity=".1"/>
+    <rect x="168" y="580" width="464" height="16" rx="8" fill="#0b0b0c"/>
+    <rect x="168" y="592" width="464" height="4" rx="2" fill="#fff" opacity=".07"/>
+  </g>
+  <!-- top edge highlight -->
+  <path d="M140 241.5 H660" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>
+
+  <!-- piano keys on top -->
+  <g>
+    <rect x="300" y="226" width="40" height="18" rx="4" fill="url(#charTop)"/>
+    <rect x="346" y="226" width="40" height="18" rx="4" fill="url(#charTop)"/>
+    <rect x="392" y="226" width="40" height="18" rx="4" fill="url(#charTop)"/>
+    <rect x="438" y="226" width="40" height="18" rx="4" fill="url(#charTop)"/>
+    <rect x="484" y="224" width="40" height="20" rx="4" fill="url(#orange)"/>
+  </g>
+
+  <!-- tuner window -->
+  <rect x="150" y="266" width="500" height="40" rx="10" fill="url(#glass)"/>
+  <g stroke="#e9e3d6" stroke-opacity=".55" stroke-width="2">
+    <line x1="180" y1="280" x2="180" y2="292"/><line x1="214" y1="283" x2="214" y2="292"/><line x1="248" y1="280" x2="248" y2="292"/><line x1="282" y1="283" x2="282" y2="292"/>
+    <line x1="316" y1="280" x2="316" y2="292"/><line x1="350" y1="283" x2="350" y2="292"/><line x1="384" y1="280" x2="384" y2="292"/><line x1="418" y1="283" x2="418" y2="292"/>
+    <line x1="452" y1="280" x2="452" y2="292"/><line x1="486" y1="283" x2="486" y2="292"/><line x1="520" y1="280" x2="520" y2="292"/><line x1="554" y1="283" x2="554" y2="292"/>
+    <line x1="588" y1="280" x2="588" y2="292"/><line x1="622" y1="283" x2="622" y2="292"/>
+  </g>
+  <rect x="424" y="271" width="4" height="30" rx="2" fill="#ff7a40"/>
+  <rect x="150" y="266" width="500" height="40" rx="10" fill="url(#glassShine)"/>
+  <rect x="150" y="266" width="500" height="40" rx="10" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="2"/>
+
+  <!-- speakers -->
+  <g id="spk">
+    <circle cx="242" cy="420" r="106" fill="#d8cfbd"/>
+    <circle cx="242" cy="418" r="102" fill="url(#bezel)"/>
+    <circle cx="242" cy="418" r="90" fill="url(#ring)"/>
+    <circle cx="242" cy="418" r="83" fill="url(#grille)"/>
+    <circle cx="242" cy="418" r="83" fill="url(#grilleShade)"/>
+    <circle cx="242" cy="418" r="30" fill="#0d0d0e"/>
+    <circle cx="242" cy="418" r="27" fill="url(#cap)"/>
+    <ellipse cx="233" cy="408" rx="9" ry="6" fill="#fff" opacity=".35"/>
+    <path d="M172 372 a90 90 0 0 1 70 -40" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <use href="#spk" transform="translate(316 0)"/>
+
+  <!-- cassette deck -->
+  <rect x="352" y="356" width="96" height="124" rx="12" fill="#d9d0be"/>
+  <rect x="356" y="360" width="88" height="116" rx="10" fill="url(#glass)"/>
+  <rect x="366" y="390" width="68" height="44" rx="6" fill="#e9e2d3"/>
+  <rect x="372" y="398" width="56" height="18" rx="9" fill="#2a2a2d"/>
+  <circle cx="384" cy="407" r="7" fill="url(#reel)"/><circle cx="416" cy="407" r="7" fill="url(#reel)"/>
+  <rect x="380" y="422" width="40" height="5" rx="2.5" fill="#cfc6b3"/>
+  <rect x="356" y="360" width="88" height="116" rx="10" fill="url(#glassShine)"/>
+
+  <!-- orange play button and wordmark -->
+  <circle cx="400" cy="522" r="17" fill="#000" opacity=".12" transform="translate(0 2)"/>
+  <circle cx="400" cy="520" r="16" fill="url(#orange)"/>
+  <ellipse cx="395" cy="513" rx="6" ry="4" fill="#fff" opacity=".45"/>
+  <text x="652" y="547" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="16" font-weight="700" fill="#6b5442" letter-spacing=".3">blackradio</text>
+
+  <!-- feet -->
+  <rect x="150" y="618" width="70" height="12" rx="6" fill="#121213"/>
+  <rect x="580" y="618" width="70" height="12" rx="6" fill="#121213"/>
+</svg>

@@ -1,20 +1,23 @@
 :root { --font-ui: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; }
-/* the shared bottom nav (same markup and styles as the home page), set on a solid dark glass so it reads on light pages too */
+/* the shared bottom nav: the same markup as the home page, in the light glass the About page uses */
     .glass-av { flex: none; width: 40px; height: 40px; border-radius: 50%; background: #e5ab00; color: #111; display: grid; place-items: center;
              font: 700 15px/1 var(--font-ui); letter-spacing: -0.02em; box-shadow: 0 0 0 2px rgba(255,255,255,0.25); }
     /* bottom nav: your photo on the left (opens a mini bio), Home / Work / About centred */
     .bnav { position: fixed; z-index: 5; left: 50%; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); width: fit-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 6px; padding: 8px;
             border-radius: 999px; color: #fff; isolation: isolate; border: 1px solid transparent; background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.12) 100%); -webkit-backdrop-filter: blur(28px) saturate(2.0) brightness(1.08); backdrop-filter: blur(28px) saturate(2.0) brightness(1.08);
             box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); }
-    .bn-me { flex: none; -webkit-appearance: none; appearance: none; border: 0; padding: 0; background: none; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; transition: transform .2s; }
+    .bn-me { flex: none; -webkit-appearance: none; appearance: none; border: 0; padding: 0; background: none; cursor: pointer; width: 44px; height: 44px; border-radius: 50%; transition: transform .2s; display: grid; place-items: center; }
     .bn-me:hover { transform: scale(1.06); }
-    .bn-me .glass-av, .bn-me img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: grid; box-shadow: none; }
-    .bn-sep { flex: none; width: 1px; height: 24px; margin: 0 8px; background: rgba(255,255,255,0.22); }
+    .bn-me .glass-av { width: 44px; height: 44px; border-radius: 50%; display: grid; box-shadow: none; }
+    /* 40px ring: the border is the outline, the padding is the gap between it and the photo */
+    .bn-me img { box-sizing: border-box; width: 40px; height: 40px; padding: 1.5px; border: 1.5px solid rgba(17,17,17,0.25); border-radius: 50%; object-fit: cover; display: block; }
+    .bn-sep { flex: none; width: 1px; height: 24px; margin: 0 8px; background: rgba(17,17,17,0.12); }
     .bn-links { display: flex; gap: 4px; }
-    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(255,255,255,0.58); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 999px; transition: color .15s, background .15s; }
-    .bn-links a:hover { color: #fff; }   /* hover: dim to lit */
-    .bn-links a[aria-current="page"] { color: #fff; background: rgba(255,255,255,0.16); }
-    .bnav a:focus-visible, .bnav button:focus-visible, .bio-pop a:focus-visible, .bio-pop button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    .bn-links a { font: 600 14.5px/1 var(--font-ui); color: rgba(17,17,17,0.45); text-decoration: none; display: inline-flex; align-items: center; height: 44px; padding: 0 16px; border-radius: 16px; transition: color .15s, background .15s; }
+    .bn-links a:hover { color: #111; background: rgba(17,17,17,0.06); }
+    .bn-links a[aria-current="page"] { color: #111; background: rgba(17,17,17,0.08); -webkit-backdrop-filter: blur(6px) brightness(1.05); backdrop-filter: blur(6px) brightness(1.05); box-shadow: inset 0 1px 0 rgba(255,255,255,0.5); }
+    .bnav a:focus-visible, .bnav button:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+    .bio-pop a:focus-visible, .bio-pop button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
     @media (max-width: 420px) { .bn-links a { padding: 0 11px; } }
     .bio-pop { position: fixed; z-index: 5; left: 50%; top: 50%; width: min(340px, calc(100% - 32px)); padding: 18px; border-radius: 22px; color: #fff; isolation: isolate; border: 1px solid transparent; background: linear-gradient(160deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.12) 100%); -webkit-backdrop-filter: blur(28px) saturate(2.0) brightness(1.08); backdrop-filter: blur(28px) saturate(2.0) brightness(1.08);
             box-shadow: 0 20px 44px -18px rgba(0,0,0,0.55); opacity: 0; visibility: hidden; transform: translate(-50%, calc(-50% + 8px)) scale(0.98);
@@ -23,6 +26,7 @@
     .bio-pop.open { opacity: 1; visibility: visible; transform: translate(-50%, -50%); transition: opacity .2s ease, transform .3s cubic-bezier(.2,.8,.2,1), visibility 0s; }
     .bio-top { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; }
     .bio-top .glass-av { width: 56px; height: 56px; font-size: 19px; }
+    .bio-top .bio-av { box-sizing: border-box; width: 56px; height: 56px; padding: 2px; border: 2px solid rgba(255,255,255,0.75); border-radius: 50%; object-fit: cover; display: block; }
     .bio-top p { display: grid; gap: 3px; text-shadow: 0 1px 2px rgba(0,0,0,0.25); }
     .bio-top b { font: 600 17px/1.2 var(--font-ui); letter-spacing: -0.01em; }
     .bio-top span { font: 500 13.5px/1.25 var(--font-ui); color: rgba(255,255,255,0.78); }
@@ -36,7 +40,9 @@
     .bio-ic.stroke svg { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
     .bio-ic .ok { display: none; } .bio-ic.done .ok { display: block; } .bio-ic.done .mail { display: none; }
     .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.bnav, .bio-pop { background: rgba(22,22,25,0.86); -webkit-backdrop-filter: blur(24px) saturate(1.5); backdrop-filter: blur(24px) saturate(1.5); box-shadow: 0 20px 44px -18px rgba(0,0,0,0.5); }
+.bio-pop { background: rgba(22,22,25,0.86); -webkit-backdrop-filter: blur(24px) saturate(1.5); backdrop-filter: blur(24px) saturate(1.5); box-shadow: 0 20px 44px -18px rgba(0,0,0,0.5); }
+.bnav { bottom: calc(24px + env(safe-area-inset-bottom, 0px)); border-radius: 20px; color: #111; background: rgba(255,255,255,0.55); border-color: rgba(17,17,17,0.08);
+        -webkit-backdrop-filter: blur(26px) saturate(1.6) brightness(1.1); backdrop-filter: blur(26px) saturate(1.6) brightness(1.1); box-shadow: 0 1px 4px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7); }
 .bnav { z-index: 50; } .bio-pop { z-index: 51; }
 .bnav, .bnav * , .bio-pop, .bio-pop * { box-sizing: border-box; }
 .bnav a, .bio-pop a { text-decoration: none; }
@@ -49,3 +55,25 @@
   .bnav { bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
   .soon-toast { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
 }
+
+/* the About page's footer: a light band with the subway-map mark, name, line and location, then the copyright and links; the side padding keeps it to a centred 1280px frame on very wide screens */
+.full-foot { --edge: max(0px, (100vw - 1280px) / 2); position: relative; z-index: 1; background: #F5F5F5; color: #111; padding: 48px calc(40px + var(--edge)) calc(96px + env(safe-area-inset-bottom, 0px)); font-family: var(--font-ui); }
+.full-foot, .full-foot * { box-sizing: border-box; }
+.full-foot p { margin: 0; }
+.foot-map svg { display: block; width: 96px; height: auto; }
+.foot-map .land { fill: #e4e1d8; stroke: none; }
+.foot-map .ln { fill: none; stroke-width: 9.5; stroke-linecap: round; stroke-linejoin: round; }
+.foot-name { display: block; margin-top: 24px; font: 600 clamp(19px, 2.5vh, 21px)/1 var(--font-ui); color: #111; letter-spacing: -0.01em; }
+.foot-tag { font: 500 clamp(19px, 2.5vh, 21px)/1.55 var(--font-ui); letter-spacing: -0.01em; color: rgba(17,17,17,0.52); margin-top: 12px; }
+.foot-loc { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; padding: 7px 12px 7px 10px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(17,17,17,0.06), 0 0 0 1px rgba(17,17,17,0.06);
+            font: 500 14px/1 var(--font-ui); color: rgba(17,17,17,0.6); }
+.foot-loc svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+.foot-bot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 64px; padding-top: 16px; border-top: 1px solid rgba(17,17,17,0.08); font: 400 13px/1.3 var(--font-ui); color: rgba(17,17,17,0.4); }
+.foot-bot > span { min-width: 0; }
+.foot-links { display: flex; gap: 4px; margin-right: -10px; }
+.foot-links a { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; color: rgba(17,17,17,0.52); text-decoration: none; transition: color .2s, background .2s; }
+.foot-links a:hover { color: #111; background: rgba(17,17,17,0.05); }
+.foot-links a:focus-visible { outline: 2px solid rgba(17,17,17,0.5); outline-offset: 2px; }
+.foot-links svg { width: 22px; height: 22px; fill: currentColor; }
+.foot-links .stroke svg { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 720px) { .full-foot { padding-left: 32px; padding-right: 32px; } .foot-name, .foot-tag { font-size: 18px; } }

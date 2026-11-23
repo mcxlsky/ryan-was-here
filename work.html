@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Work — ryan was here</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="bnav.css" />
+  <script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.min.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }</script>
+  <style>
+    :root { --font-ui: -apple-system, "SF Pro Display", "Inter", system-ui, "Segoe UI", sans-serif; --edge: max(0px, (100vw - 1280px) / 2); --gut: 40px; }   /* --gut: the content's side margin; the tabs, the X, the arrows and the slide content all line up on it */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { min-height: 100%; scrollbar-width: none; color-scheme: light; }
+    html::-webkit-scrollbar { display: none; }
+    body { min-height: 100vh; min-height: 100dvh; background: #FAFAFA; color: #111;
+           font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+    ::selection { background: rgba(240, 186, 40, 0.32); color: #111; }
+    a { color: inherit; text-decoration: none; }
+    a:focus-visible, button:focus-visible { outline: 2px solid #111; outline-offset: 3px; }
+    .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+    /* top fade: same as .about-full::before — sticks at the top and fades content under the header */
+    .top-fade { position: fixed; top: 0; left: 0; right: 0; z-index: 1; height: 96px; pointer-events: none;
+                background: linear-gradient(#FAFAFA 62%, rgba(250,250,250,0)); }
+
+    /* header: the faint wordmark, fixed at the top over the fade */
+    .full-mark { font: 700 26px/1 "Caveat", "Segoe Script", "Bradley Hand", cursive; color: rgba(17,17,17,0.22); display: block; }
+
+    /* close button */
+    .full-x { position: fixed; top: calc(24px + env(safe-area-inset-top, 0px)); right: calc(var(--gut) - 12px + var(--edge)); width: 40px; height: 40px; z-index: 4;   /* the 16px glyph ends on the gutter */
+              display: grid; place-items: center; border: 0; border-radius: 50%; cursor: pointer; background: none; color: rgba(17,17,17,0.35); transition: color .2s; text-decoration: none; }
+    .full-x:hover { color: rgba(17,17,17,0.6); }
+    .full-x:focus-visible { outline: 2px solid rgba(17,17,17,0.5); outline-offset: 2px; }
+    .full-x svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* view switcher: stacked links in the top-left corner like the About page's section links, at every width */
+    .full-tabs { position: fixed; z-index: 3; top: calc(30px + env(safe-area-inset-top, 0px)); left: calc(var(--gut) + var(--edge));
+                 display: flex; flex-direction: column; align-items: flex-start; margin-left: -8px; }
+    .full-tab { height: 28px; display: flex; align-items: center; gap: 8px; padding: 0 8px; background: none; border: none; border-radius: 8px;
+                font: 500 13px/1 var(--font-ui); white-space: nowrap; text-decoration: none; color: rgba(17,17,17,0.35); cursor: pointer; transition: color .2s; }
+    .full-tab:hover { color: rgba(17,17,17,0.7); }
+    .full-tab[aria-current="page"] { color: #111; }
+    .full-tab:focus { outline: none; }
+    .full-tab:focus-visible { box-shadow: 0 0 0 2px rgba(17,17,17,0.2); }
+    .full-bar { position: fixed; z-index: 2; top: 0; left: 0; right: 0; padding: calc(31px + env(safe-area-inset-top, 0px)) 40px 11px; text-align: center; pointer-events: none; }
+
+    main { max-width: 880px; margin: 0 auto; padding: calc(clamp(110px, 17vh, 150px) + env(safe-area-inset-top, 0px)) 24px calc(102px + env(safe-area-inset-bottom, 0px)); }   /* the bottom clears the floating nav, ~16px above it */
+    .full-foot { display: none; }   /* the Work page goes without the shared footer, in both views */
+
+    /* both views draw from the same PROJECTS list (in the script below); switching fades the new one in */
+    .view[hidden] { display: none; }
+    .view { animation: viewIn .4s cubic-bezier(.2,.8,.2,1); }
+    @keyframes viewIn { from { opacity: 0; transform: translateY(8px); } }
+
+    /* the project's object on a soft tile, like a product shot (the previews are cut-outs) */
+    .tile { position: relative; display: grid; place-items: center; background: #F0EFEC; border-radius: 16px; overflow: hidden; }
+    .tile img { width: 64%; height: auto; transition: transform .5s cubic-bezier(.2,.8,.2,1); }   /* the illustrations carry their own soft floor shadow */
+    .tile .ini { font: 600 1.6em/1 var(--font-ui); color: rgba(17,17,17,0.25); letter-spacing: -0.02em; }
+
+    /* Work: the projects' 3D objects ride an elliptical orbit, straight on the page: the one at the front is biggest and tells its story below;
+       the rest shrink and fade as they go round the back. Scrolling, swiping, dragging or the arrow keys turn it a project at a time; hovering
+       one turns it (the story below stays the front one's), clicking it brings it round, clicking the front one opens it. Each object fades in once its 3D render is ready. */
+    /* the Work view fills the room between the header and the nav (main's own top and bottom padding); the orbit and the name under it centre in it */
+    /* the orbit and its card centre in the room, then sit a little above centre (the bottom padding lifts them by half its height) */
+    #view-recent:not([hidden]) { display: flex; flex-direction: column; padding-bottom: clamp(32px, 10vh, 110px);
+                                 min-height: calc(100vh - clamp(110px, 17vh, 150px) - 102px); min-height: calc(100dvh - clamp(110px, 17vh, 150px) - 102px); }
+    /* the orbit's box: wide and shallow (seen from ground level, the orbit is a flat ellipse), and never taller than the room on a short screen */
+    .collage { position: relative; width: min(100%, max(300px, calc((100vh - 390px) * 16 / 6))); max-width: 640px; margin: auto auto 0; aspect-ratio: 16 / 6;
+               touch-action: pan-y; -webkit-user-select: none; user-select: none; }
+    /* each object is centred in the box; the script sizes it and sets where it is on the ellipse (translate), how near (scale, fade) and what's in front */
+    .cl-item { position: absolute; left: 50%; top: 50%; width: 0; height: 0; will-change: transform; transform-origin: 50% 78%;   /* they shrink toward their base, so they all stand on one ground */
+               -webkit-tap-highlight-color: transparent; -webkit-user-drag: none; }
+    .cl-item:focus-visible { outline: 2px solid #111; outline-offset: 4px; border-radius: 16px; }
+    .cl-obj { position: absolute; inset: -30%; display: grid; place-items: center; pointer-events: none; }   /* the canvas runs well past the object, so its shadow isn't cut off */
+    .cl-obj canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .5s ease; }
+    .cl-obj.drawn canvas { opacity: 1; }
+    .cl-obj img { width: 74%; height: auto; }   /* only if the browser can't do 3D */
+    /* the front project's name and details in one small flat card under its object, in the soft grey the chips used; a fixed size (centred contents),
+       so swapping projects never moves the orbit */
+    .cl-info { width: min(100%, 210px); min-height: 148px; margin: 22px auto auto; padding: 16px 16px; display: grid; justify-items: center; align-content: center; gap: 2px;
+               text-align: center; background: rgba(17,17,17,0.055); border-radius: 16px; }
+    .cl-info b { margin-bottom: 4px; font: 600 16px/1.25 var(--font-ui); letter-spacing: -0.02em; }   /* the name, then its details stacked one per line */
+    .cl-info .meta { font: 500 12.5px/1.35 var(--font-ui); color: rgba(17,17,17,0.55); }   /* the details, one per line (the card is their fill now) */
+    /* the way in: a small dark button at the card's foot, to the project's Featured slide */
+    .cl-info .cl-open { margin-top: 10px; padding: 7px 14px; border-radius: 999px; background: #111; color: #fff; font: 500 12.5px/1.2 var(--font-ui);
+                        text-decoration: none; transition: background .2s ease; }
+    .cl-info .cl-open:hover { background: #333; }
+
+    /* Featured: a sideways slider, one project per screen (swipe, scroll sideways, the arrows at the screen's edges, or the arrow keys); each slide has the object on a big tile and the story beside it */
+    html.paged main { padding-top: 0; padding-bottom: 0; }
+    /* each slide is its project's colour, deepened a little so white text reads on it, and lit brighter around the object;
+       the header turns white over it and the light top fade steps aside */
+    .page { color: #fff; background: color-mix(in srgb, var(--c, #555) 86%, #000); }   /* flat: one solid colour per project (a gradient here banded in Safari) */
+    /* over a project's colour (Featured's slides): the chrome turns white, the light top fade steps aside */
+    html.oncolor .top-fade { display: none; }
+    .bnav { transform-origin: 50% 100%; transition: transform .45s cubic-bezier(.2,.8,.2,1), background-color .3s ease, border-color .3s ease, box-shadow .3s ease; }
+    /* the nav turns to smoked dark glass over the colour; on Featured it also steps back so the projects get the room */
+    html.oncolor .bnav { background-color: rgba(16,16,18,0.52); border-color: rgba(255,255,255,0.14);
+                         box-shadow: 0 12px 32px -14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.14); }
+    html.paged .bnav { transform: translateX(-50%) scale(0.8); }
+    html.oncolor .bn-links a { color: rgba(255,255,255,0.7); }
+    html.oncolor .bn-links a:hover { color: #fff; background: rgba(255,255,255,0.08); }
+    html.oncolor .bn-links a[aria-current="page"] { color: #fff; background: color-mix(in srgb, var(--cur, #444) 74%, #000); box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 0 0 1px rgba(255,255,255,0.08);
+                                                 transition: color .15s, background .35s ease; }   /* the current chip takes the colour of the project on screen */
+    html.oncolor .bn-sep { background: rgba(255,255,255,0.22); }
+    html.oncolor .bn-me img { border-color: rgba(255,255,255,0.75); }
+    html.oncolor .bnav a:focus-visible, html.oncolor .bnav button:focus-visible { outline-color: #fff; }
+    html.paged .page { padding-bottom: calc(106px + env(safe-area-inset-bottom, 0px)); }   /* the case-study row ends 32px above the nav, so it doesn't crowd it */
+    html.oncolor .full-mark { color: #fff; }
+    html.oncolor .full-tab { color: rgba(255,255,255,0.62); }
+    html.oncolor .full-tab:hover, html.oncolor .full-tab[aria-current="page"] { color: #fff; }
+    html.oncolor .full-x { color: rgba(255,255,255,0.75); }
+    html.oncolor .full-x:hover { color: #fff; }
+    html.oncolor .full-tab:focus-visible, html.oncolor .full-x:focus-visible { outline-color: #fff; }
+    .pages { width: 100vw; margin-left: 50%; transform: translateX(-50%); display: flex; overflow-x: auto; overscroll-behavior-x: contain;
+             scroll-snap-type: x mandatory; scrollbar-width: none; }
+    .pages::-webkit-scrollbar { display: none; }
+    .page { position: relative; flex: 0 0 100%; min-height: 100vh; min-height: 100dvh; scroll-snap-align: center; scroll-snap-stop: always;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            padding: 96px calc(var(--gut) + var(--edge)) calc(102px + env(safe-area-inset-bottom, 0px)); }   /* sides match the switcher and the X, so the slide uses the page's full width */   /* 102: the case-study row ends 16px above the nav */
+    /* the project's name, huge, behind everything on its slide: clipped to the slide, never in the way of a click or a drag */
+    .page-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .page-bg span { position: absolute; left: 50%; top: var(--mid, 42%); transform: translate(-50%, -50%); white-space: nowrap;
+                    font: 500 min(135vw / var(--n, 10), 36vh)/0.9 var(--font-ui); letter-spacing: -0.05em; color: rgba(255,255,255,0.02); text-transform: lowercase; user-select: none; }   /* --n: the name's length, so every name spans about the slide's width */
+    .page-main { width: 100%; flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; text-align: left; }   /* the story sits just above the case-study row, on its left edge */
+    .page-main .tile { position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%); }   /* the object sits centred across the screen, a little above its middle */
+    .page-head { margin-bottom: 2px; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; row-gap: 2px; }
+    /* the project's role and dates, on the title's line (sharing its baseline), separated by a dot */
+    .page-head .facts { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }
+    .page-head .fact { font: 500 11px/1.3 var(--font-ui); letter-spacing: -0.005em; color: rgba(255,255,255,0.86); }
+    .page-head .fact + .fact::before { content: '·'; margin-right: 6px; }
+    /* the arrows sit in the side gutters at the slide's vertical middle: back on the left, forward on the right */
+    .page > .pager { position: absolute; z-index: 2; top: var(--mid, 50%); transform: translateY(-50%); }   /* --mid: the object's centre line, set by the script */
+    .page > .pager[data-step="-1"] { left: calc(var(--gut) + var(--edge)); }   /* the arrows' outer edges sit on the gutter, in line with the tabs, the content and the X */
+    .page > .pager[data-step="1"] { right: calc(var(--gut) + var(--edge)); }
+    /* the arrows: a flat round disc a notch darker than the slide's colour (a light black wash, so it follows every project's colour); hover deepens it */
+    .pager { width: 28px; height: 28px; flex: none; display: grid; place-items: center; border-radius: 50%; cursor: pointer; color: #fff;
+             background: rgba(0,0,0,0.12); border: 0; transition: background .2s; }
+    .pager:hover { background: rgba(0,0,0,0.2); }
+    .pager svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    /* the object stands on its own (no tile behind it), centred above the story; its height scales with the screen so a slide always fits */
+    .page .tile { background: none; border-radius: 0; overflow: visible; isolation: isolate; }
+    /* its middle is fixed at 42% of the screen, so it may only be twice as tall as the room between that point and the story below it
+       (the story + cards + nav clearance take ~310px at the bottom, hence 116vh - 660px) */
+    .page .tile img { width: auto; height: clamp(62px, min(17vh, 75vh - 430px), 170px); height: clamp(62px, min(17dvh, 75dvh - 430px), 170px); }   /* 65% of the earlier size; the 3D stage follows it */
+    .page .tile .ini { font-size: 78px; }
+    .page .tile img { transition: opacity .4s ease; }
+    html.has-3d .page[data-model] .tile img { visibility: hidden; }   /* with 3D available, the illustration never shows first (it keeps its space for sizing), so the object doesn't appear to grow when the 3D version arrives */
+    .page .tile canvas.turntable { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -54%); cursor: grab; animation: ttIn .6s ease both; }   /* fades in each time it moves into a slide */
+    .page .tile canvas.turntable.grabbing { cursor: grabbing; }
+    @keyframes ttIn { from { opacity: 0; } }
+    .page-t { position: relative; z-index: 1; display: grid; justify-items: start; gap: 4px; }   /* above the 3D stage, so dragging the object never covers the title or arrows */
+    .page-t h2 { font: 600 clamp(14px, 1.2vw, 17px)/1.15 var(--font-ui); letter-spacing: -0.015em; }
+    .page-t .meta { font: 500 12px/1.3 var(--font-ui); color: rgba(255,255,255,0.86); }
+    .page-t p { max-width: 32em; margin-top: 2px; font: 400 clamp(13px, 0.95vw, 14px)/1.45 var(--font-ui); color: rgba(255,255,255,0.96); text-wrap: pretty; }
+    .page-t p { display: none; }   /* the tag lines are hidden for now (the copy stays in the list below); delete this line to bring them back */
+    /* the project's case studies: a row of three small cards docked just above the nav, on every screen size */
+    .studies { position: relative; z-index: 1; flex: none; width: 100%; margin-top: 16px; text-align: left; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    /* the case-study cards: flat — an even white tint over the blurred slide, a faint smoke underneath so white type keeps its contrast,
+       and a faint hairline of light round the edge to lift each card off the background */
+    .study { display: grid; grid-template-columns: minmax(0, 1fr); align-content: center; min-height: 84px; padding: 14px 16px; border-radius: 12px; color: #fff;
+             background: linear-gradient(rgba(255,255,255,0.07), rgba(255,255,255,0.07)), rgba(0,0,0,0.1);   /* flat: an even white tint over a faint smoke */
+             border: 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05); -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5); transition: background .2s, transform .2s cubic-bezier(.2,.8,.2,1); }
+    .study:hover { transform: translateY(-2px); background: linear-gradient(rgba(255,255,255,0.11), rgba(255,255,255,0.11)), rgba(0,0,0,0.1); }
+    .study:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+    /* placeholder case studies: the cards stay, their words are blurred until the real ones are written */
+    .studies.is-soon .study b, .studies.is-soon .study .desc { filter: blur(5px); -webkit-user-select: none; user-select: none; }   /* a white ring, so focus shows on every project's colour */
+    .study b { font: 600 12px/1.35 var(--font-ui); letter-spacing: -0.005em; text-wrap: balance; }
+    .study .desc { margin-top: 3px; font: 400 12px/1.4 var(--font-ui); color: rgba(255,255,255,0.78); text-wrap: pretty; }   /* an optional line under the title */
+    /* optional icons, in a row above the text, each in its own circle (placeholders for now: a desktop and a phone) */
+    .study.has-ic { align-content: start; row-gap: 12px; }
+    .study-ics { display: flex; gap: 6px; }
+    .study-ic { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.14); color: #fff; display: grid; place-items: center; }
+    .study-ic svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    .study-tx { display: grid; min-width: 0; }
+    .study-ics { display: none; } .study.has-ic { align-content: center; }   /* icons hidden for now; delete this line to bring them back */
+
+    @media (max-width: 1100px) {
+      :root { --gut: 32px; }   /* narrower screens: everything a little closer to the edge, still on one line */
+    }
+    @media (max-width: 600px) {
+      main { padding-left: 20px; padding-right: 20px; }
+      .collage { aspect-ratio: 16 / 9; }   /* phones: a deeper box, so the front object can still be big */
+      :root { --gut: 20px; }
+      .page { padding: 120px var(--gut) calc(106px + env(safe-area-inset-bottom, 0px)); }
+      html.paged .page { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
+      .page .tile img { height: clamp(62px, min(98px, 75vh - 442px), 98px); height: clamp(62px, min(98px, 75dvh - 442px), 98px); }
+      .page .tile .ini { font-size: 47px; }
+      .studies { gap: 6px; margin-top: 16px; }
+      .study { min-height: 64px; gap: 8px; padding: 10px; border-radius: 12px; }   /* phones: still three across, just tighter */
+      .study b { font-size: 11px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+      .study .desc { margin-top: 2px; font-size: 11px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+      .study.has-ic { row-gap: 8px; } .study-ic { width: 26px; height: 26px; } .study-ic svg { width: 14px; height: 14px; }   /* phones: smaller icons */
+    }
+    @media (pointer: coarse), (max-width: 600px) {
+      .full-x { top: calc(14px + env(safe-area-inset-top, 0px)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .view { animation: none; }
+      .tile img, .full-x, .pager, .study, .bnav { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-fade" aria-hidden="true"></div>
+  <div class="full-bar"><span class="full-mark" aria-hidden="true">ryan was here</span></div>
+  <a class="full-x" href="index.html" aria-label="Back to home"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg></a>
+
+  <main>
+    <h1 class="sr">Work</h1>
+    <nav class="full-tabs" aria-label="Ways to view the work">
+      <a class="full-tab" href="#recent" data-view="recent"><span>Work</span></a>
+      <a class="full-tab" href="#selected" data-view="selected"><span>Featured</span></a>
+    </nav>
+    <section class="view" id="view-recent" aria-label="Work">
+      <div class="collage" id="rec"></div>
+      <div class="cl-info" id="clInfo" aria-live="polite"></div>
+    </section>
+    <section class="view" id="view-selected" aria-label="Featured" hidden>
+      <div class="pages" id="sel"></div>
+    </section>
+  </main>
+
+  <script>
+    /* the work, once: every view below is drawn from this list, so a project is added or edited in one place.
+       PLACEHOLDERS: the illustrations live in images/work (one SVG per project); the years, roles, clients and summaries are stand-ins to replace.
+       selected: its place in Featured (1 = first); leave it out to show the project only under Work.
+       url: the project's page; until there is one, its card shows 'Coming soon'.
+       color: the project's own colour, carried over from the old site's cards (Blackradio is near-black, for its name): the tile behind it in Work, the glow and accents in Featured.
+       model: the 3D object that stands on the turntable on its Featured slide (built in work-3d.js); the illustration is shown until it's ready, and in Work.
+       dates: optional; shown as a chip beside the title on its Featured slide (e.g. 'July 2025 – Present'); with dates, the role and dates sit on the title's line on the slide, and the Work card's line is just the role.
+       studies: the project's case studies, shown as cards on its Featured slide (each can take a desc line, icons from ICONS shown above the text, and a url too). SAMPLE is three stand-ins for now. */
+    var SAMPLE = [ { title:'Sample case study one' }, { title:'Sample case study two' }, { title:'Sample case study three' } ];
+    var PROJECTS = [
+      { title:'K Health',   client:'Healthcare',              role:'Senior Product Designer', year:2024, dates:'November 2022 – July 2025', color:'#2b8fff', model:'monitor', img:'images/work/k-health.svg',   selected:2, studies:SAMPLE, summary:'Placeholder: one line on the problem and what shipped.' },
+      { title:'Fleeting',   client:'Transportation logistics', role:'Founding Designer', year:2023, dates:'April 2019 – November 2022', color:'#2663df', model:'truck', img:'images/work/fleeting.svg',      selected:3, studies:SAMPLE, summary:'Placeholder: one line on the problem and what shipped.' },
+      { title:'The Hush',   client:'Nightlife venues',        role:'Product Designer', year:2022, dates:'July 2025 – February 2026', color:'#5b00d3', model:'martini', img:'images/work/hush.svg', selected:4, studies:SAMPLE, summary:'Placeholder: one line on the problem and what shipped.' },
+      { title:'Blackradio', client:'Independent',             role:'Founding Designer', year:2026, dates:'July 2025 – Present', color:'#2c2c30', model:'radio', img:'images/work/blackradio.svg',   selected:1, studies:[ { title:'MVP', icons:['desktop','mobile'], desc:'Building an end to end experience for music video discovery' }, { title:'Admin tools & routing', icons:['desktop','mobile'], desc:'Turning backend tools into a lovable experience' }, { title:'Frontend Refresh', icons:['desktop','mobile'], desc:'Adding visual context to discovery pathways' } ], summary:'A community for artist discovery and music videos' },
+    ];
+    (function(){
+      var esc=function(v){ return String(v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+      var href=function(p){ return p.url ? 'href="'+esc(p.url)+'"' : 'href="#" data-soon'; };   // data-soon: bnav.js shows 'Coming soon'
+      var tile=function(p){ return '<span class="tile" aria-hidden="true"'+(p.color?' style="--c:'+esc(p.color)+'"':'')+'>'+(p.img ? '<img src="'+esc(p.img)+'" alt="" width="800" height="800" loading="lazy" decoding="async">' : '<span class="ini">'+esc(p.title.charAt(0))+'</span>')+'</span>'; };
+      var meta=function(p){ return p.dates ? esc(p.role) : esc(p.client)+' · '+esc(p.role)+' · '+esc(p.year); };   // with dates, the chip carries the timing, so the line is just the role
+      // Work: every project as a card, newest first
+      // Work: the orbit, newest first (the script below places them round the ellipse)
+      var order=PROJECTS.slice().sort(function(a,b){ return b.year-a.year; });
+      document.getElementById('rec').innerHTML = order.map(function(p,i){
+        return '<a class="cl-item" href="#selected" draggable="false" data-i="'+i+'"'+(p.model?' data-model="'+esc(p.model)+'"':'')+(p.img?' data-img="'+esc(p.img)+'"':'')+' aria-label="'+esc(p.title)+'" style="--c:'+esc(p.color||'#111')+'">'+
+          '<span class="cl-obj" aria-hidden="true"></span></a>'; }).join('');   // the 3D script fills each spot (or, without 3D, the illustration)
+      // Featured: the curated few, each given a whole screen, in their chosen order
+      var picks=PROJECTS.filter(function(p){ return p.selected; }).sort(function(a,b){ return a.selected-b.selected; }), pad=function(n){ return (n<10?'0':'')+n; };
+      // it loops: the set is laid out three times (copy, real, copy) and the slider rests in the middle one; settling in a copy jumps silently to the same project in the middle, so there's no first or last
+      // placeholder case studies (SAMPLE) show blurred, labelled 'coming soon' for screen readers; clicking says 'Coming soon' (no url: data-soon)
+      var studies=function(p){ if (!p.studies || !p.studies.length) return ''; var soon=p.studies===SAMPLE;
+        return '<nav class="studies'+(soon?' is-soon':'')+'" aria-label="'+esc(p.title)+' case studies">'+p.studies.map(function(c,k){
+          var tx='<b>'+esc(c.title)+'</b>'+(c.desc?'<span class="desc">'+esc(c.desc)+'</span>':'');
+          if (soon) return '<a class="study" '+href(c)+' aria-label="Case study coming soon">'+tx+'</a>';
+          var ics=(c.icons||[]).filter(function(k){ return ICONS[k]; });
+          return ics.length ? '<a class="study has-ic" '+href(c)+'><span class="study-ics" aria-hidden="true">'+ics.map(function(k){ return '<span class="study-ic">'+ICONS[k]+'</span>'; }).join('')+'</span><span class="study-tx">'+tx+'</span></a>'
+                            : '<a class="study" '+href(c)+'>'+tx+'</a>'; }).join('')+'</nav>'; };
+      // case-study icons (placeholders for now), drawn in currentColor
+      var ICONS={ desktop:'<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M9 20h6M12 16v4"/></svg>',
+                  mobile:'<svg viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/></svg>' };
+      var prevBtn='<button class="pager" type="button" data-step="-1" aria-label="Previous project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M11 5l-7 7 7 7"/></svg></button>',
+          nextBtn='<button class="pager" type="button" data-step="1" aria-label="Next project"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>';
+      var slide=function(p,i,copy){
+        return '<article class="page" aria-label="'+esc(p.title)+'"'+(p.model?' data-model="'+esc(p.model)+'"':'')+(p.color?' style="--c:'+esc(p.color)+'"':'')+(copy?' aria-hidden="true" inert':'')+'><span class="page-bg" aria-hidden="true"><span style="--n:'+p.title.length+'">'+esc(p.title)+'</span></span>'+prevBtn+'<div class="page-main">'+tile(p)+'<div class="page-t"><div class="page-head"><h2>'+esc(p.title)+'</h2>'+(p.dates?'<div class="facts"><span class="fact">'+esc(p.role)+'</span><span class="fact">'+esc(p.dates)+'</span></div>':'')+'</div>'+
+          (p.dates?'':'<span class="meta">'+meta(p)+'</span>')+'<p>'+esc(p.summary)+'</p></div></div>'+studies(p)+nextBtn+'</article>'; };
+      var N=picks.length, set=function(copy){ return picks.map(function(p,i){ return slide(p,i,copy); }).join(''); };
+      document.getElementById('sel').innerHTML = set(true)+set(false)+set(true);
+      // the slider: which slide is on screen, stepping one at a time (arrows, keys), and the silent jump back to the middle set once a move settles
+      var pages=document.getElementById('sel'), still=matchMedia('(prefers-reduced-motion: reduce)'), settleT;
+      function at(){ return Math.round(pages.scrollLeft / (pages.clientWidth || 1)); }
+      function jump(i){ pages.scrollTo({ left: i*pages.clientWidth, behavior: 'auto' }); }
+      function go(i){ i=Math.max(0, Math.min(3*N-1, i)); pages.scrollTo({ left: i*pages.clientWidth, behavior: still.matches ? 'auto' : 'smooth' }); }
+      var announce=function(){ document.dispatchEvent(new CustomEvent('work:slide', { detail:{ slide: window.__workSlide() } })); };
+      window.__workSlide=function(){ return document.documentElement.classList.contains('paged') ? pages.children[at()] : null; };
+      function sync(){ var i=at(); if (i<N) jump(i+N); else if (i>=2*N) jump(i-N); announce();
+        // if an arrow had focus, hand it to the same arrow on the slide now showing (focus would otherwise stay on the slide that scrolled away)
+        var f=document.activeElement; if (f && f.classList.contains('pager')){ var here=pages.children[at()], twin=here && here.querySelector('.pager[data-step="'+f.dataset.step+'"]'); if (twin && twin!==f) twin.focus({ preventScroll:true }); } }
+      // the colour of the project on screen, for things outside the slides (the nav's current chip); updated as soon as a slide is mostly in view
+      var tint=function(){ var p=picks[((at() % N) + N) % N]; if (p && p.color) document.documentElement.style.setProperty('--cur', p.color); };
+      pages.addEventListener('scroll', function(){ tint(); clearTimeout(settleT); settleT=setTimeout(sync, 140); }, { passive:true });
+      // the huge name behind each slide: scaled so it spans 72% of the slide's width (no taller than 36% of the screen); the CSS size is the fallback
+      // ...and set on one horizontal line with the object and the arrows (--mid on each slide: the 3D stage's centre, which sits 4% of the
+      // stage's height above the illustration's centre, the stage being 1.9x the illustration's height, see work-3d.js); the name is shifted
+      // by its measured letter shapes, so the middle of its ink (not of its text box) lands on that line
+      var metric=document.createElement('canvas').getContext('2d');
+      var fitNames=function(){ if (!pages.clientWidth) return;
+        [].forEach.call(pages.querySelectorAll('.page'), function(pg){ var img=pg.querySelector('.tile img'); if (!img) return;
+          var pr=pg.getBoundingClientRect(), ir=img.getBoundingClientRect(); if (!ir.height) return;
+          pg.style.setProperty('--mid', (ir.top + ir.height/2 - 0.076*ir.height - pr.top).toFixed(1)+'px'); });
+        [].forEach.call(pages.querySelectorAll('.page-bg span'), function(sp){ sp.style.fontSize='100px'; var w=sp.getBoundingClientRect().width, pw=sp.parentNode.getBoundingClientRect().width;
+          if (!w || !pw) return; sp.style.fontSize=Math.min(100*pw*0.72/w, innerHeight*0.36).toFixed(1)+'px';
+          var cs=getComputedStyle(sp), lh=parseFloat(cs.lineHeight); metric.font=cs.fontWeight+' '+cs.fontSize+' '+cs.fontFamily;
+          var m=metric.measureText(sp.textContent.toLowerCase()), base=(lh-(m.fontBoundingBoxAscent+m.fontBoundingBoxDescent))/2+m.fontBoundingBoxAscent;
+          sp.style.marginTop=(lh/2-(base-(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2)).toFixed(1)+'px'; }); };
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitNames);
+      window.addEventListener('resize', function(){ if (pages.clientWidth){ jump(N + (at() % N)); fitNames(); } });
+      pages.addEventListener('click', function(e){ var b=e.target.closest('.pager'); if (b) go(at() + Number(b.dataset.step)); });
+      document.addEventListener('keydown', function(e){ if (!document.documentElement.classList.contains('paged') || e.altKey || e.metaKey || e.ctrlKey) return;
+        if (e.key==='ArrowRight'){ e.preventDefault(); go(at()+1); } else if (e.key==='ArrowLeft'){ e.preventDefault(); go(at()-1); } });
+      // the switcher: one view at a time, kept in the URL hash so each view can be linked to
+      var tabs=[].slice.call(document.querySelectorAll('.full-tab'));
+      function show(name, push){ if (!document.getElementById('view-'+name)) name='recent';
+        tabs.forEach(function(t){ var on=t.dataset.view===name; if (on) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
+          document.getElementById('view-'+t.dataset.view).hidden=!on; });
+        document.documentElement.classList.toggle('paged', name==='selected'); document.documentElement.classList.toggle('oncolor', name==='selected');   // Work stays on the cream page
+        if (name==='selected'){ jump(N + (at() % N)); tint(); fitNames(); } announce();
+        if (push){ history.pushState(null,'','#'+name); window.scrollTo(0,0); } }
+      tabs.forEach(function(t){ t.addEventListener('click', function(e){ e.preventDefault(); if (t.getAttribute('aria-current')) return; show(t.dataset.view, true); }); });
+      window.addEventListener('popstate', function(){ show(location.hash.slice(1), false); });
+      // the orbit: the front project is the picked one (its story below, whatever is hovered); clicking or tapping another brings it round
+      // to the front, and clicking (or tapping) the front one opens it in Featured
+      var rec=document.getElementById('rec'), clInfo=document.getElementById('clInfo'), active=-1;
+      function pick(i){ if (i===active) return; active=i;
+        [].forEach.call(rec.children, function(el){ el.classList.toggle('is-on', Number(el.dataset.i)===i); });
+        var p=order[i]; clInfo.innerHTML = p ? '<b>'+esc(p.title)+'</b>'+(p.dates?[p.role,p.dates]:[p.client,p.role,p.year]).filter(Boolean).map(function(x){ return '<span class="meta">'+esc(String(x))+'</span>'; }).join('')+'<a class="cl-open" href="#selected" data-i="'+i+'">View project</a>' : '';
+        document.dispatchEvent(new CustomEvent('work:collage', { detail:{ i: p ? i : null } })); }
+      function openAt(i){ var p=order[i], k=picks.indexOf(p); if (k<0){ if (p && p.url) location.href=p.url; return; }
+        show('selected', true); jump(N + k); tint(); announce(); }
+      // where everything is: 'phase' is the orbit's turn (radians); project i sits at angle phase + i*STEP, where 0 is the front (bottom, nearest)
+      // and the back is the top. 'goal' is where it's heading; it eases there, and settles on a whole project once the scrolling stops.
+      var items=[].slice.call(rec.children), NP=items.length, STEP=2*Math.PI/NP, phase=0, goal=0, front=0, lastDir=-1, orbRaf=0, orbLast=0, idle=0;
+      var calm=matchMedia('(prefers-reduced-motion: reduce)'), W=0, H=0;
+      function size(){ W=rec.clientWidth; H=rec.clientHeight; if (!W) return;   // hidden (Featured is showing): nothing to lay out
+        var b=Math.round(Math.min(W*(W<500?0.31:0.25), H*0.72));   // the front object's size (a little bigger on phones); the canvases render at this, so the smaller ones stay crisp
+        items.forEach(function(el){ el.style.width=el.style.height=b+'px'; el.style.margin=(-b/2)+'px 0 0 '+(-b/2)+'px'; }); place(); }
+      function place(){ if (!W) return; var rx=W*0.35, ry=H*0.08;   // a flat ellipse, as seen from a low camera: the back one sits just above the front one, mostly behind it
+        items.forEach(function(el,i){ var a=phase+i*STEP, d=(Math.cos(a)+1)/2;   // d: 1 at the front, 0 at the back
+          el.style.transform='translate('+(Math.sin(a)*rx).toFixed(1)+'px,'+(Math.cos(a)*ry).toFixed(1)+'px) scale('+(0.3+0.7*d*d).toFixed(3)+')';   // falls away fast: the front one is whole, the sides about half, the back under a third
+          el.style.zIndex=1+Math.round(d*100); el.style.opacity=(0.62+0.38*d).toFixed(3); });
+        document.dispatchEvent(new CustomEvent('work:orbit', { detail:{ phase: phase, step: STEP } })); }   // the 3D turns each object with the orbit
+      function tick(t){ var dt=Math.min(0.05, (t-orbLast)/1000 || 0); orbLast=t; var d=goal-phase;
+        if (calm.matches || Math.abs(d)<0.0005){ phase=goal; orbRaf=0; } else { phase+=d*(1-Math.exp(-dt*9)); orbRaf=requestAnimationFrame(tick); }
+        place(); }
+      // (named turnTo, not go: the Featured slider's go() lives in this same script, and a second function go would replace it)
+      function turnTo(g){ goal=g; front=((Math.round(-goal/STEP) % NP)+NP) % NP; pick(front);
+        if (!orbRaf){ orbLast=performance.now(); orbRaf=requestAnimationFrame(tick); } }
+      // settling: past 15% of the way to the next project, it goes on to it; otherwise it falls back
+      function snap(){ var n=goal/STEP; turnTo(STEP*(lastDir>0 ? Math.ceil(n-0.15) : Math.floor(n+0.15))); }
+      function bring(i){ var cur=Math.round(-goal/STEP), k=((i-cur) % NP + NP) % NP; if (k>NP/2) k-=NP; lastDir=k>0?-1:1; turnTo(-(cur+k)*STEP); }   // the short way round
+      size(); new ResizeObserver(size).observe(rec);
+      pick(0);
+      // the 3D script loads after this one: when it's ready it asks where things are
+      document.addEventListener('work:hello', function(){ place(); document.dispatchEvent(new CustomEvent('work:collage', { detail:{ i: active } })); });
+      // scrolling anywhere on the Work view turns it (down or right: the next project comes round from the right)
+      document.getElementById('view-recent').addEventListener('wheel', function(e){
+        var dl=Math.abs(e.deltaX)>Math.abs(e.deltaY) ? e.deltaX : e.deltaY; if (!dl) return; e.preventDefault();
+        if (e.deltaMode===1) dl*=33; spin(null); lastDir=dl>0?-1:1; turnTo(goal - dl*0.0045);
+        clearTimeout(idle); idle=setTimeout(snap, 140); }, { passive:false });
+      // dragging sideways (a finger, or the mouse) turns it with the hand; the front object follows the pointer
+      var drag=null, dragged=false;
+      var touchedAt=0, byTouch=function(){ return Date.now()-touchedAt < 800; };   // a tap's emulated hover shouldn't count as a hover
+      rec.addEventListener('pointerdown', function(e){ if (e.pointerType!=='mouse') touchedAt=Date.now(); if (e.button) return;
+        drag={ x:e.clientX, g:goal, id:e.pointerId }; dragged=false; });
+      rec.addEventListener('pointermove', function(e){ if (!drag || e.pointerId!==drag.id || !W) return; var dx=e.clientX-drag.x;
+        if (!dragged){ if (Math.abs(dx)<8) return; dragged=true; spin(null); try { rec.setPointerCapture(e.pointerId); } catch(_){} }
+        lastDir=dx<0?-1:1; turnTo(drag.g + dx/(W*0.35)); });
+      var drop=function(e){ if (!drag || e.pointerId!==drag.id) return; drag=null; if (dragged) snap(); };
+      rec.addEventListener('pointerup', drop); rec.addEventListener('pointercancel', drop);
+      // only the object under the pointer turns on its own; at rest they all hold still
+      var spin=function(i){ document.dispatchEvent(new CustomEvent('work:spin', { detail:{ i: i } })); };
+      rec.addEventListener('mouseover', function(e){ if (drag || byTouch()) return; var it=e.target.closest('.cl-item');
+        spin(it ? Number(it.dataset.i) : null); });
+      rec.addEventListener('mouseleave', function(){ spin(null); });
+      // the keyboard: tabbing to a project brings it round; the arrow keys turn it one at a time
+      rec.addEventListener('focusin', function(e){ var it=e.target.closest('.cl-item'); if (it && it.matches(':focus-visible')){ bring(Number(it.dataset.i)); } });
+      rec.addEventListener('keydown', function(e){ var k={ ArrowRight:1, ArrowDown:1, ArrowLeft:-1, ArrowUp:-1 }[e.key]; if (!k) return; e.preventDefault();
+        items[(front+k+NP) % NP].focus(); });
+      rec.addEventListener('click', function(e){ var it=e.target.closest('.cl-item'); if (!it) return; e.preventDefault();
+        if (dragged){ dragged=false; return; }   // that was the end of a drag, not a click
+        var i=Number(it.dataset.i); if (i!==front) bring(i); else openAt(i); });
+      clInfo.addEventListener('click', function(e){ var a=e.target.closest('.cl-open'); if (!a) return; e.preventDefault(); openAt(Number(a.dataset.i)); });
+      show(location.hash.slice(1), false);
+    })();
+  </script>
+  <script src="bnav.js" data-current="work" defer></script>
+  <script type="module" src="work-3d.js"></script>
+</body>
+</html>
