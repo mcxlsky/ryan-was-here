@@ -85,10 +85,10 @@
        Spacing: 18px all round, 6px under the name, 2px between the details, 14px above the button */
     .cl-info { width: min(100%, 210px); margin: 22px auto auto; padding: 18px 16px; display: grid; justify-items: center; align-content: start; gap: 0;
                text-align: center; background: rgba(17,17,17,0.055); border-radius: 16px; }
-    /* the card waits for the orbit: hidden until its objects fade in (the 3D script adds .orbit-in), then fades in with them, at the same pace */
+    /* the card waits for the orbit: hidden until its objects fade in (the 3D script adds .orbit-in), then follows a beat later, at the same pace */
     #view-recent { --orbit-fade: 1.2s; }
     .cl-info { opacity: 0; transition: opacity var(--orbit-fade) ease-out; }
-    #view-recent.orbit-in .cl-info { opacity: 1; }
+    #view-recent.orbit-in .cl-info { opacity: 1; transition-delay: .25s; }   /* a beat after the objects */
     .cl-info b { margin-bottom: 6px; font: 600 16px/1.25 var(--font-ui); letter-spacing: -0.02em; }   /* the name, then its details stacked one per line */
     .cl-info .meta { font: 500 12.5px/1.35 var(--font-ui); color: rgba(17,17,17,0.55); }
     .cl-info .meta + .meta { margin-top: 2px; }   /* the details, one per line (the card is their fill now) */
@@ -389,6 +389,6 @@
     })();
   </script>
   <script src="bnav.js" data-current="work" defer></script>
-  <script type="module" src="work-3d.js"></script>
+  <script type="module" src="work-3d.js?v=2"></script>   <!-- bump ?v= whenever work-3d.js changes, so browsers never pair this page with an old cached copy -->
 </body>
 </html>
