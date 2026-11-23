@@ -765,9 +765,7 @@
       .bnav { bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
       .soon-toast { bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
     }
-    .about-full { display: none; }   /* About is 'coming soon': keep its full-screen cream layer out of the page entirely (iOS Safari was tinting the bottom bar from it) */
-    .about-full.preview { display: block; }   /* ?preview=about bypasses the gate */
-    .about-full.preview[hidden] { display: none; }   /* …but a closed panel still hides */
+    .about-full[hidden] { display: none; }   /* closed: its full-screen cream layer is out of the page entirely (iOS Safari tinted its bottom bar from it otherwise) */
     .about-full::before { background: linear-gradient(#FAFAFA 62%, rgba(250,250,250,0)); }
     /* the Next Train card floats at the centre of the screen instead of sitting in the dock */
     .dock > .train { position: fixed; top: 50%; left: 50%; right: auto; bottom: auto; flex: none; width: min(300px, calc(100% - 32px)); transform: translate(-50%, -50%); }
@@ -995,7 +993,7 @@
     </div>
     </div>
     <nav class="bnav" aria-label="Main">
-      <div class="bn-links"><a href="#" class="bn-home" aria-current="page">Home</a><a href="work.html" class="bn-work">Work</a><a href="#" class="bn-about" data-soon>About</a></div>
+      <div class="bn-links"><a href="#" class="bn-home" aria-current="page">Home</a><a href="work.html" class="bn-work">Work</a><a href="#" class="bn-about">About</a></div>
       <span class="bn-sep" aria-hidden="true"></span>
       <button class="bn-me" id="bnMe" type="button" aria-label="About me" aria-haspopup="dialog" aria-expanded="false" aria-controls="bioPop"><img src="images/ryan-avatar.jpg" alt="" width="44" height="44"></button>
     </nav>
@@ -3098,7 +3096,7 @@ THREE.ColorManagement.enabled = false;
       full.addEventListener('scroll', function(){ var max=full.scrollHeight-full.clientHeight, p=max>0 ? Math.min(1, full.scrollTop/max) : 0;
         document.body.style.setProperty('--nav-s', (1 - 0.12*p).toFixed(4)); }, { passive:true });
       window.addEventListener('loader-gone', function(){ full.classList.remove('held'); });
-      // arriving from the nav on another page, or a link straight to a section; skipped while About is gated ("coming soon": the nav link still carries data-soon)
+      // arriving from the nav on another page (index.html#about), or a link straight to a section
       if (/^#(about|about-me|my-process|inspiration)$/.test(location.hash)) setTimeout(function(){ if (!openB.hasAttribute('data-soon')) open(true); }, 700);
       addEventListener('keydown', function(e){ if (e.key==='Escape' && !full.hidden) close(); });
     })();
@@ -3203,10 +3201,6 @@ THREE.ColorManagement.enabled = false;
     (function(){ var el=document.createElement('div'), t; el.className='soon-toast'; el.setAttribute('role','status'); document.body.appendChild(el);
         document.addEventListener('click', function(e){ var a=e.target.closest && e.target.closest('[data-soon]'); if (!a) return; e.preventDefault(); e.stopPropagation();
           el.textContent='Coming soon'; el.classList.add('show'); clearTimeout(t); t=setTimeout(function(){ el.classList.remove('show'); setTimeout(function(){ if (!el.classList.contains('show')) el.textContent=''; },300); },1800); }, true); })();
-    if (/[?&]preview=about/.test(location.search)){
-      var af=document.getElementById('aboutFull'); if (af){ af.classList.add('preview'); af.removeAttribute('hidden');
-        document.querySelector('.bn-about')?.removeAttribute('data-soon');
-        setTimeout(function(){ window.__aboutOpen(true); },800); } }
   </script>
 </body>
 </html>
