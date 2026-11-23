@@ -331,8 +331,8 @@ function collage() {
     // a low camera: just above the object's middle, looking down at it a touch (Featured keeps its higher view)
     cam.position.set(0, f.lookY + fit * 0.1, fit); cam.lookAt(0, f.lookY, 0);
     host.appendChild(r.domElement);
-    const v = { root, rest, idx: Number(item.dataset.i) || 0, orb: 0, spin: 0, w: 0, ready: kind !== 'truck', dir: i % 2 ? -1 : 1,   // neighbours turn opposite ways
-                draw: () => { if (!v.w) return; r.render(sc, cam); if (v.ready) host.classList.add('drawn'); } };   // fades in once it's whole
+    const v = { root, rest, host, idx: Number(item.dataset.i) || 0, orb: 0, spin: 0, w: 0, ready: kind !== 'truck', shown: false, dir: i % 2 ? -1 : 1,   // neighbours turn opposite ways
+                draw: () => { if (!v.w) return; r.render(sc, cam); if (v.ready && !v.shown) { v.shown = true; reveal(); } } };   // whole and drawn: ready to fade in
     new ResizeObserver(() => {
       const w = host.clientWidth, h = host.clientHeight;                       // its layout size (the orbit's scale is a transform, so it doesn't count)
       v.w = w && h ? w : 0; if (!v.w) return;                                   // hidden (the Featured view is showing): nothing to draw
@@ -341,6 +341,16 @@ function collage() {
     if (kind === 'truck') CAB.then(() => requestAnimationFrame(() => { v.ready = true; v.draw(); }));   // the cab's body arrives a moment later
     return v;
   });
+  // they all fade in together, once every one is whole and drawn (the truck waits on its cab model); if one is still loading after a few
+  // seconds, the rest come in without it and it follows when it's ready, so a slow download can't keep the orbit empty
+  // the card under the orbit fades in with them (work.html shows it anyway after a few seconds, in case this script never runs)
+  let together = false;
+  function reveal(force) {
+    if (!together && (force || views.every(x => !x || x.shown))) { together = true; document.getElementById('view-recent')?.classList.add('orbit-in'); }
+    if (together) for (const x of views) if (x && x.shown) x.host.classList.add('drawn');
+  }
+  setTimeout(() => reveal(true), 4000);
+  if (!views.some(Boolean)) reveal(true);                                     // no 3D at all (the illustrations show): nothing to wait for
   // each object's angle: its rest, plus where it is on the orbit, plus its own spin (only the hovered one spins; the others ease their spin away)
   const aim = v => { v.root.rotation.y = v.rest + v.orb + v.spin; };
   let on = null, live = null, raf = 0, last = 0;                            // on: under the pointer (spins); live: the picked one (its screen runs)

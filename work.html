@@ -77,7 +77,7 @@
                -webkit-tap-highlight-color: transparent; -webkit-user-drag: none; }
     .cl-item:focus-visible { outline: 2px solid #111; outline-offset: 4px; border-radius: 16px; }
     .cl-obj { position: absolute; inset: -30%; display: grid; place-items: center; pointer-events: none; }   /* the canvas runs well past the object, so its shadow isn't cut off */
-    .cl-obj canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity .5s ease; }
+    .cl-obj canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity var(--orbit-fade) ease-out; }
     .cl-obj.drawn canvas { opacity: 1; }
     .cl-obj img { width: 74%; height: auto; }   /* only if the browser can't do 3D */
     /* the front project's name and details in one small flat card under its object, in the soft grey the chips used. Every project has the same
@@ -85,6 +85,10 @@
        Spacing: 18px all round, 6px under the name, 2px between the details, 14px above the button */
     .cl-info { width: min(100%, 210px); margin: 22px auto auto; padding: 18px 16px; display: grid; justify-items: center; align-content: start; gap: 0;
                text-align: center; background: rgba(17,17,17,0.055); border-radius: 16px; }
+    /* the card waits for the orbit: hidden until its objects fade in (the 3D script adds .orbit-in), then fades in with them, at the same pace */
+    #view-recent { --orbit-fade: 1.2s; }
+    .cl-info { opacity: 0; transition: opacity var(--orbit-fade) ease-out; }
+    #view-recent.orbit-in .cl-info { opacity: 1; }
     .cl-info b { margin-bottom: 6px; font: 600 16px/1.25 var(--font-ui); letter-spacing: -0.02em; }   /* the name, then its details stacked one per line */
     .cl-info .meta { font: 500 12.5px/1.35 var(--font-ui); color: rgba(17,17,17,0.55); }
     .cl-info .meta + .meta { margin-top: 2px; }   /* the details, one per line (the card is their fill now) */
@@ -349,6 +353,7 @@
       function snap(){ var n=goal/STEP; turnTo(STEP*(lastDir>0 ? Math.ceil(n-0.15) : Math.floor(n+0.15))); }
       function bring(i){ var cur=Math.round(-goal/STEP), k=((i-cur) % NP + NP) % NP; if (k>NP/2) k-=NP; lastDir=k>0?-1:1; turnTo(-(cur+k)*STEP); }   // the short way round
       size(); new ResizeObserver(size).observe(rec);
+      setTimeout(function(){ document.getElementById('view-recent').classList.add('orbit-in'); }, 5000);   // if the 3D script never runs, show the card anyway
       pick(0);
       // the 3D script loads after this one: when it's ready it asks where things are
       document.addEventListener('work:hello', function(){ place(); document.dispatchEvent(new CustomEvent('work:collage', { detail:{ i: active } })); });
