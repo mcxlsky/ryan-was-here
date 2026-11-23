@@ -70,7 +70,7 @@
     #view-recent:not([hidden]) { display: flex; flex-direction: column; padding-bottom: clamp(32px, 10vh, 110px);
                                  min-height: calc(100vh - clamp(110px, 17vh, 150px) - 102px); min-height: calc(100dvh - clamp(110px, 17vh, 150px) - 102px); }
     /* the orbit's box: wide and shallow (seen from ground level, the orbit is a flat ellipse), and never taller than the room on a short screen */
-    .collage { position: relative; width: min(100%, max(300px, calc((100vh - 390px) * 16 / 6))); max-width: 640px; margin: auto auto 0; aspect-ratio: 16 / 6;
+    .collage { position: relative; isolation: isolate; width: min(100%, max(300px, calc((100vh - 390px) * 16 / 6))); max-width: 640px; margin: auto auto 0; aspect-ratio: 16 / 6;
                touch-action: pan-y; -webkit-user-select: none; user-select: none; }
     /* each object is centred in the box; the script sizes it and sets where it is on the ellipse (translate), how near (scale, fade) and what's in front */
     .cl-item { position: absolute; left: 50%; top: 50%; width: 0; height: 0; will-change: transform; transform-origin: 50% 78%;   /* they shrink toward their base, so they all stand on one ground */
