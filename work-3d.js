@@ -18,7 +18,7 @@ const M = {
   satin:  new THREE.MeshStandardMaterial({ color: 0xc9cdd3, roughness: 0.3, metalness: 1, envMapIntensity: 1.6 }),
   cream:  new THREE.MeshPhysicalMaterial({ color: 0xf3ead8, roughness: 0.42, clearcoat: 0.6, clearcoatRoughness: 0.2 }),
   glassClear: new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.04, metalness: 0, transparent: true, opacity: 0.22, clearcoat: 1, envMapIntensity: 2.2, side: THREE.DoubleSide, depthWrite: false }),
-  drink:  new THREE.MeshPhysicalMaterial({ color: 0xf6f0cf, emissive: 0x3a3618, emissiveIntensity: 0.6, roughness: 0.12, transparent: true, opacity: 0.72, clearcoat: 0.6, side: THREE.DoubleSide }),
+  drink:  new THREE.MeshPhysicalMaterial({ color: 0xffffff, transmission: 0.98, ior: 1.05, thickness: 0.15, attenuationColor: new THREE.Color(0xfdf5d6), attenuationDistance: 8.0, roughness: 0.0, envMapIntensity: 0.3, side: THREE.DoubleSide }),
   olive:  new THREE.MeshPhysicalMaterial({ color: 0x8c9a2a, roughness: 0.35, clearcoat: 1, clearcoatRoughness: 0.2 }),
   grille: new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.7, metalness: 0.3 }),
   glass:  new THREE.MeshPhysicalMaterial({ color: 0x10151b, roughness: 0.04, metalness: 0.3, clearcoat: 1, clearcoatRoughness: 0.03 }),
@@ -261,12 +261,19 @@ function buildRadio() {
 /* ── The Hush: a martini — clear glass, a pale drink, an olive with an orange pimento on a charcoal pick ── */
 function buildMartini() {
   const g = new THREE.Group(), P = (x, y) => new THREE.Vector2(x, y);
-  g.add(mesh(new THREE.LatheGeometry([P(0, 0.03), P(1.05, 0.03), P(1.1, 0.07), P(0.95, 0.12), P(0.1, 0.18), P(0.07, 0.3)], 64), M.glassClear));   // foot
-  g.add(mesh(new THREE.CylinderGeometry(0.065, 0.075, 1.75, 24), M.glassClear, 0, 1.15, 0));                                              // stem
-  g.add(mesh(new THREE.LatheGeometry([P(0.07, 2.0), P(0.12, 2.06), P(1.85, 3.52), P(1.88, 3.56)], 72), M.glassClear));                    // bowl
-  g.add(mesh(new THREE.TorusGeometry(1.865, 0.022, 10, 96).rotateX(Math.PI / 2), M.glassClear, 0, 3.55, 0));                              // rim
-  g.add(mesh(new THREE.LatheGeometry([P(0, 2.08), P(0.12, 2.1), P(1.5, 3.2)], 64), M.drink));                                             // the drink
-  g.add(mesh(new THREE.CircleGeometry(1.5, 64).rotateX(-Math.PI / 2), M.drink, 0, 3.2, 0));
+  const martiniGlass = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0.02, metalness: 0, transparent: true, opacity: 0.18, ior: 1.5, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 2.5, side: THREE.DoubleSide, depthWrite: false });
+  g.add(mesh(new THREE.LatheGeometry([P(0, 0.03), P(1.05, 0.03), P(1.1, 0.07), P(0.95, 0.12), P(0.1, 0.18), P(0.07, 0.3)], 64), martiniGlass));   // foot
+  g.add(mesh(new THREE.CylinderGeometry(0.065, 0.075, 1.75, 24), martiniGlass, 0, 1.15, 0));                                              // stem
+  g.add(mesh(new THREE.LatheGeometry([P(0.07, 2.0), P(0.12, 2.06), P(1.85, 3.52), P(1.88, 3.56)], 72), martiniGlass));                    // bowl
+  g.add(mesh(new THREE.TorusGeometry(1.865, 0.022, 10, 96).rotateX(Math.PI / 2), martiniGlass, 0, 3.55, 0));                              // rim
+  const LY = 2.64, maxR = 1.35, bMinY = 2.08 - LY, bRange = 3.2 - 2.08;
+  const bGeom = new THREE.LatheGeometry([P(0, bMinY), P(0.12, 2.1 - LY), P(maxR, 3.2 - LY)], 64);
+  const cGeom = new THREE.CircleGeometry(maxR, 64); cGeom.rotateX(-Math.PI / 2);
+  g.add(mesh(bGeom, M.drink, 0, LY, 0)); g.add(mesh(cGeom, M.drink, 0, 3.2, 0));
+  const bP = bGeom.attributes.position, cP = cGeom.attributes.position;
+  const bOY = new Float32Array(bP.count), cOY = new Float32Array(cP.count);
+  for (let i = 0; i < bP.count; i++) bOY[i] = bP.getY(i);
+  for (let i = 0; i < cP.count; i++) cOY[i] = cP.getY(i);
   // the garnish: the olive sits submerged near the middle of the drink (well inside the bowl at that height), the pick rising through the surface to lean on the rim
   const pick = new THREE.Group(); pick.position.set(0.08, 2.8, 0.06); pick.rotation.set(0.18, 0, 0.5);
   pick.add(mesh(new THREE.CylinderGeometry(0.022, 0.022, 2.4, 10), M.dark, 0, 0.75, 0));
@@ -287,7 +294,23 @@ function buildMartini() {
   const flat = new THREE.Mesh(new THREE.PlaneGeometry(X1 - X0, 2 * Z).rotateX(-Math.PI / 2).translate((X0 + X1) / 2, 0.004, 0),
     new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(sc2), transparent: true, opacity: 0.17, depthWrite: false, toneMapped: false }));
   flat.rotation.y = 0.32; flat.renderOrder = -1;                                    // out to the right and a little back
+  let prevY = 0, prevT = 0, amp = 0, svel = 0;
   const turn = new THREE.Group(); turn.add(g);
+  turn.userData.tick = t => {
+    const dt = prevT ? t - prevT : 0; prevT = t;
+    const curY = turn.rotation.y;
+    if (dt > 0.1 || !dt) { prevY = curY; amp = 0; svel = 0;
+      for (let i = 0; i < bP.count; i++) bP.setY(i, bOY[i]); bP.needsUpdate = true;
+      for (let i = 0; i < cP.count; i++) cP.setY(i, cOY[i]); cP.needsUpdate = true; return; }
+    const dY = Math.atan2(Math.sin(curY - prevY), Math.cos(curY - prevY)); prevY = curY;
+    const target = THREE.MathUtils.clamp(-dY / Math.min(dt, 0.05) * 0.08, -0.12, 0.12);
+    svel += ((target - amp) * 60 - svel * 5) * dt; amp += svel * dt;
+    const cY = Math.cos(curY), sY = Math.sin(curY);
+    for (let i = 0; i < bP.count; i++) { const x = bP.getX(i), z = bP.getZ(i), hf = Math.max(0, (bOY[i] - bMinY) / bRange);
+      bP.setY(i, bOY[i] + amp * (x * cY - z * sY) / maxR * hf); } bP.needsUpdate = true;
+    for (let i = 0; i < cP.count; i++) { const x = cP.getX(i), z = cP.getZ(i);
+      cP.setY(i, cOY[i] + amp * (x * cY - z * sY) / maxR); } cP.needsUpdate = true;
+  };
   Object.assign(turn.userData, { frame: { radius: 2.7, lookY: 1.9 }, flatShadow: flat }); return turn;
 }
 
