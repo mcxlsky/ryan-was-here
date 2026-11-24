@@ -3095,7 +3095,7 @@ THREE.ColorManagement.enabled = false;
       // instant: opened on page load rather than by a click, so start full-screen instead of growing out of the button
       var closeT, home=document.querySelector('.bnav .bn-home');
       function mark(onAbout){ var on=onAbout?card:home, off=onAbout?home:card; on.setAttribute('aria-current','page'); off.removeAttribute('aria-current'); }
-      function open(instant){ mark(true); clearTimeout(closeT); full.classList.remove('closing'); full.hidden=false; if (document.getElementById('loader')) full.classList.add('held'); full.classList.add('instant'); if (instant===true) toFull(); else toCard(); void full.offsetWidth; full.classList.remove('instant');
+      function open(instant){ mark(true); clearTimeout(closeT); full.classList.remove('closing'); full.hidden=false; var ld=document.getElementById('loader'); if (ld){ ld.remove(); window.__loaderUp=false; window.dispatchEvent(new Event('loader-gone')); } full.classList.add('instant'); if (instant===true) toFull(); else toCard(); void full.offsetWidth; full.classList.remove('instant');
         requestAnimationFrame(function(){ toFull(); full.classList.add('open'); }); openB.setAttribute('aria-expanded','true');
         window.__aboutP=1; document.body.classList.add('full-open'); full.scrollTop=0; full.dispatchEvent(new Event('about-open')); closeB.focus({ preventScroll:true }); }
       function close(){ if (full.hidden || full.classList.contains('closing')) return; mark(false); full.classList.remove('open'); full.classList.add('closing'); openB.setAttribute('aria-expanded','false'); window.__aboutP=0; document.body.classList.remove('full-open'); document.body.style.removeProperty('--nav-s'); full.dispatchEvent(new Event('about-close'));
