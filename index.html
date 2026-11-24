@@ -1056,8 +1056,13 @@
     (function () {
       var loader = document.getElementById('loader'), t0 = performance.now();
       var holdLoader = /[?&]loader=hold/.test(location.search);   // preview: keep the loader up
+      function dismiss(){
+        if (!loader.parentNode) return;
+        window.__loaderMs=Math.round(performance.now()-t0); window.__loaderUp=false;
+        loader.classList.add('bg-out'); setTimeout(function(){ loader.classList.add('hide'); setTimeout(function(){ loader.remove(); window.dispatchEvent(new Event('loader-gone')); }, 1100); }, 0); }
       (function waitLoader(){ var dt = performance.now()-t0; if (holdLoader) return;
-        if ((window.__ready && window.__warm && dt>2400) || dt>25000){ window.__loaderMs=Math.round(dt); window.__loaderUp=false; loader.classList.add('bg-out'); setTimeout(function(){ loader.classList.add('hide'); setTimeout(function(){ loader.remove(); window.dispatchEvent(new Event('loader-gone')); }, 1100); }, 0); } else requestAnimationFrame(waitLoader); })();
+        if ((window.__ready && window.__warm && dt>2400) || dt>25000) dismiss(); else requestAnimationFrame(waitLoader); })();
+      if (!holdLoader) setTimeout(dismiss, 26000);
       var veil = document.getElementById('veil');
       (function wait(){ if (window.__ready && window.__warm) veil.classList.add('hide'); else requestAnimationFrame(wait); })();   // loading veil fades once the train is built
     })();
